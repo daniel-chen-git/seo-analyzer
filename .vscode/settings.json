@@ -1,0 +1,101 @@
+{
+    // 需要安裝的 VS Code 擴充套件：
+    // 1. Python (ms-python.python)
+    // 2. Pylint (ms-python.pylint)
+    // 3. Black Formatter (ms-python.black-formatter)
+    // 4. ESLint (dbaeumer.vscode-eslint)
+    // 5. Prettier (esbenp.prettier-vscode)
+    // 編輯器通用設定
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.rulers": [
+        79,
+        120
+    ],
+    "editor.tabSize": 4,
+    // Python 設定
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+        "--max-line-length=79",
+        "--disable=C0111" // 可選：關閉 missing-docstring 警告
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4
+    },
+    "python.formatting.provider": "none",
+    "python.linting.mypyEnabled": true,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    // TypeScript/JavaScript 設定
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2
+    },
+    "typescript.preferences.quoteStyle": "single",
+    "javascript.preferences.quoteStyle": "single",
+    // JSON 設定
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2
+    },
+    // Markdown 設定
+    "[markdown]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.wordWrap": "on"
+    },
+    // 檔案排除設定（檔案總管中隱藏）
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/node_modules": false, // 保持可見以便管理
+        "**/.git": false,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true
+    },
+    // 搜尋排除設定
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/*.code-search": true,
+        "**/__pycache__": true,
+        "**/.pytest_cache": true
+    },
+    // 檔案關聯
+    "files.associations": {
+        "*.md": "markdown",
+        ".env*": "dotenv",
+        "requirements*.txt": "pip-requirements"
+    },
+    // 終端機設定
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.defaultProfile.linux": "bash",
+    // Git 設定
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    // 其他
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.encoding": "utf8"
+}

@@ -27,6 +27,11 @@
 - 或直接使用虛擬環境 Python 路徑：`./.venv/bin/python`
 - 使用 `uv run python` 命令自動啟用虛擬環境
 
+#### 程式碼格式規範
+- **換行後不要使用四個空白鍵**：換行保持乾淨，避免不必要的縮排
+- 使用 IDE 自動格式化功能（如 Black、Prettier）
+- 移除所有尾隨空白（trailing whitespace）
+
 #### Session 交接準備
 - 上下文達到 85% 時開始準備交接
 - 更新對應的 context 文件

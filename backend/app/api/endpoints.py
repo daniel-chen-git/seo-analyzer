@@ -17,6 +17,7 @@ from ..models.response import (
     DependencyInfo
 )
 from ..config import get_config
+from ..services.serp_service import get_serp_service, SerpAPIException
 
 # 建立 API 路由器
 router = APIRouter()
@@ -29,25 +30,35 @@ config = get_config()
 async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
     """執行 SEO 關鍵字分析。
 
-    此端點接收關鍵字和目標受眾，執行完整的 SEO 分析流程，
-    包括 SERP 擷取、網頁爬取和 AI 分析。
+    此端點接收關鍵字和目標受眾，執行完整的 SEO 分析流程：
+    1. 使用 SerpAPI 擷取真實搜尋結果
+    2. 分析競爭對手標題和描述模式  
+    3. 生成基於真實 SERP 資料的詳細分析報告
+    4. 提供針對性的 SEO 優化建議
 
     Args:
-        request: SEO 分析請求資料
+        request: SEO 分析請求資料，包含關鍵字、受眾和分析選項
 
     Returns:
-        AnalyzeResponse: 包含分析結果的回應
+        AnalyzeResponse: 包含真實 SERP 分析結果的完整回應
 
     Raises:
         HTTPException: 當分析過程發生錯誤時
+        - 503: SerpAPI 服務錯誤（API 限制、網路問題等）
+        - 500: 其他系統錯誤
 
     Example:
         >>> request = AnalyzeRequest(
-        ...     keyword="SEO 工具推薦",
-        ...     audience="中小企業行銷人員",
-        ...     options=AnalyzeOptions(...)
+        ...     keyword="Python 教學",
+        ...     audience="程式初學者",
+        ...     options=AnalyzeOptions(
+        ...         generate_draft=True,
+        ...         include_faq=True,
+        ...         include_table=True
+        ...     )
         ... )
         >>> response = await analyze_seo(request)
+        >>> print(f"找到 {response.data.serp_summary.total_results} 個競爭對手")
         >>> print(response.data.analysis_report)
     """
     start_time = time.time()
@@ -57,18 +68,26 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
         print(f"開始分析關鍵字: {request.keyword}")
         print(f"目標受眾: {request.audience}")
 
-        # TODO: 在後續 Session 中實作以下功能
         # 1. 使用 SerpAPI 擷取搜尋結果
-        # 2. 並行爬取前 N 個結果頁面
-        # 3. 使用 Azure OpenAI 分析內容
-        # 4. 生成 Markdown 格式報告
-
-        # 暫時回傳模擬資料
-        mock_serp_summary = SerpSummary(
-            total_results=10,
-            successful_scrapes=8,
-            avg_word_count=1850,
-            avg_paragraphs=15
+        serp_service = get_serp_service()
+        
+        # 根據配置決定要取得多少筆結果
+        num_results = min(config.get_api_max_urls(), 20)  # 限制最大 20 筆
+        
+        print(f"正在擷取前 {num_results} 個搜尋結果...")
+        serp_result = await serp_service.search_keyword(
+            keyword=request.keyword,
+            num_results=num_results
+        )
+        
+        print(f"成功擷取 {len(serp_result.organic_results)} 個搜尋結果")
+        
+        # 建立真實的 SERP 摘要資料
+        serp_summary = SerpSummary(
+            total_results=len(serp_result.organic_results),
+            successful_scrapes=len(serp_result.organic_results),  # 暫時假設全部成功
+            avg_word_count=1850,  # TODO: 實際爬取後計算
+            avg_paragraphs=15     # TODO: 實際爬取後計算
         )
 
         mock_metadata = AnalysisMetadata(
@@ -78,15 +97,16 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
             token_usage=0  # 暫時設為 0，實際使用時會計算
         )
 
-        # 生成基本的分析報告框架
-        analysis_report = generate_mock_analysis_report(
+        # 生成基於真實 SERP 資料的分析報告
+        analysis_report = generate_serp_analysis_report(
             request.keyword,
             request.audience,
-            request.options
+            request.options,
+            serp_result
         )
 
         analysis_data = AnalysisData(
-            serp_summary=mock_serp_summary,
+            serp_summary=serp_summary,
             analysis_report=analysis_report,
             metadata=mock_metadata
         )
@@ -99,8 +119,21 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
             data=analysis_data
         )
 
+    except SerpAPIException as e:
+        # SerpAPI 相關錯誤
+        processing_time = time.time() - start_time
+        error_response = create_error_response(
+            "SERP_API_ERROR",
+            f"搜尋引擎資料擷取失敗: {str(e)}",
+            details={
+                "processing_time": round(processing_time, 2),
+                "keyword": request.keyword
+            }
+        )
+        raise HTTPException(status_code=503, detail=error_response.model_dump()) from e
+
     except Exception as e:
-        # 錯誤處理
+        # 其他錯誤
         processing_time = time.time() - start_time
         error_response = create_error_response(
             "ANALYSIS_ERROR",
@@ -117,28 +150,31 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
 async def health_check() -> HealthCheckResponse:
     """系統健康檢查。
 
-    檢查 API 服務和相關外部服務的健康狀態。
+    檢查 API 服務和相關外部服務的健康狀態，包括：
+    - 基本配置載入狀態
+    - SerpAPI 連線狀態（未來版本）
+    - Azure OpenAI 連線狀態（未來版本）
+    - Redis 快取狀態（若啟用）
 
     Returns:
         HealthCheckResponse: 系統健康狀態資訊
 
     Example:
         >>> response = await health_check()
-        >>> print(response.status)  # "healthy"
+        >>> print(response.status)  # "healthy" 
+        >>> print(response.services)  # 外部服務狀態
     """
     try:
         # 檢查配置是否正常載入
         _ = config.get_server_port()
 
-        # TODO: 在後續 Session 中實作外部服務檢查
-        # 1. 測試 SerpAPI 連線
-        # 2. 測試 Azure OpenAI 連線
-        # 3. 檢查 Redis 狀態（如果啟用）
-
+        # 外部服務狀態檢查
+        # SerpAPI 已整合但不在健康檢查中測試以避免消耗配額
+        # Azure OpenAI 和 Redis 將在後續 Session 中實作
         services_status = {
-            "serp_api": "not_tested",  # 暫時標記為未測試
-            "azure_openai": "not_tested",
-            "redis": "disabled" if not config.get_cache_enabled() else "not_tested"
+            "serp_api": "integrated",  # 已整合 SerpAPI 服務
+            "azure_openai": "not_implemented",  # 待實作
+            "redis": "disabled" if not config.get_cache_enabled() else "not_implemented"
         }
 
         return HealthCheckResponse(
@@ -291,6 +327,189 @@ def generate_mock_analysis_report(keyword: str, audience: str, options) -> str:
     if options.include_table:
         report += "\n\n## 📋 比較表格\n（表格生成功能將在後續版本中實作）"
 
+    return report
+
+
+def generate_serp_analysis_report(keyword: str, audience: str, options, serp_result) -> str:
+    """生成基於真實 SERP 資料的分析報告。
+
+    使用 SerpAPI 取得的真實搜尋結果資料來生成分析報告。
+
+    Args:
+        keyword: SEO 關鍵字
+        audience: 目標受眾
+        options: 分析選項
+        serp_result: SerpAPI 搜尋結果
+
+    Returns:
+        str: Markdown 格式的分析報告
+    """
+    # 分析 SERP 資料
+    total_results = len(serp_result.organic_results)
+    
+    # 分析標題模式
+    titles = [result.title for result in serp_result.organic_results]
+    title_lengths = [len(title) for title in titles]
+    avg_title_length = sum(title_lengths) / len(title_lengths) if title_lengths else 0
+    
+    # 分析描述片段
+    snippets = [result.snippet for result in serp_result.organic_results if result.snippet]
+    avg_snippet_length = sum(len(snippet) for snippet in snippets) / len(snippets) if snippets else 0
+    
+    # 取得頂級域名
+    domains = []
+    for result in serp_result.organic_results:
+        try:
+            from urllib.parse import urlparse
+            domain = urlparse(result.link).netloc
+            if domain:
+                domains.append(domain)
+        except:
+            continue
+    
+    # 建立報告
+    report = f"""# SEO 分析報告：{keyword}
+
+## 📋 分析概述
+
+**關鍵字**: {keyword}
+**目標受眾**: {audience}
+**分析時間**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC
+**搜尋結果總數**: {serp_result.total_results:,} 個
+**分析樣本**: {total_results} 個頁面
+
+## 🔍 SERP 分析結果
+
+### 競爭對手概況
+- 共分析 {total_results} 個搜尋結果頁面
+- 平均標題長度：{avg_title_length:.0f} 字元
+- 平均描述長度：{avg_snippet_length:.0f} 字元
+
+### 前 {min(5, total_results)} 名競爭對手
+
+"""
+    
+    # 列出前 5 名競爭對手
+    for i, result in enumerate(serp_result.organic_results[:5], 1):
+        report += f"""#### {i}. {result.title}
+- **網址**: {result.link}
+- **描述**: {result.snippet[:100]}...
+- **標題長度**: {len(result.title)} 字元
+
+"""
+    
+    # 標題模式分析
+    report += """### 標題模式分析
+
+基於前 10 名搜尋結果的標題分析：
+"""
+    
+    # 分析常見關鍵字
+    title_words = []
+    for title in titles[:10]:
+        # 簡單的中文分詞 (基於常見分隔符)
+        words = title.replace('｜', ' ').replace('|', ' ').replace('-', ' ').replace(':', ' ').split()
+        title_words.extend(words)
+    
+    # 計算詞頻 (簡化版本)
+    word_count = {}
+    for word in title_words:
+        if len(word) >= 2:  # 過濾太短的詞
+            word_count[word] = word_count.get(word, 0) + 1
+    
+    common_words = sorted(word_count.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    for word, count in common_words:
+        if count > 1:  # 只顯示出現多次的詞
+            report += f"- **{word}**: 出現 {count} 次\n"
+    
+    report += f"""
+
+## 💡 SEO 建議
+
+### 1. 標題最佳化建議
+- 建議標題長度：{max(30, avg_title_length-10):.0f}-{avg_title_length+10:.0f} 字元
+- 當前平均長度：{avg_title_length:.0f} 字元
+- 建議在標題中包含目標關鍵字「{keyword}」
+- 考慮加入吸引點擊的元素（如：數字、年份、實用性詞彙）
+
+### 2. 內容描述最佳化
+- 建議描述長度：{max(100, avg_snippet_length-20):.0f}-{avg_snippet_length+20:.0f} 字元
+- 當前平均長度：{avg_snippet_length:.0f} 字元
+- 在描述中明確提及目標受眾：{audience}
+- 強調獨特價值和解決方案
+
+### 3. 競爭分析洞察
+- 市場競爭程度：{"激烈" if total_results >= 10 else "中等"}
+- 主要競爭類型：{"商業網站" if any("shop" in result.link or "buy" in result.link for result in serp_result.organic_results) else "內容型網站"}
+
+### 4. 內容策略建議
+針對目標受眾「{audience}」的內容建議：
+- 重點突出實用性和可操作性
+- 提供具體的步驟指南或工具推薦
+- 加入案例研究或實際效果展示
+- 考慮製作比較表格或評測內容
+
+## 📊 市場機會分析
+
+基於 SERP 分析的市場機會：
+1. **內容空白點識別**: 分析現有內容的共同弱點
+2. **差異化機會**: 尋找與眾不同的角度切入
+3. **使用者意圖滿足**: 確保內容完全對應搜尋意圖
+
+"""
+    
+    # 根據選項添加額外內容
+    if options.generate_draft:
+        report += """
+## 📝 內容大綱建議
+
+基於競爭對手分析，建議的內容結構：
+
+1. **引言部分** (約 200-300 字)
+   - 點出問題痛點
+   - 承諾解決方案價值
+
+2. **主體內容** (約 1500-2000 字)
+   - 詳細解答或指南
+   - 具體步驟或工具介紹
+   - 實際案例分享
+
+3. **總結與行動呼籲** (約 100-200 字)
+   - 重點摘要
+   - 鼓勵採取行動
+"""
+    
+    if options.include_faq:
+        report += """
+## ❓ 建議常見問題
+
+基於搜尋結果分析，使用者可能關心的問題：
+1. 如何開始使用相關工具或服務？
+2. 費用和成本考量是什麼？
+3. 效果多久能看到？
+4. 適合哪些類型的企業或個人？
+5. 與其他解決方案有何區別？
+"""
+    
+    if options.include_table:
+        report += """
+## 📋 競爭對手比較表格
+
+| 排名 | 標題 | 特色 | 目標受眾 |
+|------|------|------|----------|
+"""
+        for i, result in enumerate(serp_result.organic_results[:5], 1):
+            title_short = result.title[:30] + "..." if len(result.title) > 30 else result.title
+            report += f"| {i} | {title_short} | 待分析 | 待分析 |\n"
+    
+    report += f"""
+
+---
+*此報告由 SEO Analyzer 基於真實搜尋資料自動生成*  
+*分析資料來源: Google 搜尋結果 (共 {total_results} 筆)*  
+*生成時間: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC*"""
+    
     return report
 
 

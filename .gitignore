@@ -51,6 +51,9 @@ temp/
 tmp/
 logs/
 
+# Configuration files with secrets
+backend/config.ini
+
 # Testing
 coverage/
 *.lcov

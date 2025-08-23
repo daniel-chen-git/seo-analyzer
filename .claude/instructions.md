@@ -20,7 +20,9 @@
 - **每完成一個 Todo 任務都必須詢問使用者是否繼續**
 - 不可連續執行多個任務，需要使用者確認
 - 完成單一任務後立即停止並等待指令
-- **每完成一個 Todo 任務有修改到檔案時，都要上 GitHub 但要等使用者確認完後再上**
+- **每完成一個 Todo 任務有修改到檔案時，都要 push 到 GitHub**
+- **在使用者確認完成當前任務後，立即執行 git commit 和 push 操作**
+- **每次 push 前都要檢查 git status 和 git diff 確認變更內容**
 
 #### 虛擬環境管理
 - 專案根目錄有 `.venv` 虛擬環境資料夾
@@ -385,4 +387,38 @@ npm run test:e2e
 
 ---
 
-最後更新：2025-08-23 (Session 06)
+## Session 08 新增規範 
+
+### 自定義 Swagger UI 實作經驗
+1. **模板引擎整合**:
+   - 使用 Jinja2 模板引擎處理動態內容
+   - 建立 `app/templates/` 目錄存放 HTML 模板
+   - 建立 `app/static/` 目錄存放靜態資源（CSS、圖片）
+
+2. **FastAPI 自定義文檔配置**:
+   - 關閉預設的 `docs_url` 和 `redoc_url`
+   - 使用 `StaticFiles` 掛載靜態資源
+   - 建立自定義路由 `/docs` 返回品牌化 HTML
+   - 實作 ReDoc 重定向到自定義文檔
+
+3. **品牌化設計元素**:
+   - 使用漸變色彩方案：`#667eea` 到 `#764ba2`
+   - 響應式設計支援行動裝置
+   - 互動式程式碼範例（複製按鈕功能）
+   - 效能指標和使用教學整合
+
+4. **檔案結構**:
+   ```
+   app/
+   ├── templates/
+   │   ├── swagger_ui.html        # 主要模板
+   │   └── api_examples.html      # 範例區塊（備份）
+   ├── static/
+   │   ├── css/
+   │   │   └── custom-swagger.css # 自定義樣式
+   │   └── favicon.svg            # 品牌圖示
+   ```
+
+---
+
+最後更新：2025-08-23 (Session 08)

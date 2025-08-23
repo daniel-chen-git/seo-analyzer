@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - API 文檔</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAANCSURBVFiFtZe9axRBFMafWQwWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW">
+    
+    <!-- Swagger UI CSS -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css" />
+    
+    <!-- 自定義樣式檔案 -->
+    <link rel="stylesheet" type="text/css" href="/static/css/custom-swagger.css" />
+    
+    <!-- 自定義樣式 -->
+    <style>
+        /* 品牌化樣式 */
+        .swagger-ui .topbar {
+            background-color: #1a365d;
+            padding: 20px 0;
+        }
+        
+        .swagger-ui .topbar .download-url-wrapper {
+            display: none;
+        }
+        
+        /* 自定義標題區 */
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 0;
+        }
+        
+        .custom-header h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+        
+        .custom-header p {
+            font-size: 1.1rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .custom-header .version-badge {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        /* 功能特色區塊 */
+        .features-section {
+            background-color: #f7fafc;
+            padding: 40px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature-card h3 {
+            color: #2d3748;
+            margin: 0 0 15px 0;
+            font-size: 1.25rem;
+        }
+        
+        .feature-card p {
+            color: #4a5568;
+            margin: 0 0 15px 0;
+            line-height: 1.6;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .feature-list li {
+            color: #4a5568;
+            padding: 5px 0;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        /* 快速開始區塊 */
+        .quick-start {
+            background-color: #ffffff;
+            padding: 40px 0;
+        }
+        
+        .quick-start h2 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        
+        .example-code {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        .example-code h4 {
+            color: #4a5568;
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+        }
+        
+        .example-code pre {
+            margin: 0;
+            color: #2d3748;
+            overflow-x: auto;
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .custom-header h1 {
+                font-size: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 15px;
+            }
+        }
+        
+        /* Swagger UI 自定義 */
+        .swagger-ui .info {
+            display: none;
+        }
+        
+        .swagger-ui .scheme-container {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        /* API 範例區塊樣式 */
+        .api-examples-section {
+            background: #ffffff;
+            padding: 50px 0;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .example-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .example-card h3 {
+            color: #2d3748;
+            margin: 0 0 20px 0;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .example-description p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
+        }
+
+        .code-block {
+            background: #2d3748;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .code-header {
+            background: #1a202c;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-header span {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            font-family: monospace;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5a67d8;
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .performance-metrics {
+            margin-top: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+        }
+
+        .performance-metrics h3 {
+            margin: 0 0 30px 0;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .metric-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-item h4 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+        }
+
+        .metric-item p {
+            margin: 0;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定義標題區 -->
+    <div class="custom-header">
+        <div class="container">
+            <h1>🔍 SEO Analyzer API</h1>
+            <p>智能 SEO 關鍵字分析工具 - 60 秒內生成專業分析報告</p>
+            <div class="version-badge">版本 v1.0.0</div>
+        </div>
+    </div>
+    
+    <!-- 功能特色區 -->
+    <div class="features-section">
+        <div class="container">
+            <h2 style="text-align: center; color: #2d3748; margin-bottom: 20px;">核心功能特色</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>🚀 高效能分析</h3>
+                    <p>平均處理時間僅需 20-35 秒，保證在 60 秒內完成分析</p>
+                    <ul class="feature-list">
+                        <li>並行處理技術</li>
+                        <li>智能重試機制</li>
+                        <li>實時效能監控</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🔍 真實數據分析</h3>
+                    <p>使用 SerpAPI 擷取 Google 真實搜尋結果</p>
+                    <ul class="feature-list">
+                        <li>即時 SERP 數據</li>
+                        <li>競爭對手分析</li>
+                        <li>市場趨勢洞察</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🤖 AI 深度分析</h3>
+                    <p>Azure OpenAI GPT-4o 提供專業 SEO 建議</p>
+                    <ul class="feature-list">
+                        <li>智能內容分析</li>
+                        <li>個性化建議</li>
+                        <li>可執行策略</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 快速開始區 -->
+    <div class="quick-start">
+        <div class="container">
+            <h2>📚 快速開始</h2>
+            
+            <div class="example-code">
+                <h4>1. 基本 SEO 分析請求</h4>
+                <pre><code>curl -X POST "http://localhost:8001/api/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "keyword": "Python 教學",
+    "audience": "程式初學者",
+    "options": {
+      "generate_draft": true,
+      "include_faq": true,
+      "include_table": false
+    }
+  }'</code></pre>
+            </div>
+            
+            <div class="example-code">
+                <h4>2. 健康檢查</h4>
+                <pre><code>curl http://localhost:8001/api/health</code></pre>
+            </div>
+            
+            <div class="example-code">
+                <h4>3. 版本資訊</h4>
+                <pre><code>curl http://localhost:8001/api/version</code></pre>
+            </div>
+        </div>
+    </div>
+    
+    <!-- API 使用範例區塊 -->
+    <div class="api-examples-section">
+        <div class="container">
+            <h2>💡 常用範例</h2>
+            
+            <div class="examples-grid">
+                <!-- 基礎分析範例 -->
+                <div class="example-card">
+                    <h3>🔍 基礎關鍵字分析</h3>
+                    <div class="example-content">
+                        <div class="example-description">
+                            <p>適用於初次分析某個關鍵字，快速了解競爭狀況和優化方向。</p>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>POST /api/analyze</span>
+                                <button class="copy-btn" onclick="copyToClipboard('basic-example')">複製</button>
+                            </div>
+                            <pre id="basic-example"><code>{
+  "keyword": "Python 教學",
+  "audience": "程式初學者",
+  "options": {
+    "generate_draft": false,
+    "include_faq": false,
+    "include_table": false
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 完整分析範例 -->
+                <div class="example-card">
+                    <h3>📊 完整深度分析</h3>
+                    <div class="example-content">
+                        <div class="example-description">
+                            <p>包含文章草稿、FAQ 和比較表格的完整分析，適合內容創作。</p>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>POST /api/analyze</span>
+                                <button class="copy-btn" onclick="copyToClipboard('full-example')">複製</button>
+                            </div>
+                            <pre id="full-example"><code>{
+  "keyword": "WordPress SEO 優化",
+  "audience": "部落客和小企業主",
+  "options": {
+    "generate_draft": true,
+    "include_faq": true,
+    "include_table": true
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 效能指標說明 -->
+            <div class="performance-metrics">
+                <h3>📈 效能指標說明</h3>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <h4>⏱️ 處理時間</h4>
+                        <p><strong>目標</strong>: < 60 秒<br>
+                        <strong>平均</strong>: 20-35 秒<br>
+                        <strong>監控</strong>: 即時階段計時</p>
+                    </div>
+                    <div class="metric-item">
+                        <h4>🎯 成功率</h4>
+                        <p><strong>目標</strong>: > 95%<br>
+                        <strong>監控</strong>: 自動重試機制<br>
+                        <strong>報告</strong>: 詳細錯誤追蹤</p>
+                    </div>
+                    <div class="metric-item">
+                        <h4>🔄 並發能力</h4>
+                        <p><strong>支援</strong>: 3-5 個同時請求<br>
+                        <strong>佇列</strong>: 智能請求排程<br>
+                        <strong>限制</strong>: 每分鐘 20 次</p>
+                    </div>
+                    <div class="metric-item">
+                        <h4>💰 Token 效率</h4>
+                        <p><strong>範圍</strong>: 5,000-7,000/次<br>
+                        <strong>優化</strong>: 動態內容截取<br>
+                        <strong>監控</strong>: 即時使用量追蹤</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Swagger UI 容器 -->
+    <div id="swagger-ui"></div>
+    
+    <!-- Swagger UI JS -->
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-standalone-preset.js"></script>
+    
+    <script>
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                url: "{{openapi_url}}",
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                defaultModelsExpandDepth: -1,
+                defaultModelExpandDepth: 1,
+                docExpansion: "list",
+                filter: true,
+                showRequestDuration: true,
+                tryItOutEnabled: true,
+                requestInterceptor: function(req) {
+                    // 可以在這裡添加請求攔截邏輯
+                    return req;
+                },
+                responseInterceptor: function(res) {
+                    // 可以在這裡添加回應攔截邏輯
+                    return res;
+                }
+            });
+            
+            // 添加自定義 CSS 到 Swagger UI
+            setTimeout(function() {
+                // 隱藏 Swagger UI 的原生標題
+                const info = document.querySelector('.swagger-ui .info');
+                if (info) {
+                    info.style.display = 'none';
+                }
+                
+                // 自定義服務器選擇器樣式
+                const serverContainer = document.querySelector('.swagger-ui .scheme-container');
+                if (serverContainer) {
+                    serverContainer.style.background = '#f8f9fa';
+                    serverContainer.style.border = '1px solid #dee2e6';
+                }
+            }, 1000);
+        };
+        
+        // 複製功能
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                // 找到對應的複製按鈕並短暫改變文字
+                const button = element.closest('.code-block').querySelector('.copy-btn');
+                const originalText = button.textContent;
+                button.textContent = '已複製!';
+                button.style.background = '#48bb78';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#667eea';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('複製失敗:', err);
+            });
+        }
+    </script>
+</body>
+</html>

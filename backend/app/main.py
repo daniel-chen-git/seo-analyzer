@@ -4,8 +4,13 @@
 設定中間件、註冊路由和啟動伺服器。
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi.openapi.docs import get_swagger_ui_html
+import os
 
 from .config import get_config
 from .api.endpoints import router
@@ -13,7 +18,13 @@ from .api.endpoints import router
 # 取得配置實例
 config = get_config()
 
-# 初始化 FastAPI 應用程式
+# 取得應用目錄路徑
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 初始化模板引擎
+templates = Jinja2Templates(directory=os.path.join(APP_DIR, "templates"))
+
+# 初始化 FastAPI 應用程式（關閉預設文檔）
 app = FastAPI(
     title="SEO Analyzer API",
     description="""
@@ -45,8 +56,8 @@ app = FastAPI(
 3. 根據需求選擇分析選項以控制處理時間
     """,
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=None,  # 關閉預設文檔
+    redoc_url=None,  # 關閉預設 ReDoc
     contact={
         "name": "SEO Analyzer Support",
         "email": "support@seo-analyzer.com",
@@ -56,6 +67,9 @@ app = FastAPI(
         "url": "https://opensource.org/licenses/MIT",
     }
 )
+
+# 掛載靜態檔案
+app.mount("/static", StaticFiles(directory=os.path.join(APP_DIR, "static")), name="static")
 
 # 設定 CORS 中間件
 app.add_middleware(
@@ -68,6 +82,36 @@ app.add_middleware(
 
 # 註冊 API 路由
 app.include_router(router, prefix="/api")
+
+
+@app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
+async def custom_swagger_ui_html(request: Request):
+    """自定義 Swagger UI 文檔頁面。
+    
+    使用自定義 HTML 模板提供品牌化的 API 文檔體驗，
+    包含使用範例、效能指標說明和快速開始指南。
+    
+    Args:
+        request: HTTP 請求物件
+        
+    Returns:
+        HTMLResponse: 自定義的 Swagger UI 頁面
+    """
+    return templates.TemplateResponse(
+        "swagger_ui.html",
+        {
+            "request": request,
+            "title": app.title,
+            "openapi_url": app.openapi_url,
+        }
+    )
+
+
+@app.get("/redoc", response_class=HTMLResponse, include_in_schema=False)
+async def redoc_html():
+    """ReDoc 文檔頁面（重定向到自定義文檔）。"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/")

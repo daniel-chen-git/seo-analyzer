@@ -217,7 +217,7 @@ class ErrorResponse(BaseModel):
         default="error",
         description="回應狀態"
     )
-    error: ErrorInfo = Field(
+    error: Dict[str, Any] = Field(
         ...,
         description="錯誤資訊"
     )

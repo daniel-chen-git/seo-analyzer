@@ -17,7 +17,10 @@ from ..models.response import (
     DependencyInfo
 )
 from ..config import get_config
-from ..services.serp_service import get_serp_service, SerpAPIException
+from ..services.integration_service import get_integration_service
+from ..services.serp_service import SerpAPIException
+from ..services.scraper_service import ScraperException
+from ..services.ai_service import AIServiceException, AIAPIException
 
 # 建立 API 路由器
 router = APIRouter()
@@ -28,23 +31,25 @@ config = get_config()
 
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
-    """執行 SEO 關鍵字分析。
+    """執行完整的 SEO 關鍵字分析。
 
     此端點接收關鍵字和目標受眾，執行完整的 SEO 分析流程：
     1. 使用 SerpAPI 擷取真實搜尋結果
-    2. 分析競爭對手標題和描述模式  
-    3. 生成基於真實 SERP 資料的詳細分析報告
-    4. 提供針對性的 SEO 優化建議
+    2. 並行爬取競爭對手網頁內容
+    3. 使用 Azure OpenAI GPT-4o 生成深度分析報告
+    4. 提供具體可執行的 SEO 優化建議
 
     Args:
         request: SEO 分析請求資料，包含關鍵字、受眾和分析選項
 
     Returns:
-        AnalyzeResponse: 包含真實 SERP 分析結果的完整回應
+        AnalyzeResponse: 包含完整分析結果的回應
 
     Raises:
         HTTPException: 當分析過程發生錯誤時
-        - 503: SerpAPI 服務錯誤（API 限制、網路問題等）
+        - 400: 輸入驗證失敗
+        - 503: 外部服務錯誤（SerpAPI、Azure OpenAI）
+        - 504: 爬蟲逾時
         - 500: 其他系統錯誤
 
     Example:
@@ -54,96 +59,49 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
         ...     options=AnalyzeOptions(
         ...         generate_draft=True,
         ...         include_faq=True,
-        ...         include_table=True
+        ...         include_table=False
         ...     )
         ... )
         >>> response = await analyze_seo(request)
-        >>> print(f"找到 {response.data.serp_summary.total_results} 個競爭對手")
-        >>> print(response.data.analysis_report)
+        >>> print(f"成功率: {response.data.serp_summary.successful_scrapes}/{response.data.serp_summary.total_results}")
+        >>> print(f"Token 使用: {response.data.metadata.token_usage}")
+        >>> print(response.data.analysis_report[:200])
     """
-    start_time = time.time()
-
     try:
-        # 記錄請求資訊
-        print(f"開始分析關鍵字: {request.keyword}")
-        print(f"目標受眾: {request.audience}")
-
-        # 1. 使用 SerpAPI 擷取搜尋結果
-        serp_service = get_serp_service()
+        # 記錄請求開始
+        print(f"🚀 API 請求開始: {request.keyword} -> {request.audience}")
         
-        # 根據配置決定要取得多少筆結果
-        num_results = min(config.get_api_max_urls(), 20)  # 限制最大 20 筆
+        # 使用整合服務執行完整分析流程
+        integration_service = get_integration_service()
+        result = await integration_service.execute_full_analysis(request)
         
-        print(f"正在擷取前 {num_results} 個搜尋結果...")
-        serp_result = await serp_service.search_keyword(
-            keyword=request.keyword,
-            num_results=num_results
+        print(f"✅ API 請求成功完成: {result.processing_time:.2f}s")
+        return result
+
+    except (SerpAPIException, ScraperException, AIServiceException, AIAPIException) as e:
+        # 處理已知的服務例外
+        integration_service = get_integration_service()
+        error_response, status_code = integration_service.handle_analysis_error(
+            error=e, 
+            processing_time=time.time() - time.time()  # 簡化計時
         )
         
-        print(f"成功擷取 {len(serp_result.organic_results)} 個搜尋結果")
-        
-        # 建立真實的 SERP 摘要資料
-        serp_summary = SerpSummary(
-            total_results=len(serp_result.organic_results),
-            successful_scrapes=len(serp_result.organic_results),  # 暫時假設全部成功
-            avg_word_count=1850,  # TODO: 實際爬取後計算
-            avg_paragraphs=15     # TODO: 實際爬取後計算
+        raise HTTPException(
+            status_code=status_code,
+            detail=error_response.error
         )
-
-        mock_metadata = AnalysisMetadata(
-            keyword=request.keyword,
-            audience=request.audience,
-            generated_at=datetime.now(timezone.utc).isoformat(),
-            token_usage=0  # 暫時設為 0，實際使用時會計算
-        )
-
-        # 生成基於真實 SERP 資料的分析報告
-        analysis_report = generate_serp_analysis_report(
-            request.keyword,
-            request.audience,
-            request.options,
-            serp_result
-        )
-
-        analysis_data = AnalysisData(
-            serp_summary=serp_summary,
-            analysis_report=analysis_report,
-            metadata=mock_metadata
-        )
-
-        processing_time = time.time() - start_time
-
-        return AnalyzeResponse(
-            status="success",
-            processing_time=round(processing_time, 2),
-            data=analysis_data
-        )
-
-    except SerpAPIException as e:
-        # SerpAPI 相關錯誤
-        processing_time = time.time() - start_time
-        error_response = create_error_response(
-            "SERP_API_ERROR",
-            f"搜尋引擎資料擷取失敗: {str(e)}",
-            details={
-                "processing_time": round(processing_time, 2),
-                "keyword": request.keyword
-            }
-        )
-        raise HTTPException(status_code=503, detail=error_response.model_dump()) from e
 
     except Exception as e:
-        # 其他錯誤
-        processing_time = time.time() - start_time
-        error_response = create_error_response(
-            "ANALYSIS_ERROR",
-            f"分析過程發生錯誤: {str(e)}",
-            details={
-                "processing_time": round(processing_time, 2),
-                "keyword": request.keyword
+        # 處理未預期的例外
+        print(f"❌ 未預期錯誤: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "code": "INTERNAL_ERROR",
+                "message": "系統內部錯誤，請稍後再試",
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
-        raise HTTPException(status_code=500, detail=error_response.model_dump()) from e
 
 
 @router.get("/health", response_model=HealthCheckResponse)

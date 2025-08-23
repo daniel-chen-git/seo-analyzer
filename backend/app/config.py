@@ -153,13 +153,13 @@ class Config:
         return self._config.getfloat("openai", "temperature", fallback=0.7)
 
     # 爬蟲配置
-    def get_scraper_timeout(self) -> int:
+    def get_scraper_timeout(self) -> float:
         """取得爬蟲逾時秒數。"""
-        return self._config.getint("scraper", "timeout", fallback=30)
+        return self._config.getfloat("scraper", "timeout", fallback=10.0)
 
     def get_scraper_max_concurrent(self) -> int:
         """取得爬蟲最大並行數。"""
-        return self._config.getint("scraper", "max_concurrent", fallback=5)
+        return self._config.getint("scraper", "max_concurrent", fallback=10)
 
     def get_scraper_user_agent(self) -> str:
         """取得爬蟲 User-Agent。"""
@@ -171,11 +171,11 @@ class Config:
 
     def get_scraper_retry_count(self) -> int:
         """取得爬蟲重試次數。"""
-        return self._config.getint("scraper", "retry_count", fallback=3)
+        return self._config.getint("scraper", "max_retries", fallback=3)
 
-    def get_scraper_retry_delay(self) -> int:
+    def get_scraper_retry_delay(self) -> float:
         """取得爬蟲重試延遲秒數。"""
-        return self._config.getint("scraper", "retry_delay", fallback=1)
+        return self._config.getfloat("scraper", "retry_delay", fallback=1.0)
 
     # 快取配置
     def get_cache_enabled(self) -> bool:

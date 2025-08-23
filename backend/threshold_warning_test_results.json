@@ -1,0 +1,92 @@
+{
+  "total_tests": 6,
+  "passed": 6,
+  "failed": 0,
+  "errors": 0,
+  "success_rate": 100.0,
+  "warning_mechanism_working": false,
+  "warning_tests_success": 3,
+  "warning_tests_total": 4,
+  "details": [
+    {
+      "test_name": "Timer 類別直接測試",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "duration": 0.10113906860351562,
+        "all_timings": {
+          "test_phase_duration": 0.10113906860351562
+        },
+        "timer_working": true,
+        "message": "計時器功能正常: 0.101s"
+      }
+    },
+    {
+      "test_name": "模擬超過 SERP 閾值",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "simulated_duration": 20.0,
+        "threshold": 15.0,
+        "warning_triggered": true,
+        "warning_output": "⚠️ 效能警告: serp 階段耗時 20.00s (超過 15.0s 閾值)\n",
+        "message": "SERP 閾值警告 ✅ 觸發"
+      }
+    },
+    {
+      "test_name": "模擬超過爬蟲閾值",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "simulated_duration": 30.0,
+        "threshold": 25.0,
+        "warning_triggered": true,
+        "warning_output": "⚠️ 效能警告: scraping 階段耗時 30.00s (超過 25.0s 閾值)\n",
+        "message": "爬蟲閾值警告 ✅ 觸發"
+      }
+    },
+    {
+      "test_name": "模擬超過 AI 閾值",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "simulated_duration": 40.0,
+        "threshold": 35.0,
+        "warning_triggered": true,
+        "warning_output": "⚠️ 效能警告: ai 階段耗時 40.00s (超過 35.0s 閾值)\n",
+        "message": "AI 閾值警告 ✅ 觸發"
+      }
+    },
+    {
+      "test_name": "模擬多階段超閾值",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "warnings_triggered": {
+          "serp": true,
+          "scraping": true,
+          "ai": true
+        },
+        "all_warnings_triggered": true,
+        "warning_output": "⚠️ 效能警告: serp 階段耗時 18.00s (超過 15.0s 閾值)\n⚠️ 效能警告: scraping 階段耗時 28.00s (超過 25.0s 閾值)\n⚠️ 效能警告: ai 階段耗時 38.00s (超過 35.0s 閾值)\n",
+        "message": "多階段警告 ✅ 全部觸發"
+      }
+    },
+    {
+      "test_name": "警告機制日誌輸出測試",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "warning_format_checks": {
+          "has_warning_symbol": true,
+          "has_phase_name": true,
+          "has_duration": true,
+          "has_threshold": true
+        },
+        "format_correct": true,
+        "warning_output": "⚠️ 效能警告: test 階段耗時 50.00s (超過 30.0s 閾值)\n",
+        "message": "警告格式 ✅ 正確"
+      }
+    }
+  ]
+}

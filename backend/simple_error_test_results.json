@@ -1,0 +1,104 @@
+{
+  "validation_tests": [
+    {
+      "test": "空關鍵字",
+      "status_code": 422,
+      "expected": 422,
+      "success": true,
+      "response": {
+        "detail": [
+          {
+            "type": "string_too_short",
+            "loc": [
+              "body",
+              "keyword"
+            ],
+            "msg": "String should have at least 1 character",
+            "input": "",
+            "ctx": {
+              "min_length": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "test": "超長關鍵字",
+      "status_code": 422,
+      "expected": 422,
+      "success": true,
+      "response": {
+        "detail": [
+          {
+            "type": "string_too_long",
+            "loc": [
+              "body",
+              "keyword"
+            ],
+            "msg": "String should have at most 50 characters",
+            "input": "超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字超長關鍵字",
+            "ctx": {
+              "max_length": 50
+            }
+          }
+        ]
+      }
+    },
+    {
+      "test": "缺少必要欄位",
+      "status_code": 422,
+      "expected": 422,
+      "success": true,
+      "response": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "audience"
+            ],
+            "msg": "Field required",
+            "input": {
+              "keyword": "測試"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "options"
+            ],
+            "msg": "Field required",
+            "input": {
+              "keyword": "測試"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "test": "無效布林值",
+      "status_code": 422,
+      "expected": 422,
+      "success": true,
+      "response": {
+        "detail": [
+          {
+            "type": "bool_parsing",
+            "loc": [
+              "body",
+              "options",
+              "generate_draft"
+            ],
+            "msg": "Input should be a valid boolean, unable to interpret input",
+            "input": "invalid"
+          }
+        ]
+      }
+    }
+  ],
+  "timeout_test": {
+    "success": true,
+    "message": "超時處理正常"
+  }
+}

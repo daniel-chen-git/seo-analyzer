@@ -1,0 +1,129 @@
+{
+  "total_tests": 6,
+  "passed": 6,
+  "failed": 0,
+  "errors": 0,
+  "success_rate": 100.0,
+  "details": [
+    {
+      "test_name": "SERP API 錯誤模擬",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "message": "SERP 錯誤處理 - 錯誤碼: SERP_API_ERROR, 狀態碼: 503",
+        "error_response": {
+          "status": "error",
+          "error": {
+            "code": "SERP_API_ERROR",
+            "message": "SerpAPI quota exceeded",
+            "details": {
+              "error_type": "SerpAPIException",
+              "processing_time": 2.5
+            },
+            "timestamp": "2025-08-23T06:30:32.410390+00:00"
+          }
+        }
+      }
+    },
+    {
+      "test_name": "爬蟲超時錯誤模擬",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "message": "爬蟲超時錯誤處理 - 錯誤碼: SCRAPER_TIMEOUT, 狀態碼: 504",
+        "error_response": {
+          "status": "error",
+          "error": {
+            "code": "SCRAPER_TIMEOUT",
+            "message": "Scraping timeout occurred",
+            "details": {
+              "error_type": "ScraperTimeoutException",
+              "processing_time": 15.2
+            },
+            "timestamp": "2025-08-23T06:30:34.536013+00:00"
+          }
+        }
+      }
+    },
+    {
+      "test_name": "爬蟲一般錯誤模擬",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "message": "爬蟲一般錯誤處理 - 錯誤碼: SCRAPER_TIMEOUT, 狀態碼: 504",
+        "error_response": {
+          "status": "error",
+          "error": {
+            "code": "SCRAPER_TIMEOUT",
+            "message": "Network connection failed",
+            "details": {
+              "error_type": "ScraperException",
+              "processing_time": 8.3
+            },
+            "timestamp": "2025-08-23T06:30:34.646981+00:00"
+          }
+        }
+      }
+    },
+    {
+      "test_name": "AI API 錯誤模擬",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "message": "AI API 錯誤處理 - 錯誤碼: AI_API_ERROR, 狀態碼: 503",
+        "error_response": {
+          "status": "error",
+          "error": {
+            "code": "AI_API_ERROR",
+            "message": "Azure OpenAI service unavailable",
+            "details": {
+              "error_type": "AIAPIException",
+              "processing_time": 22.1
+            },
+            "timestamp": "2025-08-23T06:30:38.732376+00:00"
+          }
+        }
+      }
+    },
+    {
+      "test_name": "AI Token 限制錯誤模擬",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "message": "AI Token 限制錯誤處理 - 錯誤碼: AI_API_ERROR, 狀態碼: 503",
+        "error_response": {
+          "status": "error",
+          "error": {
+            "code": "AI_API_ERROR",
+            "message": "Token limit exceeded for the request",
+            "details": {
+              "error_type": "TokenLimitExceededException",
+              "processing_time": 18.7
+            },
+            "timestamp": "2025-08-23T06:30:39.711933+00:00"
+          }
+        }
+      }
+    },
+    {
+      "test_name": "多重服務錯誤模擬",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "message": "多重服務錯誤處理 - 錯誤類型: ScraperException, 狀態碼: 504",
+        "error_response": {
+          "status": "error",
+          "error": {
+            "code": "SCRAPER_TIMEOUT",
+            "message": "All scraping attempts failed",
+            "details": {
+              "error_type": "ScraperException",
+              "processing_time": 25.6
+            },
+            "timestamp": "2025-08-23T06:30:39.811310+00:00"
+          }
+        }
+      }
+    }
+  ]
+}

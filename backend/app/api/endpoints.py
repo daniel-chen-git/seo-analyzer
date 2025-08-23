@@ -67,6 +67,8 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
         >>> print(f"Token 使用: {response.data.metadata.token_usage}")
         >>> print(response.data.analysis_report[:200])
     """
+    start_time = time.time()
+    
     try:
         # 記錄請求開始
         print(f"🚀 API 請求開始: {request.keyword} -> {request.audience}")
@@ -80,10 +82,11 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
 
     except (SerpAPIException, ScraperException, AIServiceException, AIAPIException) as e:
         # 處理已知的服務例外
+        processing_time = time.time() - start_time
         integration_service = get_integration_service()
         error_response, status_code = integration_service.handle_analysis_error(
             error=e, 
-            processing_time=time.time() - time.time()  # 簡化計時
+            processing_time=processing_time
         )
         
         raise HTTPException(
@@ -93,13 +96,15 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
 
     except Exception as e:
         # 處理未預期的例外
-        print(f"❌ 未預期錯誤: {str(e)}")
+        processing_time = time.time() - start_time
+        print(f"❌ 未預期錯誤: {str(e)} (耗時 {processing_time:.2f}s)")
         raise HTTPException(
             status_code=500,
             detail={
                 "code": "INTERNAL_ERROR",
                 "message": "系統內部錯誤，請稍後再試",
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "processing_time": processing_time
             }
         )
 

@@ -1,0 +1,176 @@
+{
+  "total_tests": 5,
+  "passed": 5,
+  "failed": 0,
+  "errors": 0,
+  "success_rate": 100.0,
+  "details": [
+    {
+      "test_name": "無效輸入參數測試",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "status_code": 422,
+        "response": {
+          "detail": [
+            {
+              "type": "string_too_short",
+              "loc": [
+                "body",
+                "keyword"
+              ],
+              "msg": "String should have at least 1 character",
+              "input": "",
+              "ctx": {
+                "min_length": 1
+              }
+            },
+            {
+              "type": "string_too_short",
+              "loc": [
+                "body",
+                "audience"
+              ],
+              "msg": "String should have at least 1 character",
+              "input": "",
+              "ctx": {
+                "min_length": 1
+              }
+            },
+            {
+              "type": "bool_parsing",
+              "loc": [
+                "body",
+                "options",
+                "generate_draft"
+              ],
+              "msg": "Input should be a valid boolean, unable to interpret input",
+              "input": "invalid_boolean"
+            },
+            {
+              "type": "bool_type",
+              "loc": [
+                "body",
+                "options",
+                "include_faq"
+              ],
+              "msg": "Input should be a valid boolean",
+              "input": null
+            }
+          ]
+        },
+        "message": "狀態碼: 422 (期望: 422)"
+      }
+    },
+    {
+      "test_name": "空關鍵字測試",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "status_code": 422,
+        "response": {
+          "detail": [
+            {
+              "type": "string_too_short",
+              "loc": [
+                "body",
+                "keyword"
+              ],
+              "msg": "String should have at least 1 character",
+              "input": "",
+              "ctx": {
+                "min_length": 1
+              }
+            }
+          ]
+        },
+        "message": "空關鍵字處理 - 狀態碼: 422"
+      }
+    },
+    {
+      "test_name": "超長關鍵字測試",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "status_code": 422,
+        "response": {
+          "detail": [
+            {
+              "type": "string_too_long",
+              "loc": [
+                "body",
+                "keyword"
+              ],
+              "msg": "String should have at most 50 characters",
+              "input": "這是一個非常長的關鍵字這是一個非常長的關鍵字這是一個非常長的關鍵字這是一個非常長的關鍵字這是一個非常長的關鍵字這是一個非常長的關鍵字這是一個非常長的關鍵字這是一個非常長的關鍵字這是一個非常長的關鍵字這是一個非常長的關鍵字",
+              "ctx": {
+                "max_length": 50
+              }
+            }
+          ]
+        },
+        "message": "超長關鍵字處理 - 關鍵字長度: 110 字元"
+      }
+    },
+    {
+      "test_name": "無效 JSON 格式測試",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "status_code": 422,
+        "response": {
+          "detail": [
+            {
+              "type": "json_invalid",
+              "loc": [
+                "body",
+                50
+              ],
+              "msg": "JSON decode error",
+              "input": {},
+              "ctx": {
+                "error": "Expecting property name enclosed in double quotes"
+              }
+            }
+          ]
+        },
+        "message": "無效 JSON 處理 - 狀態碼: 422"
+      }
+    },
+    {
+      "test_name": "缺少必要欄位測試",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "status_code": 422,
+        "response": {
+          "detail": [
+            {
+              "type": "missing",
+              "loc": [
+                "body",
+                "audience"
+              ],
+              "msg": "Field required",
+              "input": {
+                "keyword": "測試關鍵字"
+              }
+            },
+            {
+              "type": "missing",
+              "loc": [
+                "body",
+                "options"
+              ],
+              "msg": "Field required",
+              "input": {
+                "keyword": "測試關鍵字"
+              }
+            }
+          ]
+        },
+        "message": "缺少欄位處理 - 狀態碼: 422"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2309 @@
+<!-- 錯誤處理指南 -->
+<div class="error-guide-section">
+    <div class="container">
+        <h1>🛡️ 錯誤處理指南</h1>
+        <p class="guide-intro">
+            完整的 SEO Analyzer API 錯誤處理指南，幫助您建立健壯的應用程式並優雅地處理各種異常情況。
+        </p>
+
+        <!-- 快速錯誤查詢 -->
+        <div class="error-lookup-section">
+            <h2>🔍 快速錯誤查詢</h2>
+            <div class="error-search">
+                <input type="text" id="errorSearch" placeholder="輸入錯誤碼或關鍵字搜尋..." onkeyup="filterErrors()">
+                <div class="error-categories">
+                    <button class="category-btn active" onclick="showErrorCategory('all')">全部</button>
+                    <button class="category-btn" onclick="showErrorCategory('4xx')">4xx 客戶端錯誤</button>
+                    <button class="category-btn" onclick="showErrorCategory('5xx')">5xx 服務端錯誤</button>
+                    <button class="category-btn" onclick="showErrorCategory('network')">網路錯誤</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- HTTP 狀態碼分類 -->
+        <div class="status-codes-section">
+            <h2 id="status-codes">📊 HTTP 狀態碼分類</h2>
+            
+            <!-- 4xx 客戶端錯誤 -->
+            <div class="error-category" data-category="4xx">
+                <h3 class="error-type client-error">4️⃣ 4xx 客戶端錯誤</h3>
+                <div class="status-code-grid">
+                    <div class="status-card error-4xx" data-error="400">
+                        <div class="status-header">
+                            <span class="status-code">400</span>
+                            <span class="status-name">Bad Request</span>
+                        </div>
+                        <p class="status-description">請求格式錯誤或參數驗證失敗</p>
+                        <div class="common-causes">
+                            <h5>常見原因：</h5>
+                            <ul>
+                                <li>JSON 格式錯誤</li>
+                                <li>必填參數缺失</li>
+                                <li>參數類型不正確</li>
+                                <li>參數值超出限制範圍</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="status-card error-4xx" data-error="422">
+                        <div class="status-header">
+                            <span class="status-code">422</span>
+                            <span class="status-name">Unprocessable Entity</span>
+                        </div>
+                        <p class="status-description">請求格式正確但業務邏輯驗證失敗</p>
+                        <div class="common-causes">
+                            <h5>常見原因：</h5>
+                            <ul>
+                                <li>關鍵字長度不符要求 (1-50 字元)</li>
+                                <li>受眾描述過長 (>200 字元)</li>
+                                <li>不支援的分析選項組合</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="status-card error-4xx" data-error="429">
+                        <div class="status-header">
+                            <span class="status-code">429</span>
+                            <span class="status-name">Too Many Requests</span>
+                        </div>
+                        <p class="status-description">超過 API 使用頻率限制</p>
+                        <div class="common-causes">
+                            <h5>限制規則：</h5>
+                            <ul>
+                                <li>每分鐘最多 20 次請求</li>
+                                <li>同時併發不超過 5 個請求</li>
+                                <li>單一 IP 每小時 100 次請求</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5xx 服務端錯誤 -->
+            <div class="error-category" data-category="5xx">
+                <h3 class="error-type server-error">5️⃣ 5xx 服務端錯誤</h3>
+                <div class="status-code-grid">
+                    <div class="status-card error-5xx" data-error="500">
+                        <div class="status-header">
+                            <span class="status-code">500</span>
+                            <span class="status-name">Internal Server Error</span>
+                        </div>
+                        <p class="status-description">服務器內部發生未預期的錯誤</p>
+                        <div class="common-causes">
+                            <h5>可能原因：</h5>
+                            <ul>
+                                <li>資料庫連接失敗</li>
+                                <li>記憶體不足</li>
+                                <li>程式碼執行異常</li>
+                                <li>系統資源耗盡</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="status-card error-5xx" data-error="503">
+                        <div class="status-header">
+                            <span class="status-code">503</span>
+                            <span class="status-name">Service Unavailable</span>
+                        </div>
+                        <p class="status-description">外部服務暫時不可用</p>
+                        <div class="common-causes">
+                            <h5>服務依賴：</h5>
+                            <ul>
+                                <li>SerpAPI 服務中斷</li>
+                                <li>Azure OpenAI API 限制</li>
+                                <li>網頁爬取服務異常</li>
+                                <li>系統維護中</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="status-card error-5xx" data-error="504">
+                        <div class="status-header">
+                            <span class="status-code">504</span>
+                            <span class="status-name">Gateway Timeout</span>
+                        </div>
+                        <p class="status-description">處理請求超過時間限制</p>
+                        <div class="common-causes">
+                            <h5>超時情況：</h5>
+                            <ul>
+                                <li>SERP 資料擷取超過 15 秒</li>
+                                <li>網頁爬取超過 25 秒</li>
+                                <li>AI 分析超過 35 秒</li>
+                                <li>總處理時間超過 60 秒</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 網路錯誤 -->
+            <div class="error-category" data-category="network">
+                <h3 class="error-type network-error">🌐 網路連接錯誤</h3>
+                <div class="network-errors">
+                    <div class="network-error-item">
+                        <h4>Connection Refused (ECONNREFUSED)</h4>
+                        <p>無法連接到 API 服務器，通常表示服務未啟動或網路不通</p>
+                    </div>
+                    <div class="network-error-item">
+                        <h4>DNS Resolution Failed</h4>
+                        <p>無法解析域名，檢查域名拼寫或 DNS 設定</p>
+                    </div>
+                    <div class="network-error-item">
+                        <h4>Request Timeout</h4>
+                        <p>請求在客戶端設定的超時時間內未收到回應</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 錯誤回應格式 -->
+        <div class="error-format-section">
+            <h2 id="error-format">📋 錯誤回應格式</h2>
+            
+            <div class="format-explanation">
+                <p>所有錯誤回應都遵循統一的 JSON 格式，便於程式化處理：</p>
+            </div>
+
+            <div class="error-format-example">
+                <h3>標準錯誤回應結構</h3>
+                <div class="code-example">
+                    <div class="code-header">
+                        <span>HTTP 400 - 參數驗證錯誤範例</span>
+                        <button class="copy-btn" onclick="copyCode('error-format-400')">複製</button>
+                    </div>
+                    <pre id="error-format-400"><code>{
+  "detail": {
+    "code": "VALIDATION_ERROR",
+    "message": "關鍵字長度必須在 1-50 字元之間",
+    "field": "keyword",
+    "provided_value": "這是一個超過五十個字元限制的非常長的關鍵字範例測試",
+    "expected_format": "1-50 字元的非空字串",
+    "timestamp": "2025-08-23T13:45:30.123Z"
+  }
+}</code></pre>
+                </div>
+
+                <div class="code-example">
+                    <div class="code-header">
+                        <span>HTTP 503 - 外部服務錯誤範例</span>
+                        <button class="copy-btn" onclick="copyCode('error-format-503')">複製</button>
+                    </div>
+                    <pre id="error-format-503"><code>{
+  "detail": {
+    "code": "SERP_API_ERROR",
+    "message": "搜尋資料擷取服務暫時不可用，請稍後再試",
+    "timestamp": "2025-08-23T13:45:30.123Z",
+    "processing_time": 15.7,
+    "retry_after": 30,
+    "service": "SerpAPI"
+  }
+}</code></pre>
+                </div>
+
+                <div class="code-example">
+                    <div class="code-header">
+                        <span>HTTP 504 - 處理超時錯誤範例</span>
+                        <button class="copy-btn" onclick="copyCode('error-format-504')">複製</button>
+                    </div>
+                    <pre id="error-format-504"><code>{
+  "detail": {
+    "code": "PROCESSING_TIMEOUT",
+    "message": "分析處理時間超過限制，請嘗試簡化分析選項",
+    "timestamp": "2025-08-23T13:45:30.123Z",
+    "processing_time": 62.3,
+    "timeout_limit": 60.0,
+    "suggestion": "建議關閉 generate_draft 或 include_table 選項以縮短處理時間"
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- 錯誤碼對應表 -->
+            <div class="error-codes-table">
+                <h3>錯誤碼對應表</h3>
+                <table class="error-codes-list">
+                    <thead>
+                        <tr>
+                            <th>錯誤碼</th>
+                            <th>HTTP 狀態</th>
+                            <th>描述</th>
+                            <th>重試建議</th>
+                            <th>用戶操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-error="VALIDATION_ERROR">
+                            <td><code>VALIDATION_ERROR</code></td>
+                            <td class="status-400">400</td>
+                            <td>輸入參數驗證失敗</td>
+                            <td class="retry-no">❌ 不要重試</td>
+                            <td>修正輸入參數</td>
+                        </tr>
+                        <tr data-error="SERP_API_ERROR">
+                            <td><code>SERP_API_ERROR</code></td>
+                            <td class="status-503">503</td>
+                            <td>搜尋資料擷取失敗</td>
+                            <td class="retry-yes">✅ 可重試</td>
+                            <td>稍後再試</td>
+                        </tr>
+                        <tr data-error="AI_API_ERROR">
+                            <td><code>AI_API_ERROR</code></td>
+                            <td class="status-503">503</td>
+                            <td>AI 分析服務錯誤</td>
+                            <td class="retry-yes">✅ 可重試</td>
+                            <td>稍後再試</td>
+                        </tr>
+                        <tr data-error="SCRAPER_TIMEOUT">
+                            <td><code>SCRAPER_TIMEOUT</code></td>
+                            <td class="status-504">504</td>
+                            <td>網頁爬取逾時</td>
+                            <td class="retry-maybe">⚠️ 謹慎重試</td>
+                            <td>簡化分析選項</td>
+                        </tr>
+                        <tr data-error="PROCESSING_TIMEOUT">
+                            <td><code>PROCESSING_TIMEOUT</code></td>
+                            <td class="status-504">504</td>
+                            <td>總處理時間超限</td>
+                            <td class="retry-maybe">⚠️ 謹慎重試</td>
+                            <td>調整分析參數</td>
+                        </tr>
+                        <tr data-error="RATE_LIMIT_EXCEEDED">
+                            <td><code>RATE_LIMIT_EXCEEDED</code></td>
+                            <td class="status-429">429</td>
+                            <td>超過使用頻率限制</td>
+                            <td class="retry-delay">⏱️ 延遲重試</td>
+                            <td>等待後重試</td>
+                        </tr>
+                        <tr data-error="INTERNAL_ERROR">
+                            <td><code>INTERNAL_ERROR</code></td>
+                            <td class="status-500">500</td>
+                            <td>系統內部錯誤</td>
+                            <td class="retry-yes">✅ 可重試</td>
+                            <td>聯絡技術支援</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 重試機制設計 -->
+        <div class="retry-section">
+            <h2 id="retry-strategy">🔄 重試機制設計</h2>
+            
+            <div class="retry-strategy-overview">
+                <p>根據不同的錯誤類型，採用適當的重試策略可以顯著提升應用程式的穩定性：</p>
+            </div>
+
+            <div class="retry-strategies">
+                <div class="strategy-card retry-exponential">
+                    <h3>📈 指數退避 (Exponential Backoff)</h3>
+                    <p>適用於服務端錯誤 (5xx) 和網路錯誤</p>
+                    <div class="strategy-details">
+                        <h4>退避公式：</h4>
+                        <code>delay = base_delay * (2 ^ retry_count) + random_jitter</code>
+                        <h4>建議參數：</h4>
+                        <ul>
+                            <li><strong>base_delay</strong>: 1-2 秒</li>
+                            <li><strong>max_delay</strong>: 60 秒</li>
+                            <li><strong>max_retries</strong>: 3-5 次</li>
+                            <li><strong>jitter</strong>: 0-1000ms 隨機延遲</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="strategy-card retry-fixed">
+                    <h3>⏱️ 固定間隔重試</h3>
+                    <p>適用於速率限制錯誤 (429)</p>
+                    <div class="strategy-details">
+                        <h4>使用 Retry-After 標頭：</h4>
+                        <code>delay = response.headers['Retry-After'] || 60</code>
+                        <h4>建議配置：</h4>
+                        <ul>
+                            <li><strong>固定延遲</strong>: 依照 Retry-After 值</li>
+                            <li><strong>最大等待</strong>: 300 秒</li>
+                            <li><strong>重試次數</strong>: 2-3 次</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="strategy-card retry-none">
+                    <h3>🚫 不重試</h3>
+                    <p>適用於客戶端錯誤 (4xx)</p>
+                    <div class="strategy-details">
+                        <h4>立即失敗的情況：</h4>
+                        <ul>
+                            <li>400 - 參數格式錯誤</li>
+                            <li>422 - 業務邏輯錯誤</li>
+                            <li>401/403 - 認證授權錯誤</li>
+                        </ul>
+                        <h4>處理方式：</h4>
+                        <ul>
+                            <li>記錄錯誤詳情</li>
+                            <li>向使用者顯示友善訊息</li>
+                            <li>引導使用者修正輸入</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 程式碼範例 -->
+        <div class="code-examples-section">
+            <h2 id="code-examples">💻 程式碼範例</h2>
+            
+            <div class="language-tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="showCodeTab('python')">Python</button>
+                    <button class="tab-btn" onclick="showCodeTab('javascript')">JavaScript</button>
+                    <button class="tab-btn" onclick="showCodeTab('nodejs')">Node.js</button>
+                </div>
+
+                <!-- Python 錯誤處理 -->
+                <div class="tab-content active" id="python">
+                    <h3>Python 完整錯誤處理範例</h3>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <span>完整的錯誤處理和重試機制</span>
+                            <button class="copy-btn" onclick="copyCode('python-error-handler')">複製</button>
+                        </div>
+                        <pre id="python-error-handler"><code>import requests
+import time
+import random
+import json
+from typing import Dict, Any, Optional
+from enum import Enum
+
+class APIError(Exception):
+    """API 錯誤基類"""
+    def __init__(self, message: str, error_code: str, status_code: int, response_data: dict = None):
+        super().__init__(message)
+        self.error_code = error_code
+        self.status_code = status_code
+        self.response_data = response_data or {}
+
+class RetryStrategy(Enum):
+    NO_RETRY = "no_retry"
+    EXPONENTIAL_BACKOFF = "exponential_backoff"
+    FIXED_DELAY = "fixed_delay"
+
+class SEOAnalyzerClient:
+    def __init__(self, base_url: str = "http://localhost:8001", timeout: int = 120):
+        self.base_url = base_url
+        self.timeout = timeout
+        self.session = requests.Session()
+        
+        # 重試策略配置
+        self.retry_config = {
+            # 不重試的錯誤
+            400: RetryStrategy.NO_RETRY,
+            422: RetryStrategy.NO_RETRY,
+            401: RetryStrategy.NO_RETRY,
+            403: RetryStrategy.NO_RETRY,
+            
+            # 速率限制使用固定延遲
+            429: RetryStrategy.FIXED_DELAY,
+            
+            # 服務端錯誤使用指數退避
+            500: RetryStrategy.EXPONENTIAL_BACKOFF,
+            502: RetryStrategy.EXPONENTIAL_BACKOFF,
+            503: RetryStrategy.EXPONENTIAL_BACKOFF,
+            504: RetryStrategy.EXPONENTIAL_BACKOFF,
+        }
+
+    def _exponential_backoff(self, retry_count: int, base_delay: float = 1.0, max_delay: float = 60.0) -> float:
+        """計算指數退避延遲時間"""
+        delay = base_delay * (2 ** retry_count)
+        delay = min(delay, max_delay)
+        # 添加隨機抖動避免驚群效應
+        jitter = random.uniform(0, min(1.0, delay * 0.1))
+        return delay + jitter
+
+    def _get_retry_strategy(self, status_code: int) -> RetryStrategy:
+        """根據 HTTP 狀態碼決定重試策略"""
+        return self.retry_config.get(status_code, RetryStrategy.NO_RETRY)
+
+    def _should_retry(self, error: requests.RequestException, retry_count: int, max_retries: int = 3) -> tuple[bool, float]:
+        """判斷是否應該重試及計算延遲時間"""
+        if retry_count >= max_retries:
+            return False, 0
+            
+        if isinstance(error, requests.exceptions.Timeout):
+            # 超時錯誤使用指數退避
+            delay = self._exponential_backoff(retry_count)
+            return True, delay
+            
+        if isinstance(error, requests.exceptions.ConnectionError):
+            # 連接錯誤使用指數退避
+            delay = self._exponential_backoff(retry_count)
+            return True, delay
+            
+        if hasattr(error, 'response') and error.response:
+            strategy = self._get_retry_strategy(error.response.status_code)
+            
+            if strategy == RetryStrategy.NO_RETRY:
+                return False, 0
+            elif strategy == RetryStrategy.FIXED_DELAY:
+                # 使用 Retry-After 標頭或預設 60 秒
+                retry_after = error.response.headers.get('Retry-After', '60')
+                try:
+                    delay = float(retry_after)
+                except ValueError:
+                    delay = 60.0
+                return True, min(delay, 300)  # 最多等待 5 分鐘
+            elif strategy == RetryStrategy.EXPONENTIAL_BACKOFF:
+                delay = self._exponential_backoff(retry_count)
+                return True, delay
+                
+        return False, 0
+
+    def _parse_api_error(self, response: requests.Response) -> APIError:
+        """解析 API 錯誤回應"""
+        try:
+            error_data = response.json()
+            detail = error_data.get('detail', {})
+            
+            if isinstance(detail, dict):
+                error_code = detail.get('code', 'UNKNOWN_ERROR')
+                message = detail.get('message', f'HTTP {response.status_code} 錯誤')
+            else:
+                # 簡單字串錯誤
+                error_code = 'API_ERROR'
+                message = str(detail)
+                
+        except json.JSONDecodeError:
+            error_code = 'INVALID_RESPONSE'
+            message = f'HTTP {response.status_code}: {response.text}'
+            detail = {}
+            
+        return APIError(message, error_code, response.status_code, detail)
+
+    def analyze_seo(self, keyword: str, audience: str, options: dict = None, max_retries: int = 3) -> dict:
+        """
+        執行 SEO 分析，包含完整的錯誤處理和重試機制
+        """
+        if options is None:
+            options = {"generate_draft": False, "include_faq": False, "include_table": False}
+            
+        payload = {"keyword": keyword, "audience": audience, "options": options}
+        url = f"{self.base_url}/api/analyze"
+        
+        last_error = None
+        retry_count = 0
+        
+        while retry_count <= max_retries:
+            try:
+                print(f"嘗試第 {retry_count + 1} 次請求..." if retry_count > 0 else "發送請求...")
+                
+                response = self.session.post(
+                    url,
+                    json=payload,
+                    timeout=self.timeout,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                # 成功回應
+                if response.status_code == 200:
+                    return response.json()
+                    
+                # 錯誤回應
+                api_error = self._parse_api_error(response)
+                
+                # 判斷是否重試
+                should_retry, delay = self._should_retry(
+                    requests.exceptions.HTTPError(response=response), 
+                    retry_count, 
+                    max_retries
+                )
+                
+                if not should_retry:
+                    raise api_error
+                    
+                print(f"將在 {delay:.2f} 秒後重試 (原因: {api_error.error_code})")
+                time.sleep(delay)
+                last_error = api_error
+                
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                should_retry, delay = self._should_retry(e, retry_count, max_retries)
+                
+                if not should_retry:
+                    if isinstance(e, requests.exceptions.Timeout):
+                        raise APIError(
+                            "請求超時，請檢查網路連接或增加超時時間", 
+                            "REQUEST_TIMEOUT", 
+                            0
+                        )
+                    else:
+                        raise APIError(
+                            "無法連接到 API 服務，請檢查服務是否正常運行", 
+                            "CONNECTION_ERROR", 
+                            0
+                        )
+                
+                print(f"網路錯誤，將在 {delay:.2f} 秒後重試")
+                time.sleep(delay)
+                last_error = e
+                
+            except requests.exceptions.RequestException as e:
+                raise APIError(f"請求失敗: {str(e)}", "REQUEST_ERROR", 0)
+                
+            retry_count += 1
+            
+        # 超過最大重試次數
+        if last_error:
+            if isinstance(last_error, APIError):
+                raise last_error
+            else:
+                raise APIError(f"重試 {max_retries} 次後仍失敗: {str(last_error)}", "MAX_RETRIES_EXCEEDED", 0)
+
+# 使用範例
+def main():
+    client = SEOAnalyzerClient()
+    
+    try:
+        result = client.analyze_seo(
+            keyword="Python 網路爬蟲",
+            audience="想學習資料擷取的開發者",
+            options={
+                "generate_draft": True,
+                "include_faq": False,
+                "include_table": True
+            },
+            max_retries=3
+        )
+        
+        print("✅ 分析完成")
+        print(f"處理時間: {result['processing_time']:.2f} 秒")
+        print(f"Token 使用: {result['data']['metadata']['token_usage']}")
+        
+    except APIError as e:
+        print(f"❌ API 錯誤: {e.message}")
+        print(f"錯誤碼: {e.error_code}")
+        print(f"HTTP 狀態: {e.status_code}")
+        
+        # 根據錯誤類型提供具體建議
+        if e.error_code == "VALIDATION_ERROR":
+            print("💡 建議: 請檢查輸入參數是否符合要求")
+        elif e.error_code in ["SERP_API_ERROR", "AI_API_ERROR"]:
+            print("💡 建議: 外部服務暫時不可用，請稍後再試")
+        elif e.error_code == "PROCESSING_TIMEOUT":
+            print("💡 建議: 嘗試關閉部分分析選項以縮短處理時間")
+        elif e.error_code == "RATE_LIMIT_EXCEEDED":
+            print("💡 建議: 請降低請求頻率，稍後再試")
+            
+    except Exception as e:
+        print(f"❌ 未預期錯誤: {e}")
+
+if __name__ == "__main__":
+    main()</code></pre>
+                    </div>
+                </div>
+
+                <!-- JavaScript 錯誤處理 -->
+                <div class="tab-content" id="javascript">
+                    <h3>JavaScript 完整錯誤處理範例</h3>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <span>瀏覽器端錯誤處理和重試機制</span>
+                            <button class="copy-btn" onclick="copyCode('js-error-handler')">複製</button>
+                        </div>
+                        <pre id="js-error-handler"><code>/**
+ * API 錯誤類別
+ */
+class APIError extends Error {
+    constructor(message, errorCode, statusCode, responseData = {}) {
+        super(message);
+        this.name = 'APIError';
+        this.errorCode = errorCode;
+        this.statusCode = statusCode;
+        this.responseData = responseData;
+    }
+}
+
+/**
+ * 重試策略枚舉
+ */
+const RetryStrategy = {
+    NO_RETRY: 'no_retry',
+    EXPONENTIAL_BACKOFF: 'exponential_backoff',
+    FIXED_DELAY: 'fixed_delay'
+};
+
+/**
+ * SEO Analyzer API 客戶端（含錯誤處理）
+ */
+class SEOAnalyzerClient {
+    constructor(baseUrl = 'http://localhost:8001', timeout = 120000) {
+        this.baseUrl = baseUrl;
+        this.timeout = timeout;
+        
+        // 重試策略配置
+        this.retryConfig = {
+            400: RetryStrategy.NO_RETRY,
+            422: RetryStrategy.NO_RETRY,
+            401: RetryStrategy.NO_RETRY,
+            403: RetryStrategy.NO_RETRY,
+            429: RetryStrategy.FIXED_DELAY,
+            500: RetryStrategy.EXPONENTIAL_BACKOFF,
+            502: RetryStrategy.EXPONENTIAL_BACKOFF,
+            503: RetryStrategy.EXPONENTIAL_BACKOFF,
+            504: RetryStrategy.EXPONENTIAL_BACKOFF,
+        };
+    }
+
+    /**
+     * 計算指數退避延遲
+     */
+    exponentialBackoff(retryCount, baseDelay = 1000, maxDelay = 60000) {
+        const delay = Math.min(baseDelay * Math.pow(2, retryCount), maxDelay);
+        const jitter = Math.random() * Math.min(1000, delay * 0.1);
+        return delay + jitter;
+    }
+
+    /**
+     * 獲取重試策略
+     */
+    getRetryStrategy(statusCode) {
+        return this.retryConfig[statusCode] || RetryStrategy.NO_RETRY;
+    }
+
+    /**
+     * 判斷是否應該重試
+     */
+    shouldRetry(error, retryCount, maxRetries = 3) {
+        if (retryCount >= maxRetries) {
+            return { shouldRetry: false, delay: 0 };
+        }
+
+        // 網路錯誤或超時錯誤
+        if (error.name === 'TypeError' || error.name === 'NetworkError' || error.message.includes('fetch')) {
+            const delay = this.exponentialBackoff(retryCount);
+            return { shouldRetry: true, delay };
+        }
+
+        // HTTP 錯誤
+        if (error instanceof APIError) {
+            const strategy = this.getRetryStrategy(error.statusCode);
+            
+            switch (strategy) {
+                case RetryStrategy.NO_RETRY:
+                    return { shouldRetry: false, delay: 0 };
+                    
+                case RetryStrategy.FIXED_DELAY:
+                    // 使用 Retry-After 或預設 60 秒
+                    const retryAfter = error.responseData.retry_after || 60;
+                    const delay = Math.min(retryAfter * 1000, 300000); // 最多 5 分鐘
+                    return { shouldRetry: true, delay };
+                    
+                case RetryStrategy.EXPONENTIAL_BACKOFF:
+                    const backoffDelay = this.exponentialBackoff(retryCount);
+                    return { shouldRetry: true, delay: backoffDelay };
+                    
+                default:
+                    return { shouldRetry: false, delay: 0 };
+            }
+        }
+
+        return { shouldRetry: false, delay: 0 };
+    }
+
+    /**
+     * 解析 API 錯誤
+     */
+    async parseAPIError(response) {
+        try {
+            const errorData = await response.json();
+            const detail = errorData.detail || {};
+            
+            const errorCode = typeof detail === 'object' ? 
+                (detail.code || 'UNKNOWN_ERROR') : 'API_ERROR';
+            const message = typeof detail === 'object' ? 
+                (detail.message || `HTTP ${response.status} 錯誤`) : String(detail);
+            
+            return new APIError(message, errorCode, response.status, detail);
+        } catch (e) {
+            return new APIError(
+                `HTTP ${response.status}: ${response.statusText}`,
+                'INVALID_RESPONSE',
+                response.status
+            );
+        }
+    }
+
+    /**
+     * 延遲函數
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    /**
+     * 執行 SEO 分析
+     */
+    async analyzeSEO(keyword, audience, options = {}, maxRetries = 3) {
+        const defaultOptions = {
+            generate_draft: false,
+            include_faq: false,
+            include_table: false
+        };
+
+        const payload = {
+            keyword,
+            audience,
+            options: { ...defaultOptions, ...options }
+        };
+
+        let lastError = null;
+        let retryCount = 0;
+
+        while (retryCount <= maxRetries) {
+            try {
+                if (retryCount > 0) {
+                    console.log(`嘗試第 ${retryCount + 1} 次請求...`);
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+                const response = await fetch(`${this.baseUrl}/api/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                // 成功回應
+                if (response.ok) {
+                    return await response.json();
+                }
+
+                // 錯誤回應
+                const apiError = await this.parseAPIError(response);
+                const { shouldRetry, delay } = this.shouldRetry(apiError, retryCount, maxRetries);
+
+                if (!shouldRetry) {
+                    throw apiError;
+                }
+
+                console.log(`將在 ${(delay / 1000).toFixed(2)} 秒後重試 (原因: ${apiError.errorCode})`);
+                await this.sleep(delay);
+                lastError = apiError;
+
+            } catch (error) {
+                // 處理網路錯誤和超時
+                if (error.name === 'AbortError') {
+                    const timeoutError = new APIError(
+                        '請求超時，請檢查網路連接或增加超時時間',
+                        'REQUEST_TIMEOUT',
+                        0
+                    );
+                    
+                    const { shouldRetry, delay } = this.shouldRetry(timeoutError, retryCount, maxRetries);
+                    if (!shouldRetry) {
+                        throw timeoutError;
+                    }
+                    
+                    console.log(`請求超時，將在 ${(delay / 1000).toFixed(2)} 秒後重試`);
+                    await this.sleep(delay);
+                    lastError = timeoutError;
+                } else if (error instanceof APIError) {
+                    // API 錯誤已在上面處理
+                    throw error;
+                } else {
+                    // 其他網路錯誤
+                    const networkError = new APIError(
+                        '無法連接到 API 服務，請檢查網路連接',
+                        'CONNECTION_ERROR',
+                        0
+                    );
+                    
+                    const { shouldRetry, delay } = this.shouldRetry(error, retryCount, maxRetries);
+                    if (!shouldRetry) {
+                        throw networkError;
+                    }
+                    
+                    console.log(`網路錯誤，將在 ${(delay / 1000).toFixed(2)} 秒後重試`);
+                    await this.sleep(delay);
+                    lastError = networkError;
+                }
+            }
+
+            retryCount++;
+        }
+
+        // 超過最大重試次數
+        if (lastError) {
+            throw lastError;
+        }
+
+        throw new APIError(
+            `重試 ${maxRetries} 次後仍失敗`,
+            'MAX_RETRIES_EXCEEDED',
+            0
+        );
+    }
+
+    /**
+     * 健康檢查
+     */
+    async checkHealth() {
+        try {
+            const response = await fetch(`${this.baseUrl}/api/health`);
+            if (!response.ok) {
+                throw new Error(`Health check failed: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            throw new APIError('健康檢查失敗', 'HEALTH_CHECK_FAILED', 0);
+        }
+    }
+}
+
+// 使用範例
+async function performSEOAnalysis() {
+    const client = new SEOAnalyzerClient();
+    
+    try {
+        // 顯示載入狀態
+        showLoading(true);
+        updateStatus('正在執行 SEO 分析...');
+
+        const result = await client.analyzeSEO(
+            'React 狀態管理',
+            '前端開發工程師',
+            {
+                generate_draft: true,
+                include_faq: true,
+                include_table: false
+            },
+            3 // 最多重試 3 次
+        );
+
+        showLoading(false);
+        displayResults(result);
+        
+    } catch (error) {
+        showLoading(false);
+        
+        if (error instanceof APIError) {
+            handleAPIError(error);
+        } else {
+            showError(`未預期錯誤: ${error.message}`);
+        }
+    }
+}
+
+/**
+ * 處理 API 錯誤並顯示適當的用戶訊息
+ */
+function handleAPIError(error) {
+    let userMessage = error.message;
+    let suggestion = '';
+
+    switch (error.errorCode) {
+        case 'VALIDATION_ERROR':
+            suggestion = '請檢查您的輸入參數是否正確';
+            break;
+        case 'SERP_API_ERROR':
+        case 'AI_API_ERROR':
+            suggestion = '外部服務暫時不可用，請稍後再試';
+            break;
+        case 'PROCESSING_TIMEOUT':
+            suggestion = '處理時間過長，建議簡化分析選項';
+            break;
+        case 'RATE_LIMIT_EXCEEDED':
+            suggestion = '請求過於頻繁，請稍後再試';
+            break;
+        case 'CONNECTION_ERROR':
+            suggestion = '請檢查網路連接';
+            break;
+        default:
+            suggestion = '如問題持續，請聯絡技術支援';
+    }
+
+    showError(userMessage, suggestion);
+}
+
+/**
+ * UI 輔助函數
+ */
+function showLoading(show) {
+    const loader = document.getElementById('loading');
+    if (loader) {
+        loader.style.display = show ? 'block' : 'none';
+    }
+}
+
+function updateStatus(message) {
+    const status = document.getElementById('status');
+    if (status) {
+        status.textContent = message;
+    }
+}
+
+function showError(message, suggestion = '') {
+    const errorDiv = document.getElementById('error');
+    if (errorDiv) {
+        errorDiv.innerHTML = `
+            <div class="error-message">
+                <strong>錯誤:</strong> ${message}
+                ${suggestion ? `<br><strong>建議:</strong> ${suggestion}` : ''}
+            </div>
+        `;
+        errorDiv.style.display = 'block';
+    }
+}
+
+function displayResults(result) {
+    const resultsDiv = document.getElementById('results');
+    if (resultsDiv) {
+        resultsDiv.innerHTML = `
+            <h3>分析結果</h3>
+            <p><strong>處理時間:</strong> ${result.processing_time.toFixed(2)} 秒</p>
+            <p><strong>Token 使用:</strong> ${result.data.metadata.token_usage}</p>
+            <div class="analysis-content">
+                ${result.data.analysis_report.replace(/\n/g, '<br>')}
+            </div>
+        `;
+        resultsDiv.style.display = 'block';
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- Node.js 錯誤處理 -->
+                <div class="tab-content" id="nodejs">
+                    <h3>Node.js 完整錯誤處理範例</h3>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <span>Express.js 中間件與錯誤處理</span>
+                            <button class="copy-btn" onclick="copyCode('nodejs-error-handler')">複製</button>
+                        </div>
+                        <pre id="nodejs-error-handler"><code>const axios = require('axios');
+const { EventEmitter } = require('events');
+
+/**
+ * 自定義 API 錯誤類別
+ */
+class APIError extends Error {
+    constructor(message, errorCode, statusCode, responseData = {}) {
+        super(message);
+        this.name = 'APIError';
+        this.errorCode = errorCode;
+        this.statusCode = statusCode;
+        this.responseData = responseData;
+    }
+}
+
+/**
+ * SEO Analyzer 客戶端（含完整錯誤處理）
+ */
+class SEOAnalyzerClient extends EventEmitter {
+    constructor(baseUrl = process.env.SEO_API_URL || 'http://localhost:8001', options = {}) {
+        super();
+        
+        this.baseUrl = baseUrl;
+        this.timeout = options.timeout || 120000;
+        this.maxRetries = options.maxRetries || 3;
+        
+        // 建立 axios 實例
+        this.client = axios.create({
+            baseURL: baseUrl,
+            timeout: this.timeout,
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        // 重試策略配置
+        this.retryConfig = {
+            400: 'no_retry',
+            422: 'no_retry',
+            401: 'no_retry',
+            403: 'no_retry',
+            429: 'fixed_delay',
+            500: 'exponential_backoff',
+            502: 'exponential_backoff',
+            503: 'exponential_backoff',
+            504: 'exponential_backoff',
+        };
+
+        this.setupInterceptors();
+    }
+
+    /**
+     * 設定請求和回應攔截器
+     */
+    setupInterceptors() {
+        // 請求攔截器 - 添加請求 ID 和日誌
+        this.client.interceptors.request.use(
+            (config) => {
+                config.requestId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                this.emit('request_start', { requestId: config.requestId, url: config.url });
+                return config;
+            },
+            (error) => {
+                return Promise.reject(error);
+            }
+        );
+
+        // 回應攔截器 - 統一錯誤處理
+        this.client.interceptors.response.use(
+            (response) => {
+                this.emit('request_success', { 
+                    requestId: response.config.requestId, 
+                    status: response.status 
+                });
+                return response;
+            },
+            async (error) => {
+                const apiError = await this.parseAxiosError(error);
+                this.emit('request_error', { 
+                    requestId: error.config?.requestId, 
+                    error: apiError 
+                });
+                return Promise.reject(apiError);
+            }
+        );
+    }
+
+    /**
+     * 解析 axios 錯誤
+     */
+    async parseAxiosError(error) {
+        if (error.response) {
+            // HTTP 錯誤回應
+            const response = error.response;
+            const detail = response.data?.detail || {};
+            
+            const errorCode = typeof detail === 'object' ? 
+                (detail.code || 'API_ERROR') : 'API_ERROR';
+            const message = typeof detail === 'object' ? 
+                (detail.message || `HTTP ${response.status} 錯誤`) : String(detail);
+            
+            return new APIError(message, errorCode, response.status, detail);
+        } else if (error.code === 'ECONNREFUSED') {
+            return new APIError(
+                '無法連接到 SEO Analyzer 服務，請確認服務器是否運行',
+                'CONNECTION_REFUSED',
+                0
+            );
+        } else if (error.code === 'ENOTFOUND') {
+            return new APIError(
+                '無法解析域名，請檢查網路連接',
+                'DNS_ERROR',
+                0
+            );
+        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+            return new APIError(
+                '請求超時，請稍後再試或增加超時時間',
+                'REQUEST_TIMEOUT',
+                0
+            );
+        } else {
+            return new APIError(
+                `網路錯誤: ${error.message}`,
+                'NETWORK_ERROR',
+                0
+            );
+        }
+    }
+
+    /**
+     * 指數退避計算
+     */
+    exponentialBackoff(retryCount, baseDelay = 1000, maxDelay = 60000) {
+        const delay = Math.min(baseDelay * Math.pow(2, retryCount), maxDelay);
+        const jitter = Math.random() * Math.min(1000, delay * 0.1);
+        return delay + jitter;
+    }
+
+    /**
+     * 判斷重試策略
+     */
+    shouldRetry(error, retryCount) {
+        if (retryCount >= this.maxRetries) {
+            return { shouldRetry: false, delay: 0 };
+        }
+
+        let strategy = 'no_retry';
+        let delay = 0;
+
+        if (error instanceof APIError) {
+            strategy = this.retryConfig[error.statusCode] || 'no_retry';
+            
+            switch (strategy) {
+                case 'fixed_delay':
+                    delay = Math.min((error.responseData.retry_after || 60) * 1000, 300000);
+                    break;
+                case 'exponential_backoff':
+                    delay = this.exponentialBackoff(retryCount);
+                    break;
+            }
+        } else if (error.errorCode === 'REQUEST_TIMEOUT' || error.errorCode === 'CONNECTION_REFUSED') {
+            strategy = 'exponential_backoff';
+            delay = this.exponentialBackoff(retryCount);
+        }
+
+        return {
+            shouldRetry: strategy !== 'no_retry',
+            delay
+        };
+    }
+
+    /**
+     * 睡眠函數
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    /**
+     * 執行帶重試的 SEO 分析
+     */
+    async analyzeSEO(keyword, audience, options = {}) {
+        const defaultOptions = {
+            generate_draft: false,
+            include_faq: false,
+            include_table: false
+        };
+
+        const payload = {
+            keyword,
+            audience,
+            options: { ...defaultOptions, ...options }
+        };
+
+        let lastError = null;
+        let retryCount = 0;
+
+        while (retryCount <= this.maxRetries) {
+            try {
+                if (retryCount > 0) {
+                    this.emit('retry_attempt', { retryCount, keyword });
+                }
+
+                const response = await this.client.post('/api/analyze', payload);
+                return response.data;
+
+            } catch (error) {
+                const { shouldRetry, delay } = this.shouldRetry(error, retryCount);
+                
+                if (!shouldRetry) {
+                    throw error;
+                }
+
+                this.emit('retry_scheduled', { 
+                    retryCount: retryCount + 1, 
+                    delay: delay / 1000,
+                    reason: error.errorCode 
+                });
+                
+                await this.sleep(delay);
+                lastError = error;
+                retryCount++;
+            }
+        }
+
+        // 超過重試次數
+        throw new APIError(
+            `重試 ${this.maxRetries} 次後仍失敗: ${lastError?.message}`,
+            'MAX_RETRIES_EXCEEDED',
+            0
+        );
+    }
+
+    /**
+     * 批量分析（含錯誤容忍）
+     */
+    async batchAnalyze(keywords, audience, options = {}, concurrency = 3) {
+        const results = [];
+        const errors = [];
+        const semaphore = new Semaphore(concurrency);
+
+        const analysisPromises = keywords.map(async (keyword, index) => {
+            await semaphore.acquire();
+            
+            try {
+                this.emit('batch_progress', { 
+                    current: index + 1, 
+                    total: keywords.length, 
+                    keyword 
+                });
+
+                const result = await this.analyzeSEO(keyword, audience, options);
+                results.push({ keyword, success: true, data: result });
+                
+                // 批量請求間的延遲
+                if (index < keywords.length - 1) {
+                    await this.sleep(2000);
+                }
+                
+            } catch (error) {
+                this.emit('batch_error', { keyword, error });
+                errors.push({ 
+                    keyword, 
+                    error: error.message,
+                    errorCode: error.errorCode 
+                });
+            } finally {
+                semaphore.release();
+            }
+        });
+
+        await Promise.all(analysisPromises);
+        return { results, errors };
+    }
+}
+
+/**
+ * 信號量實現（控制併發）
+ */
+class Semaphore {
+    constructor(max) {
+        this.max = max;
+        this.current = 0;
+        this.queue = [];
+    }
+
+    async acquire() {
+        return new Promise((resolve) => {
+            if (this.current < this.max) {
+                this.current++;
+                resolve();
+            } else {
+                this.queue.push(resolve);
+            }
+        });
+    }
+
+    release() {
+        this.current--;
+        if (this.queue.length > 0) {
+            const next = this.queue.shift();
+            this.current++;
+            next();
+        }
+    }
+}
+
+/**
+ * Express.js 中間件
+ */
+function createSEOMiddleware(client) {
+    return async (req, res, next) => {
+        try {
+            const { keyword, audience, options } = req.body;
+            
+            if (!keyword || !audience) {
+                return res.status(400).json({
+                    error: 'Missing required parameters: keyword and audience'
+                });
+            }
+
+            const result = await client.analyzeSEO(keyword, audience, options);
+            res.json(result);
+            
+        } catch (error) {
+            next(error); // 傳遞給錯誤處理中間件
+        }
+    };
+}
+
+/**
+ * Express.js 錯誤處理中間件
+ */
+function errorHandler(error, req, res, next) {
+    if (error instanceof APIError) {
+        // 根據錯誤類型設定適當的 HTTP 狀態碼
+        let httpStatus = 500;
+        
+        switch (error.errorCode) {
+            case 'VALIDATION_ERROR':
+                httpStatus = 400;
+                break;
+            case 'RATE_LIMIT_EXCEEDED':
+                httpStatus = 429;
+                break;
+            case 'CONNECTION_REFUSED':
+            case 'REQUEST_TIMEOUT':
+                httpStatus = 503;
+                break;
+            case 'PROCESSING_TIMEOUT':
+                httpStatus = 504;
+                break;
+        }
+
+        res.status(httpStatus).json({
+            error: {
+                message: error.message,
+                code: error.errorCode,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } else {
+        // 未知錯誤
+        console.error('未處理的錯誤:', error);
+        res.status(500).json({
+            error: {
+                message: '內部伺服器錯誤',
+                code: 'INTERNAL_ERROR',
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+}
+
+// 使用範例
+async function main() {
+    const client = new SEOAnalyzerClient();
+    
+    // 設定事件監聽器
+    client.on('request_start', ({ requestId, url }) => {
+        console.log(`🚀 [${requestId}] 請求開始: ${url}`);
+    });
+    
+    client.on('retry_scheduled', ({ retryCount, delay, reason }) => {
+        console.log(`🔄 將進行第 ${retryCount} 次重試，延遲 ${delay.toFixed(2)} 秒 (原因: ${reason})`);
+    });
+    
+    client.on('batch_progress', ({ current, total, keyword }) => {
+        console.log(`📊 批量進度 ${current}/${total}: ${keyword}`);
+    });
+
+    try {
+        // 單一分析
+        const result = await client.analyzeSEO(
+            'Node.js 效能優化',
+            '後端開發工程師',
+            { generate_draft: true, include_faq: true }
+        );
+        
+        console.log('✅ 分析完成');
+        console.log(`處理時間: ${result.processing_time} 秒`);
+        
+        // 批量分析
+        const batchResult = await client.batchAnalyze(
+            ['Express.js 教學', 'MongoDB 優化', 'Docker 容器化'],
+            '全端開發者',
+            { generate_draft: false, include_faq: true },
+            2 // 併發數
+        );
+        
+        console.log(`✅ 批量分析完成: ${batchResult.results.length} 成功, ${batchResult.errors.length} 失敗`);
+        
+    } catch (error) {
+        if (error instanceof APIError) {
+            console.error(`❌ API 錯誤: ${error.message} (${error.errorCode})`);
+        } else {
+            console.error(`❌ 未預期錯誤:`, error);
+        }
+    }
+}
+
+module.exports = {
+    SEOAnalyzerClient,
+    APIError,
+    createSEOMiddleware,
+    errorHandler
+};
+
+// 如果直接執行此檔案
+if (require.main === module) {
+    main().catch(console.error);
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 監控和日誌建議 -->
+        <div class="monitoring-section">
+            <h2 id="monitoring">📊 監控和日誌建議</h2>
+            
+            <div class="monitoring-grid">
+                <div class="monitoring-card">
+                    <h3>🔍 錯誤追蹤</h3>
+                    <div class="monitoring-content">
+                        <h4>關鍵指標：</h4>
+                        <ul>
+                            <li>錯誤率 (按錯誤類型分類)</li>
+                            <li>回應時間分布</li>
+                            <li>重試成功率</li>
+                            <li>併發請求數量</li>
+                        </ul>
+                        <h4>告警條件：</h4>
+                        <ul>
+                            <li>5xx 錯誤率 > 5%</li>
+                            <li>平均回應時間 > 45 秒</li>
+                            <li>重試失敗率 > 10%</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="monitoring-card">
+                    <h3>📝 日誌記錄</h3>
+                    <div class="monitoring-content">
+                        <h4>必要日誌欄位：</h4>
+                        <ul>
+                            <li>請求 ID (追蹤用)</li>
+                            <li>錯誤碼和訊息</li>
+                            <li>處理時間和重試次數</li>
+                            <li>使用者 IP 和 User-Agent</li>
+                        </ul>
+                        <h4>日誌級別：</h4>
+                        <ul>
+                            <li><span class="log-error">ERROR</span>: 4xx/5xx 錯誤</li>
+                            <li><span class="log-warn">WARN</span>: 重試和效能警告</li>
+                            <li><span class="log-info">INFO</span>: 正常請求</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="monitoring-card">
+                    <h3>👥 使用者體驗</h3>
+                    <div class="monitoring-content">
+                        <h4>友善錯誤訊息：</h4>
+                        <ul>
+                            <li>避免暴露技術細節</li>
+                            <li>提供具體的解決建議</li>
+                            <li>包含預期的重試時間</li>
+                            <li>提供客服聯絡方式</li>
+                        </ul>
+                        <h4>載入狀態管理：</h4>
+                        <ul>
+                            <li>顯示處理進度 (階段式)</li>
+                            <li>預估剩餘時間</li>
+                            <li>允許使用者取消請求</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 故障排除指南 -->
+        <div class="troubleshooting-section">
+            <h2 id="troubleshooting">🔧 故障排除指南</h2>
+            
+            <div class="troubleshoot-steps">
+                <div class="step-card">
+                    <h3>步驟 1: 基本診斷</h3>
+                    <div class="diagnostic-checklist">
+                        <label><input type="checkbox"> 檢查 API 服務健康狀態 (<code>/api/health</code>)</label>
+                        <label><input type="checkbox"> 確認網路連接正常</label>
+                        <label><input type="checkbox"> 驗證請求格式和參數</label>
+                        <label><input type="checkbox"> 檢查是否超過速率限制</label>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <h3>步驟 2: 錯誤分析</h3>
+                    <div class="error-analysis">
+                        <p>根據錯誤類型進行分析：</p>
+                        <div class="analysis-tabs">
+                            <button class="analysis-btn" onclick="showAnalysis('4xx')">4xx 錯誤</button>
+                            <button class="analysis-btn" onclick="showAnalysis('5xx')">5xx 錯誤</button>
+                            <button class="analysis-btn" onclick="showAnalysis('network')">網路錯誤</button>
+                        </div>
+                        
+                        <div class="analysis-content" id="analysis-4xx">
+                            <h4>客戶端錯誤處理：</h4>
+                            <ul>
+                                <li>檢查參數類型和格式</li>
+                                <li>確認參數值在有效範圍內</li>
+                                <li>驗證 JSON 格式正確</li>
+                                <li>檢查 Content-Type 標頭</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="analysis-content" id="analysis-5xx" style="display: none;">
+                            <h4>服務端錯誤處理：</h4>
+                            <ul>
+                                <li>實作重試機制</li>
+                                <li>檢查外部服務狀態</li>
+                                <li>監控系統資源使用</li>
+                                <li>查看服務器日誌</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="analysis-content" id="analysis-network" style="display: none;">
+                            <h4>網路問題排除：</h4>
+                            <ul>
+                                <li>測試 DNS 解析</li>
+                                <li>檢查防火牆設定</li>
+                                <li>驗證 SSL 憑證</li>
+                                <li>嘗試不同的網路環境</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <h3>步驟 3: 聯絡技術支援</h3>
+                    <div class="support-info">
+                        <p>如果問題持續存在，請提供以下資訊：</p>
+                        <div class="support-checklist">
+                            <label><input type="checkbox"> 完整的錯誤訊息和錯誤碼</label>
+                            <label><input type="checkbox"> 請求的完整 payload</label>
+                            <label><input type="checkbox"> 發生時間 (含時區)</label>
+                            <label><input type="checkbox"> 重試次數和間隔</label>
+                            <label><input type="checkbox"> 客戶端環境 (瀏覽器/Node.js 版本等)</label>
+                            <label><input type="checkbox"> 網路環境描述</label>
+                        </div>
+                        
+                        <div class="support-template">
+                            <h4>問題回報模板：</h4>
+                            <textarea readonly class="report-template">
+問題描述：[簡述問題]
+錯誤碼：[ERROR_CODE]
+發生時間：[YYYY-MM-DD HH:MM:SS +TIMEZONE]
+請求內容：[完整的 JSON payload]
+重試情況：[重試次數和結果]
+客戶端環境：[瀏覽器版本/Node.js版本]
+其他資訊：[相關背景資訊]
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-guide-section {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    color: #2d3748;
+}
+
+.guide-intro {
+    font-size: 1.1rem;
+    color: #4a5568;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #fed7d7;
+    border-left: 4px solid #e53e3e;
+    border-radius: 4px;
+}
+
+/* 錯誤查詢區塊 */
+.error-lookup-section {
+    margin: 30px 0;
+    padding: 25px;
+    background: #f7fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.error-search input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+.error-search input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.error-categories {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.category-btn:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+}
+
+.category-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* 狀態碼區塊 */
+.status-codes-section {
+    margin: 40px 0;
+}
+
+.error-category {
+    margin: 30px 0;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.error-type {
+    margin: 0 0 25px 0;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.client-error {
+    background: linear-gradient(135deg, #fed7d7 0%, #fbb6ce 100%);
+    color: #744210;
+}
+
+.server-error {
+    background: linear-gradient(135deg, #ffd6cc 0%, #feb2b2 100%);
+    color: #c53030;
+}
+
+.network-error {
+    background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+    color: #2a4365;
+}
+
+.status-code-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.status-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid transparent;
+}
+
+.error-4xx {
+    border-left-color: #f56565;
+}
+
+.error-5xx {
+    border-left-color: #ed8936;
+}
+
+.status-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.status-code {
+    background: #2d3748;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.status-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #2d3748;
+}
+
+.status-description {
+    color: #4a5568;
+    margin-bottom: 15px;
+}
+
+.common-causes h5 {
+    color: #2d3748;
+    margin: 0 0 8px 0;
+    font-size: 0.95rem;
+}
+
+.common-causes ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.common-causes li {
+    font-size: 0.9rem;
+    color: #4a5568;
+    line-height: 1.5;
+    margin: 4px 0;
+}
+
+/* 網路錯誤 */
+.network-errors {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.network-error-item {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #4299e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.network-error-item h4 {
+    color: #2d3748;
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    font-family: monospace;
+}
+
+.network-error-item p {
+    color: #4a5568;
+    margin: 0;
+}
+
+/* 錯誤格式區塊 */
+.error-format-section {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-top: 2px solid #e2e8f0;
+}
+
+.format-explanation {
+    margin-bottom: 25px;
+    padding: 15px 20px;
+    background: #f0f4f8;
+    border-radius: 6px;
+    border-left: 3px solid #4299e1;
+}
+
+.error-format-example {
+    margin: 30px 0;
+}
+
+.code-example {
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.code-header {
+    background: #2d3748;
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.copy-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.copy-btn:hover {
+    background: #5a67d8;
+}
+
+.code-example pre {
+    background: #1a202c;
+    color: #e2e8f0;
+    padding: 20px;
+    margin: 0;
+    overflow-x: auto;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* 錯誤碼表格 */
+.error-codes-table {
+    margin: 30px 0;
+}
+
+.error-codes-list {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.error-codes-list th {
+    background: #2d3748;
+    color: white;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.error-codes-list td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.error-codes-list tr:hover {
+    background: #f7fafc;
+}
+
+.error-codes-list code {
+    background: #edf2f7;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    color: #d63384;
+}
+
+.status-400 { color: #f56565; font-weight: 600; }
+.status-429 { color: #ed8936; font-weight: 600; }
+.status-500 { color: #e53e3e; font-weight: 600; }
+.status-503 { color: #dd6b20; font-weight: 600; }
+.status-504 { color: #d69e2e; font-weight: 600; }
+
+.retry-no { color: #e53e3e; }
+.retry-yes { color: #38a169; }
+.retry-maybe { color: #d69e2e; }
+.retry-delay { color: #3182ce; }
+
+/* 重試策略區塊 */
+.retry-section {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-top: 2px solid #e2e8f0;
+}
+
+.retry-strategy-overview {
+    margin-bottom: 25px;
+    padding: 15px 20px;
+    background: #e6fffa;
+    border-radius: 6px;
+    border-left: 3px solid #38b2ac;
+}
+
+.retry-strategies {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.strategy-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid transparent;
+}
+
+.retry-exponential {
+    border-left-color: #4299e1;
+}
+
+.retry-fixed {
+    border-left-color: #ed8936;
+}
+
+.retry-none {
+    border-left-color: #e53e3e;
+}
+
+.strategy-card h3 {
+    color: #2d3748;
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+}
+
+.strategy-card p {
+    color: #4a5568;
+    margin-bottom: 20px;
+}
+
+.strategy-details h4 {
+    color: #2d3748;
+    margin: 15px 0 8px 0;
+    font-size: 1rem;
+}
+
+.strategy-details code {
+    background: #f7fafc;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    color: #d63384;
+    display: block;
+    margin: 8px 0;
+}
+
+.strategy-details ul {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.strategy-details li {
+    margin: 5px 0;
+    color: #4a5568;
+}
+
+/* 程式碼範例標籤 */
+.code-examples-section {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-top: 2px solid #e2e8f0;
+}
+
+.language-tabs {
+    margin: 20px 0;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: #f7fafc;
+    color: #4a5568;
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background: #e2e8f0;
+}
+
+.tab-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 監控區塊 */
+.monitoring-section {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-top: 2px solid #e2e8f0;
+}
+
+.monitoring-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.monitoring-card {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 10px;
+    padding: 25px;
+    border-left: 5px solid #667eea;
+}
+
+.monitoring-card h3 {
+    color: #2d3748;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+}
+
+.monitoring-content h4 {
+    color: #2d3748;
+    margin: 15px 0 8px 0;
+    font-size: 1rem;
+}
+
+.monitoring-content ul {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.monitoring-content li {
+    margin: 5px 0;
+    color: #4a5568;
+}
+
+.log-error { 
+    background: #fed7d7; 
+    color: #c53030; 
+    padding: 2px 6px; 
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.log-warn { 
+    background: #feebc8; 
+    color: #d69e2e; 
+    padding: 2px 6px; 
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.log-info { 
+    background: #bee3f8; 
+    color: #3182ce; 
+    padding: 2px 6px; 
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+/* 故障排除區塊 */
+.troubleshooting-section {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-top: 2px solid #e2e8f0;
+}
+
+.troubleshoot-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.step-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #48bb78;
+}
+
+.step-card h3 {
+    color: #2d3748;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+}
+
+.diagnostic-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.diagnostic-checklist label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f7fafc;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.diagnostic-checklist input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+.analysis-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.analysis-btn {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.analysis-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.analysis-content {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 6px;
+}
+
+.support-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 15px 0;
+}
+
+.support-checklist label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px;
+    background: #f0fff4;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.support-template {
+    margin: 20px 0;
+}
+
+.report-template {
+    width: 100%;
+    height: 200px;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    background: #f7fafc;
+    resize: vertical;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .status-code-grid,
+    .retry-strategies,
+    .monitoring-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tab-buttons {
+        overflow-x: auto;
+    }
+    
+    .tab-btn {
+        flex-shrink: 0;
+    }
+    
+    .error-categories {
+        justify-content: flex-start;
+        overflow-x: auto;
+    }
+    
+    .category-btn {
+        flex-shrink: 0;
+    }
+}
+</style>
+
+<script>
+// 錯誤查詢功能
+function filterErrors() {
+    const searchTerm = document.getElementById('errorSearch').value.toLowerCase();
+    const cards = document.querySelectorAll('.status-card, .network-error-item, .error-codes-list tr');
+    
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// 錯誤分類篩選
+function showErrorCategory(category) {
+    const categories = document.querySelectorAll('.error-category');
+    const buttons = document.querySelectorAll('.category-btn');
+    
+    // 更新按鈕狀態
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // 顯示/隱藏分類
+    categories.forEach(cat => {
+        if (category === 'all' || cat.dataset.category === category) {
+            cat.style.display = 'block';
+        } else {
+            cat.style.display = 'none';
+        }
+    });
+}
+
+// 程式碼標籤切換
+function showCodeTab(tabName) {
+    // 隱藏所有標籤內容
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // 移除所有按鈕的 active 狀態
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // 顯示選中的標籤
+    document.getElementById(tabName).classList.add('active');
+    
+    // 設定對應按鈕為 active
+    event.target.classList.add('active');
+}
+
+// 錯誤分析標籤
+function showAnalysis(type) {
+    document.querySelectorAll('.analysis-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    document.querySelectorAll('.analysis-btn').forEach(btn => {
+        btn.style.background = 'white';
+        btn.style.color = '#4a5568';
+        btn.style.borderColor = '#e2e8f0';
+    });
+    
+    document.getElementById('analysis-' + type).style.display = 'block';
+    event.target.style.background = '#667eea';
+    event.target.style.color = 'white';
+    event.target.style.borderColor = '#667eea';
+}
+
+// 複製程式碼功能
+function copyCode(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+    
+    navigator.clipboard.writeText(text).then(function() {
+        const button = element.closest('.code-example').querySelector('.copy-btn');
+        const originalText = button.textContent;
+        button.textContent = '已複製!';
+        button.style.background = '#48bb78';
+        
+        setTimeout(function() {
+            button.textContent = originalText;
+            button.style.background = '#667eea';
+        }, 2000);
+    }).catch(function(err) {
+        console.error('複製失敗:', err);
+    });
+}
+</script>

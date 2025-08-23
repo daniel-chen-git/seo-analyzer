@@ -1,0 +1,1676 @@
+<!-- 效能最佳化建議指南 -->
+<div class="performance-guide-section">
+    <div class="container">
+        <h1>⚡ 效能最佳化建議指南</h1>
+        <p class="guide-intro">
+            基於 SEO Analyzer API 的實際測試數據和最佳實務，提供全方位的效能優化策略，幫助您最大化 API 的效率和使用體驗。
+        </p>
+
+        <!-- 效能指標概覽 -->
+        <div class="performance-overview">
+            <h2 id="performance-metrics">📊 效能指標概覽</h2>
+            
+            <div class="metrics-dashboard">
+                <div class="metric-card target">
+                    <h3>🎯 目標指標</h3>
+                    <div class="metric-content">
+                        <div class="metric-item">
+                            <span class="metric-label">總處理時間</span>
+                            <span class="metric-value target-value">< 60 秒</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">成功率</span>
+                            <span class="metric-value target-value">≥ 95%</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">併發支援</span>
+                            <span class="metric-value target-value">3-5 個</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Token 效率</span>
+                            <span class="metric-value target-value">< 8000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card actual">
+                    <h3>📈 實際表現</h3>
+                    <div class="metric-content">
+                        <div class="metric-item">
+                            <span class="metric-label">平均處理時間</span>
+                            <span class="metric-value actual-value">20-35 秒</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">實際成功率</span>
+                            <span class="metric-value actual-value">98%+</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">併發處理</span>
+                            <span class="metric-value actual-value">3-5 個</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">平均 Token</span>
+                            <span class="metric-value actual-value">5000-7000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card phases">
+                    <h3>⏱️ 階段計時分析</h3>
+                    <div class="metric-content">
+                        <div class="metric-item">
+                            <span class="metric-label">SERP 資料擷取</span>
+                            <span class="metric-value phase-value">0.1-2.2 秒</span>
+                            <span class="metric-threshold">閾值: 15 秒</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">網頁爬取</span>
+                            <span class="metric-value phase-value">4-12 秒</span>
+                            <span class="metric-threshold">閾值: 25 秒</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">AI 分析</span>
+                            <span class="metric-value phase-value">18-20 秒</span>
+                            <span class="metric-threshold">閾值: 35 秒</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 參數優化策略 -->
+        <div class="parameter-optimization">
+            <h2 id="parameter-optimization">🎛️ 參數優化策略</h2>
+            
+            <div class="optimization-intro">
+                <p>根據不同使用情境選擇最適合的參數組合，在功能性和效能之間取得平衡：</p>
+            </div>
+
+            <div class="parameter-strategies">
+                <div class="strategy-card speed-optimized">
+                    <h3>🚀 速度優先配置</h3>
+                    <p class="strategy-desc">適合需要快速回應的場景，犧牲部分功能換取最佳速度</p>
+                    
+                    <div class="config-block">
+                        <h4>建議配置：</h4>
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>速度優化配置</span>
+                                <button class="copy-btn" onclick="copyCode('speed-config')">複製</button>
+                            </div>
+                            <pre id="speed-config"><code>{
+  "keyword": "您的關鍵字",
+  "audience": "目標受眾",
+  "options": {
+    "generate_draft": false,    // 關閉文章草稿生成
+    "include_faq": false,       // 關閉 FAQ 生成
+    "include_table": false      // 關閉比較表格
+  }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="performance-stats">
+                        <h4>預期效能：</h4>
+                        <ul>
+                            <li><strong>處理時間</strong>: 20-30 秒</li>
+                            <li><strong>Token 使用</strong>: 4,000-5,500</li>
+                            <li><strong>成功率</strong>: 99%+</li>
+                            <li><strong>適用場景</strong>: 快速競爭分析、關鍵字研究</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="strategy-card balanced">
+                    <h3>⚖️ 平衡配置</h3>
+                    <p class="strategy-desc">功能與效能的最佳平衡，適合大多數使用情境</p>
+                    
+                    <div class="config-block">
+                        <h4>建議配置：</h4>
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>平衡配置</span>
+                                <button class="copy-btn" onclick="copyCode('balanced-config')">複製</button>
+                            </div>
+                            <pre id="balanced-config"><code>{
+  "keyword": "您的關鍵字",
+  "audience": "目標受眾", 
+  "options": {
+    "generate_draft": true,     // 開啟文章草稿
+    "include_faq": true,        // 開啟 FAQ 
+    "include_table": false      // 關閉表格（耗時較多）
+  }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="performance-stats">
+                        <h4>預期效能：</h4>
+                        <ul>
+                            <li><strong>處理時間</strong>: 30-40 秒</li>
+                            <li><strong>Token 使用</strong>: 5,500-7,000</li>
+                            <li><strong>成功率</strong>: 98%+</li>
+                            <li><strong>適用場景</strong>: 內容創作、部落格規劃</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="strategy-card comprehensive">
+                    <h3>📚 完整分析配置</h3>
+                    <p class="strategy-desc">提供最詳細的分析結果，適合深度研究和專業用途</p>
+                    
+                    <div class="config-block">
+                        <h4>建議配置：</h4>
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>完整配置</span>
+                                <button class="copy-btn" onclick="copyCode('comprehensive-config')">複製</button>
+                            </div>
+                            <pre id="comprehensive-config"><code>{
+  "keyword": "您的關鍵字",
+  "audience": "目標受眾",
+  "options": {
+    "generate_draft": true,     // 開啟文章草稿
+    "include_faq": true,        // 開啟 FAQ
+    "include_table": true       // 開啟比較表格
+  }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="performance-stats">
+                        <h4>預期效能：</h4>
+                        <ul>
+                            <li><strong>處理時間</strong>: 40-55 秒</li>
+                            <li><strong>Token 使用</strong>: 6,500-8,000</li>
+                            <li><strong>成功率</strong>: 96%+</li>
+                            <li><strong>適用場景</strong>: SEO 顧問、市場研究</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 併發和批量處理優化 -->
+        <div class="concurrency-optimization">
+            <h2 id="concurrency-optimization">🔄 併發和批量處理優化</h2>
+            
+            <div class="concurrency-strategies">
+                <div class="concurrency-card">
+                    <h3>⚡ 最佳併發策略</h3>
+                    <div class="strategy-content">
+                        <h4>併發限制建議：</h4>
+                        <div class="concurrency-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>分析類型</th>
+                                        <th>建議併發數</th>
+                                        <th>間隔時間</th>
+                                        <th>說明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>速度優先</td>
+                                        <td>3-5 個</td>
+                                        <td>1 秒</td>
+                                        <td>輕量配置，可較高併發</td>
+                                    </tr>
+                                    <tr>
+                                        <td>平衡配置</td>
+                                        <td>2-3 個</td>
+                                        <td>2 秒</td>
+                                        <td>標準配置，建議限制</td>
+                                    </tr>
+                                    <tr>
+                                        <td>完整分析</td>
+                                        <td>1-2 個</td>
+                                        <td>3 秒</td>
+                                        <td>重度配置，需要限制</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="concurrency-tips">
+                            <h4>💡 併發處理建議：</h4>
+                            <ul>
+                                <li><strong>使用信號量控制</strong>: 限制同時進行的請求數量</li>
+                                <li><strong>實作請求佇列</strong>: 避免瞬間大量請求</li>
+                                <li><strong>智能重試間隔</strong>: 根據系統負載動態調整</li>
+                                <li><strong>負載均衡考量</strong>: 分散請求到不同時間點</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="batch-processing-card">
+                    <h3>📦 批量處理最佳化</h3>
+                    <div class="batch-content">
+                        <h4>批量處理策略：</h4>
+                        
+                        <div class="batch-strategy">
+                            <h5>🎯 小批量處理 (1-10 個關鍵字)</h5>
+                            <ul>
+                                <li>併發數: 2-3 個</li>
+                                <li>間隔時間: 1-2 秒</li>
+                                <li>重試策略: 立即重試</li>
+                                <li>預期時間: 5-15 分鐘</li>
+                            </ul>
+                        </div>
+
+                        <div class="batch-strategy">
+                            <h5>📊 中批量處理 (11-50 個關鍵字)</h5>
+                            <ul>
+                                <li>併發數: 1-2 個</li>
+                                <li>間隔時間: 3-5 秒</li>
+                                <li>重試策略: 延遲重試</li>
+                                <li>預期時間: 20-60 分鐘</li>
+                            </ul>
+                        </div>
+
+                        <div class="batch-strategy">
+                            <h5>🏭 大批量處理 (50+ 個關鍵字)</h5>
+                            <ul>
+                                <li>併發數: 1 個</li>
+                                <li>間隔時間: 5-10 秒</li>
+                                <li>重試策略: 指數退避</li>
+                                <li>預期時間: 1-3 小時</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快取策略 -->
+        <div class="caching-strategies">
+            <h2 id="caching-strategies">💾 快取策略</h2>
+            
+            <div class="caching-overview">
+                <p>合理的快取策略可以顯著提升應用程式效能，減少不必要的 API 請求：</p>
+            </div>
+
+            <div class="cache-types">
+                <div class="cache-card client-cache">
+                    <h3>💻 客戶端快取</h3>
+                    <div class="cache-content">
+                        <h4>適用場景：</h4>
+                        <ul>
+                            <li>相同關鍵字的重複查詢</li>
+                            <li>使用者瀏覽記錄</li>
+                            <li>暫時性資料儲存</li>
+                        </ul>
+
+                        <h4>實作建議：</h4>
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>瀏覽器快取實作</span>
+                                <button class="copy-btn" onclick="copyCode('client-cache')">複製</button>
+                            </div>
+                            <pre id="client-cache"><code>class SEOCache {
+    constructor(ttl = 24 * 60 * 60 * 1000) { // 預設 24 小時
+        this.ttl = ttl;
+        this.cache = new Map();
+    }
+
+    generateKey(keyword, audience, options) {
+        return btoa(JSON.stringify({keyword, audience, options}));
+    }
+
+    get(keyword, audience, options) {
+        const key = this.generateKey(keyword, audience, options);
+        const item = this.cache.get(key);
+        
+        if (!item) return null;
+        
+        if (Date.now() > item.expiry) {
+            this.cache.delete(key);
+            return null;
+        }
+        
+        return item.data;
+    }
+
+    set(keyword, audience, options, data) {
+        const key = this.generateKey(keyword, audience, options);
+        this.cache.set(key, {
+            data,
+            expiry: Date.now() + this.ttl
+        });
+    }
+
+    clear() {
+        this.cache.clear();
+    }
+}</code></pre>
+                        </div>
+
+                        <h4>快取策略：</h4>
+                        <ul>
+                            <li><strong>TTL (生存時間)</strong>: 24 小時</li>
+                            <li><strong>存儲位置</strong>: localStorage / sessionStorage</li>
+                            <li><strong>容量限制</strong>: 最多 100 個條目</li>
+                            <li><strong>清理策略</strong>: LRU (最近最少使用)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="cache-card server-cache">
+                    <h3>🗄️ 服務端快取</h3>
+                    <div class="cache-content">
+                        <h4>快取層級：</h4>
+                        
+                        <div class="cache-layer">
+                            <h5>1️⃣ SERP 資料快取</h5>
+                            <ul>
+                                <li><strong>快取時間</strong>: 6-12 小時</li>
+                                <li><strong>快取鍵</strong>: keyword + search_params</li>
+                                <li><strong>適用性</strong>: SERP 結果變化較慢</li>
+                            </ul>
+                        </div>
+
+                        <div class="cache-layer">
+                            <h5>2️⃣ 爬取內容快取</h5>
+                            <ul>
+                                <li><strong>快取時間</strong>: 2-4 小時</li>
+                                <li><strong>快取鍵</strong>: URL + content_hash</li>
+                                <li><strong>適用性</strong>: 網頁內容相對穩定</li>
+                            </ul>
+                        </div>
+
+                        <div class="cache-layer">
+                            <h5>3️⃣ 分析結果快取</h5>
+                            <ul>
+                                <li><strong>快取時間</strong>: 1-2 小時</li>
+                                <li><strong>快取鍵</strong>: 完整請求參數hash</li>
+                                <li><strong>適用性</strong>: 完整匹配的重複請求</li>
+                            </ul>
+                        </div>
+
+                        <h4>Redis 配置範例：</h4>
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>Redis 快取配置</span>
+                                <button class="copy-btn" onclick="copyCode('redis-config')">複製</button>
+                            </div>
+                            <pre id="redis-config"><code># Redis 快取配置
+CACHE_SERP_TTL=21600        # SERP 快取 6 小時
+CACHE_CONTENT_TTL=7200      # 內容快取 2 小時  
+CACHE_ANALYSIS_TTL=3600     # 分析快取 1 小時
+CACHE_MAX_MEMORY=1gb        # 最大記憶體使用
+CACHE_POLICY=allkeys-lru    # LRU 淘汰策略</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 網路優化 -->
+        <div class="network-optimization">
+            <h2 id="network-optimization">🌐 網路優化</h2>
+            
+            <div class="network-strategies">
+                <div class="network-card connection">
+                    <h3>🔌 連線優化</h3>
+                    <div class="network-content">
+                        <h4>連線池管理：</h4>
+                        <ul>
+                            <li><strong>保持連線</strong>: 使用 Keep-Alive 減少連線開銷</li>
+                            <li><strong>連線復用</strong>: HTTP/2 多路復用支援</li>
+                            <li><strong>連線超時</strong>: 設定合理的 connect timeout</li>
+                            <li><strong>讀取超時</strong>: 設定適當的 read timeout</li>
+                        </ul>
+
+                        <h4>HTTP 客戶端配置：</h4>
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>Python requests 配置</span>
+                                <button class="copy-btn" onclick="copyCode('http-config')">複製</button>
+                            </div>
+                            <pre id="http-config"><code>import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+class OptimizedSEOClient:
+    def __init__(self):
+        self.session = requests.Session()
+        
+        # 重試策略
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+        
+        # HTTP 適配器配置
+        adapter = HTTPAdapter(
+            max_retries=retry_strategy,
+            pool_connections=10,    # 連線池大小
+            pool_maxsize=20,       # 最大連線數
+            pool_block=False       # 非阻塞模式
+        )
+        
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        
+        # 設定超時
+        self.session.timeout = (10, 120)  # (connect, read)
+        
+        # Keep-Alive 標頭
+        self.session.headers.update({
+            'Connection': 'keep-alive',
+            'User-Agent': 'SEO-Analyzer-Client/1.0'
+        })</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="network-card compression">
+                    <h3>🗜️ 壓縮優化</h3>
+                    <div class="network-content">
+                        <h4>內容壓縮：</h4>
+                        <ul>
+                            <li><strong>gzip 壓縮</strong>: 啟用請求/回應壓縮</li>
+                            <li><strong>JSON 最小化</strong>: 移除不必要的空白</li>
+                            <li><strong>分塊傳輸</strong>: 大型回應使用 chunked encoding</li>
+                        </ul>
+
+                        <h4>請求優化：</h4>
+                        <ul>
+                            <li><strong>Accept-Encoding</strong>: 支援 gzip, deflate, br</li>
+                            <li><strong>Content-Encoding</strong>: 請求體壓縮</li>
+                            <li><strong>Transfer-Encoding</strong>: 支援分塊傳輸</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="network-card cdn">
+                    <h3>📡 CDN 和邊緣運算</h3>
+                    <div class="network-content">
+                        <h4>地理分佈策略：</h4>
+                        <ul>
+                            <li><strong>區域部署</strong>: 就近處理減少延遲</li>
+                            <li><strong>負載均衡</strong>: 智能分流到最佳節點</li>
+                            <li><strong>邊緣快取</strong>: 在 CDN 節點快取結果</li>
+                        </ul>
+
+                        <h4>延遲優化：</h4>
+                        <table class="latency-table">
+                            <thead>
+                                <tr>
+                                    <th>地區</th>
+                                    <th>預期延遲</th>
+                                    <th>建議節點</th>
+                                    <th>快取策略</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>亞太地區</td>
+                                    <td>< 100ms</td>
+                                    <td>Singapore</td>
+                                    <td>積極快取</td>
+                                </tr>
+                                <tr>
+                                    <td>北美地區</td>
+                                    <td>< 150ms</td>
+                                    <td>US-West</td>
+                                    <td>標準快取</td>
+                                </tr>
+                                <tr>
+                                    <td>歐洲地區</td>
+                                    <td>< 200ms</td>
+                                    <td>Frankfurt</td>
+                                    <td>標準快取</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 監控和分析 -->
+        <div class="monitoring-optimization">
+            <h2 id="monitoring-optimization">📊 效能監控和分析</h2>
+            
+            <div class="monitoring-dashboard">
+                <div class="monitoring-card metrics">
+                    <h3>📈 關鍵效能指標 (KPI)</h3>
+                    <div class="monitoring-content">
+                        <h4>核心指標：</h4>
+                        <div class="kpi-grid">
+                            <div class="kpi-item">
+                                <span class="kpi-name">平均回應時間 (APDEX)</span>
+                                <span class="kpi-target">目標: < 35 秒</span>
+                                <span class="kpi-alert">告警: > 45 秒</span>
+                            </div>
+                            <div class="kpi-item">
+                                <span class="kpi-name">成功率</span>
+                                <span class="kpi-target">目標: > 98%</span>
+                                <span class="kpi-alert">告警: < 95%</span>
+                            </div>
+                            <div class="kpi-item">
+                                <span class="kpi-name">P95 回應時間</span>
+                                <span class="kpi-target">目標: < 50 秒</span>
+                                <span class="kpi-alert">告警: > 55 秒</span>
+                            </div>
+                            <div class="kpi-item">
+                                <span class="kpi-name">併發處理數</span>
+                                <span class="kpi-target">目標: 3-5 個</span>
+                                <span class="kpi-alert">告警: > 8 個</span>
+                            </div>
+                        </div>
+
+                        <h4>階段效能監控：</h4>
+                        <div class="phase-monitoring">
+                            <div class="phase-item serp-phase">
+                                <span class="phase-name">SERP 階段</span>
+                                <span class="phase-range">0.1-2.2s</span>
+                                <div class="phase-bar">
+                                    <div class="phase-progress" style="width: 15%"></div>
+                                </div>
+                                <span class="phase-threshold">15s</span>
+                            </div>
+                            <div class="phase-item scraping-phase">
+                                <span class="phase-name">爬取階段</span>
+                                <span class="phase-range">4-12s</span>
+                                <div class="phase-bar">
+                                    <div class="phase-progress" style="width: 48%"></div>
+                                </div>
+                                <span class="phase-threshold">25s</span>
+                            </div>
+                            <div class="phase-item ai-phase">
+                                <span class="phase-name">AI 階段</span>
+                                <span class="phase-range">18-20s</span>
+                                <div class="phase-bar">
+                                    <div class="phase-progress" style="width: 57%"></div>
+                                </div>
+                                <span class="phase-threshold">35s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="monitoring-card alerts">
+                    <h3>🚨 智能告警系統</h3>
+                    <div class="monitoring-content">
+                        <h4>告警級別：</h4>
+                        <div class="alert-levels">
+                            <div class="alert-level critical">
+                                <h5>🔴 嚴重 (Critical)</h5>
+                                <ul>
+                                    <li>成功率 < 90%</li>
+                                    <li>平均回應時間 > 50 秒</li>
+                                    <li>連續 5 次請求失敗</li>
+                                    <li>系統資源耗盡</li>
+                                </ul>
+                            </div>
+                            <div class="alert-level warning">
+                                <h5>🟡 警告 (Warning)</h5>
+                                <ul>
+                                    <li>成功率 95-97%</li>
+                                    <li>平均回應時間 40-50 秒</li>
+                                    <li>單一階段超過閾值</li>
+                                    <li>併發數接近上限</li>
+                                </ul>
+                            </div>
+                            <div class="alert-level info">
+                                <h5>🔵 資訊 (Info)</h5>
+                                <ul>
+                                    <li>效能略有下降</li>
+                                    <li>使用量異常增加</li>
+                                    <li>新的錯誤類型</li>
+                                    <li>快取命中率下降</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h4>自動化回應：</h4>
+                        <ul>
+                            <li><strong>自動降級</strong>: 高負載時關閉非必要功能</li>
+                            <li><strong>流量限制</strong>: 動態調整速率限制</li>
+                            <li><strong>快取預熱</strong>: 預載熱門關鍵字結果</li>
+                            <li><strong>擴容觸發</strong>: 自動增加運算資源</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 故障排除和調優 -->
+        <div class="troubleshooting-optimization">
+            <h2 id="troubleshooting-optimization">🔧 故障排除和調優</h2>
+            
+            <div class="troubleshooting-guide">
+                <div class="trouble-category">
+                    <h3>🐌 效能問題排查</h3>
+                    <div class="trouble-content">
+                        <div class="trouble-scenario">
+                            <h4>問題：回應時間過長 (> 45 秒)</h4>
+                            <div class="diagnosis-steps">
+                                <div class="step">
+                                    <h5>1️⃣ 階段分析</h5>
+                                    <ul>
+                                        <li>檢查 phase_timings 找出瓶頸階段</li>
+                                        <li>SERP 階段慢 → 檢查 SerpAPI 狀態</li>
+                                        <li>爬取階段慢 → 檢查網路連線和目標網站</li>
+                                        <li>AI 階段慢 → 檢查 Azure OpenAI 服務</li>
+                                    </ul>
+                                </div>
+                                <div class="step">
+                                    <h5>2️⃣ 參數調整</h5>
+                                    <ul>
+                                        <li>關閉 generate_draft 減少 AI 處理時間</li>
+                                        <li>關閉 include_table 減少資料處理</li>
+                                        <li>簡化 audience 描述長度</li>
+                                        <li>選擇競爭度較低的關鍵字測試</li>
+                                    </ul>
+                                </div>
+                                <div class="step">
+                                    <h5>3️⃣ 系統檢查</h5>
+                                    <ul>
+                                        <li>檢查服務器 CPU 和記憶體使用率</li>
+                                        <li>確認外部服務 (SerpAPI, Azure) 正常</li>
+                                        <li>檢查網路延遲和頻寬</li>
+                                        <li>查看錯誤日誌和重試情況</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="trouble-scenario">
+                            <h4>問題：成功率下降 (< 95%)</h4>
+                            <div class="diagnosis-steps">
+                                <div class="step">
+                                    <h5>1️⃣ 錯誤分析</h5>
+                                    <ul>
+                                        <li>統計錯誤類型分佈</li>
+                                        <li>檢查 5xx 錯誤的具體原因</li>
+                                        <li>分析重試成功率</li>
+                                        <li>確認是否為暫時性問題</li>
+                                    </ul>
+                                </div>
+                                <div class="step">
+                                    <h5>2️⃣ 依賴服務</h5>
+                                    <ul>
+                                        <li>檢查 SerpAPI 配額和狀態</li>
+                                        <li>驗證 Azure OpenAI 服務可用性</li>
+                                        <li>測試目標網站的可訪問性</li>
+                                        <li>檢查網路防火牆和代理設定</li>
+                                    </ul>
+                                </div>
+                                <div class="step">
+                                    <h5>3️⃣ 優化措施</h5>
+                                    <ul>
+                                        <li>增加重試次數和間隔</li>
+                                        <li>實作斷路器模式</li>
+                                        <li>加入備用服務提供商</li>
+                                        <li>優化錯誤處理邏輯</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="trouble-scenario">
+                            <h4>問題：併發處理能力不足</h4>
+                            <div class="diagnosis-steps">
+                                <div class="step">
+                                    <h5>1️⃣ 資源分析</h5>
+                                    <ul>
+                                        <li>監控 CPU 和記憶體使用</li>
+                                        <li>檢查網路連線數量</li>
+                                        <li>分析資料庫連線池狀態</li>
+                                        <li>確認外部 API 限制</li>
+                                    </ul>
+                                </div>
+                                <div class="step">
+                                    <h5>2️⃣ 水平擴展</h5>
+                                    <ul>
+                                        <li>增加服務器實例數量</li>
+                                        <li>實作負載均衡</li>
+                                        <li>使用容器化部署</li>
+                                        <li>考慮微服務架構</li>
+                                    </ul>
+                                </div>
+                                <div class="step">
+                                    <h5>3️⃣ 垂直優化</h5>
+                                    <ul>
+                                        <li>優化演算法和資料結構</li>
+                                        <li>實作更高效的快取策略</li>
+                                        <li>減少不必要的資料處理</li>
+                                        <li>使用非同步和並行處理</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最佳實務總結 -->
+        <div class="best-practices-summary">
+            <h2 id="best-practices">⭐ 最佳實務總結</h2>
+            
+            <div class="practices-grid">
+                <div class="practice-card development">
+                    <h3>👨‍💻 開發階段</h3>
+                    <ul>
+                        <li><strong>參數驗證</strong>: 客戶端預先驗證參數格式</li>
+                        <li><strong>錯誤處理</strong>: 實作完整的重試和降級機制</li>
+                        <li><strong>超時設定</strong>: 設定合理的請求超時時間 (120s+)</li>
+                        <li><strong>併發控制</strong>: 使用信號量限制同時請求數</li>
+                        <li><strong>日誌記錄</strong>: 記錄關鍵效能指標和錯誤資訊</li>
+                    </ul>
+                </div>
+
+                <div class="practice-card testing">
+                    <h3>🧪 測試階段</h3>
+                    <ul>
+                        <li><strong>壓力測試</strong>: 模擬高併發和大量請求</li>
+                        <li><strong>邊界測試</strong>: 測試極端參數和錯誤情況</li>
+                        <li><strong>效能基準</strong>: 建立效能基準線和回歸測試</li>
+                        <li><strong>長時間測試</strong>: 驗證長期穩定性和記憶體洩漏</li>
+                        <li><strong>網路模擬</strong>: 測試不同網路條件下的表現</li>
+                    </ul>
+                </div>
+
+                <div class="practice-card production">
+                    <h3>🚀 生產階段</h3>
+                    <ul>
+                        <li><strong>監控告警</strong>: 設定全面的監控和告警系統</li>
+                        <li><strong>容量規劃</strong>: 根據使用量預測進行擴容</li>
+                        <li><strong>災難恢復</strong>: 準備故障轉移和備援方案</li>
+                        <li><strong>效能調優</strong>: 持續監控和優化系統效能</li>
+                        <li><strong>使用者回饋</strong>: 收集和分析使用者體驗回饋</li>
+                    </ul>
+                </div>
+
+                <div class="practice-card maintenance">
+                    <h3>🔧 維護階段</h3>
+                    <ul>
+                        <li><strong>定期檢查</strong>: 定期檢查系統健康狀態</li>
+                        <li><strong>效能分析</strong>: 分析效能趨勢和瓶頸</li>
+                        <li><strong>版本更新</strong>: 及時更新相關依賴和套件</li>
+                        <li><strong>文檔更新</strong>: 保持技術文檔和 API 規格同步</li>
+                        <li><strong>知識分享</strong>: 分享最佳實務和經驗教訓</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.performance-guide-section {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    color: #2d3748;
+}
+
+.guide-intro {
+    font-size: 1.1rem;
+    color: #4a5568;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+    border-left: 4px solid #38b2ac;
+    border-radius: 4px;
+}
+
+/* 效能指標概覽 */
+.performance-overview {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.metrics-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid transparent;
+}
+
+.metric-card.target {
+    border-left-color: #48bb78;
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+}
+
+.metric-card.actual {
+    border-left-color: #4299e1;
+    background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+}
+
+.metric-card.phases {
+    border-left-color: #ed8936;
+    background: linear-gradient(135deg, #fffaf0 0%, #feebc8 100%);
+}
+
+.metric-card h3 {
+    color: #2d3748;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+}
+
+.metric-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.metric-item:last-child {
+    border-bottom: none;
+}
+
+.metric-label {
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.target-value {
+    color: #22543d;
+    font-weight: 600;
+    background: rgba(72, 187, 120, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.actual-value {
+    color: #2a4365;
+    font-weight: 600;
+    background: rgba(66, 153, 225, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.phase-value {
+    color: #744210;
+    font-weight: 600;
+    background: rgba(237, 137, 54, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.metric-threshold {
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+/* 階段監控 */
+.phase-monitoring {
+    margin-top: 20px;
+}
+
+.phase-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.phase-name {
+    min-width: 80px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.phase-range {
+    min-width: 60px;
+    font-size: 0.85rem;
+    color: #4a5568;
+}
+
+.phase-bar {
+    flex: 1;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.phase-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+    transition: width 0.3s ease;
+}
+
+.phase-threshold {
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+/* 參數優化策略 */
+.parameter-optimization {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.optimization-intro {
+    margin-bottom: 25px;
+    padding: 15px 20px;
+    background: #f0f4f8;
+    border-radius: 6px;
+    border-left: 3px solid #4299e1;
+}
+
+.parameter-strategies {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.strategy-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid transparent;
+}
+
+.speed-optimized {
+    border-left-color: #48bb78;
+}
+
+.balanced {
+    border-left-color: #ed8936;
+}
+
+.comprehensive {
+    border-left-color: #e53e3e;
+}
+
+.strategy-card h3 {
+    color: #2d3748;
+    margin: 0 0 15px 0;
+    font-size: 1.3rem;
+}
+
+.strategy-desc {
+    color: #4a5568;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.config-block {
+    margin: 20px 0;
+}
+
+.config-block h4 {
+    color: #2d3748;
+    margin: 0 0 15px 0;
+    font-size: 1rem;
+}
+
+.performance-stats {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 6px;
+}
+
+.performance-stats h4 {
+    color: #2d3748;
+    margin: 0 0 10px 0;
+}
+
+.performance-stats ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.performance-stats li {
+    margin: 5px 0;
+    color: #4a5568;
+}
+
+.performance-stats strong {
+    color: #2d3748;
+}
+
+/* 程式碼範例 */
+.code-example {
+    margin: 15px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.code-header {
+    background: #2d3748;
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.copy-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.copy-btn:hover {
+    background: #5a67d8;
+}
+
+.code-example pre {
+    background: #1a202c;
+    color: #e2e8f0;
+    padding: 20px;
+    margin: 0;
+    overflow-x: auto;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* 併發優化 */
+.concurrency-optimization {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.concurrency-strategies {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.concurrency-card,
+.batch-processing-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #667eea;
+}
+
+.concurrency-card h3,
+.batch-processing-card h3 {
+    color: #2d3748;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+}
+
+.strategy-content,
+.batch-content {
+    margin-top: 15px;
+}
+
+.strategy-content h4,
+.batch-content h4 {
+    color: #2d3748;
+    margin: 15px 0 10px 0;
+}
+
+.concurrency-table {
+    margin: 15px 0;
+}
+
+.concurrency-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.concurrency-table th,
+.concurrency-table td {
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    text-align: left;
+}
+
+.concurrency-table th {
+    background: #f7fafc;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.concurrency-tips {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0fff4;
+    border-radius: 6px;
+    border-left: 3px solid #48bb78;
+}
+
+.concurrency-tips h4 {
+    color: #22543d;
+    margin: 0 0 10px 0;
+}
+
+.concurrency-tips ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.concurrency-tips li {
+    margin: 5px 0;
+    color: #22543d;
+}
+
+.concurrency-tips strong {
+    color: #1a202c;
+}
+
+/* 批量處理策略 */
+.batch-strategy {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 6px;
+    border-left: 3px solid #4299e1;
+}
+
+.batch-strategy h5 {
+    color: #2a4365;
+    margin: 0 0 10px 0;
+}
+
+.batch-strategy ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.batch-strategy li {
+    margin: 3px 0;
+    color: #4a5568;
+}
+
+/* 快取策略 */
+.caching-strategies {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.caching-overview {
+    margin-bottom: 25px;
+    padding: 15px 20px;
+    background: #fefcbf;
+    border-radius: 6px;
+    border-left: 3px solid #d69e2e;
+}
+
+.cache-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.cache-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid transparent;
+}
+
+.client-cache {
+    border-left-color: #667eea;
+}
+
+.server-cache {
+    border-left-color: #ed8936;
+}
+
+.cache-card h3 {
+    color: #2d3748;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+}
+
+.cache-content h4 {
+    color: #2d3748;
+    margin: 20px 0 10px 0;
+}
+
+.cache-content ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.cache-content li {
+    margin: 5px 0;
+    color: #4a5568;
+}
+
+.cache-layer {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 6px;
+    border-left: 3px solid #4299e1;
+}
+
+.cache-layer h5 {
+    color: #2a4365;
+    margin: 0 0 10px 0;
+}
+
+/* 網路優化 */
+.network-optimization {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.network-strategies {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.network-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid transparent;
+}
+
+.network-card.connection {
+    border-left-color: #48bb78;
+}
+
+.network-card.compression {
+    border-left-color: #ed8936;
+}
+
+.network-card.cdn {
+    border-left-color: #9f7aea;
+}
+
+.network-card h3 {
+    color: #2d3748;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+}
+
+.network-content h4 {
+    color: #2d3748;
+    margin: 15px 0 10px 0;
+}
+
+.network-content ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.network-content li {
+    margin: 5px 0;
+    color: #4a5568;
+}
+
+.latency-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin: 15px 0;
+}
+
+.latency-table th,
+.latency-table td {
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    text-align: left;
+}
+
+.latency-table th {
+    background: #f7fafc;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+/* 監控優化 */
+.monitoring-optimization {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.monitoring-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.monitoring-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid transparent;
+}
+
+.monitoring-card.metrics {
+    border-left-color: #4299e1;
+}
+
+.monitoring-card.alerts {
+    border-left-color: #f56565;
+}
+
+.monitoring-card h3 {
+    color: #2d3748;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+}
+
+.monitoring-content h4 {
+    color: #2d3748;
+    margin: 15px 0 10px 0;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.kpi-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px;
+    background: #f7fafc;
+    border-radius: 4px;
+}
+
+.kpi-name {
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.kpi-target {
+    color: #22543d;
+    font-size: 0.85rem;
+    background: #c6f6d5;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.kpi-alert {
+    color: #c53030;
+    font-size: 0.85rem;
+    background: #fed7d7;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* 告警級別 */
+.alert-levels {
+    margin: 15px 0;
+}
+
+.alert-level {
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid transparent;
+}
+
+.alert-level.critical {
+    background: #fed7d7;
+    border-left-color: #e53e3e;
+}
+
+.alert-level.warning {
+    background: #feebc8;
+    border-left-color: #d69e2e;
+}
+
+.alert-level.info {
+    background: #bee3f8;
+    border-left-color: #3182ce;
+}
+
+.alert-level h5 {
+    margin: 0 0 10px 0;
+    color: #2d3748;
+}
+
+.alert-level ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.alert-level li {
+    margin: 3px 0;
+    color: #4a5568;
+}
+
+/* 故障排除 */
+.troubleshooting-optimization {
+    margin: 40px 0;
+    padding: 30px 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.trouble-category {
+    margin: 30px 0;
+}
+
+.trouble-category h3 {
+    color: #2d3748;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.trouble-scenario {
+    margin: 25px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.trouble-scenario h4 {
+    color: #c53030;
+    margin: 0 0 15px 0;
+    padding: 10px 15px;
+    background: #fed7d7;
+    border-radius: 6px;
+    border-left: 4px solid #e53e3e;
+}
+
+.diagnosis-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.step {
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 6px;
+    border-left: 3px solid #4299e1;
+}
+
+.step h5 {
+    color: #2a4365;
+    margin: 0 0 10px 0;
+}
+
+.step ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.step li {
+    margin: 5px 0;
+    color: #4a5568;
+}
+
+/* 最佳實務 */
+.best-practices-summary {
+    margin: 40px 0;
+}
+
+.practices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.practice-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid transparent;
+}
+
+.practice-card.development {
+    border-left-color: #4299e1;
+}
+
+.practice-card.testing {
+    border-left-color: #ed8936;
+}
+
+.practice-card.production {
+    border-left-color: #48bb78;
+}
+
+.practice-card.maintenance {
+    border-left-color: #9f7aea;
+}
+
+.practice-card h3 {
+    color: #2d3748;
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+}
+
+.practice-card ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.practice-card li {
+    margin: 8px 0;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+.practice-card strong {
+    color: #2d3748;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .metrics-dashboard,
+    .parameter-strategies,
+    .concurrency-strategies,
+    .cache-types,
+    .network-strategies,
+    .monitoring-dashboard,
+    .practices-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .kpi-item {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    
+    .metric-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .concurrency-table,
+    .latency-table {
+        font-size: 0.8rem;
+    }
+    
+    .phase-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .phase-bar {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+// 複製程式碼功能
+function copyCode(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+    
+    navigator.clipboard.writeText(text).then(function() {
+        const button = element.closest('.code-example').querySelector('.copy-btn');
+        const originalText = button.textContent;
+        button.textContent = '已複製!';
+        button.style.background = '#48bb78';
+        
+        setTimeout(function() {
+            button.textContent = originalText;
+            button.style.background = '#667eea';
+        }, 2000);
+    }).catch(function(err) {
+        console.error('複製失敗:', err);
+    });
+}
+
+// 動態效能指標更新 (可選)
+function updatePerformanceMetrics() {
+    // 模擬即時效能數據更新
+    const phases = document.querySelectorAll('.phase-progress');
+    phases.forEach((phase, index) => {
+        const randomValue = Math.random() * 0.3 + 0.2; // 20-50%
+        setTimeout(() => {
+            phase.style.width = `${randomValue * 100}%`;
+        }, index * 200);
+    });
+}
+
+// 頁面載入完成後更新一次指標
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(updatePerformanceMetrics, 1000);
+});
+</script>

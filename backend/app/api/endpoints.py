@@ -13,8 +13,7 @@ from fastapi import APIRouter, HTTPException
 from ..models.request import AnalyzeRequest
 from ..models.response import (
     AnalyzeResponse, ErrorResponse, HealthCheckResponse, VersionResponse,
-    AnalysisData, SerpSummary, AnalysisMetadata, ErrorInfo, ErrorDetail,
-    DependencyInfo
+    ErrorInfo, ErrorDetail, DependencyInfo
 )
 from ..config import get_config
 from ..services.integration_service import get_integration_service
@@ -29,7 +28,13 @@ router = APIRouter()
 config = get_config()
 
 
-@router.post("/analyze", response_model=AnalyzeResponse)
+@router.post(
+    "/analyze", 
+    response_model=AnalyzeResponse,
+    tags=["SEO 分析"],
+    summary="執行 SEO 關鍵字分析",
+    response_description="完整的 SEO 分析報告，包含 SERP 分析、競爭對手研究和優化建議"
+)
 async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
     """執行完整的 SEO 關鍵字分析。
 
@@ -63,8 +68,19 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
         ...     )
         ... )
         >>> response = await analyze_seo(request)
-        >>> print(f"成功率: {response.data.serp_summary.successful_scrapes}/{response.data.serp_summary.total_results}")
+        >>> print(f"總處理時間: {response.processing_time:.2f}s")
+        >>> serp_summary = response.data.serp_summary
+        >>> print(f"成功率: {serp_summary.successful_scrapes}/{serp_summary.total_results}")
         >>> print(f"Token 使用: {response.data.metadata.token_usage}")
+        >>>
+        >>> # 階段計時資訊 (Session 06 新增)
+        >>> phase_timings = response.data.metadata.phase_timings
+        >>> if phase_timings:
+        ...     print(f"SERP 階段: {phase_timings.get('serp_duration', 0):.2f}s")
+        ...     print(f"爬蟲階段: {phase_timings.get('scraping_duration', 0):.2f}s")
+        ...     print(f"AI 階段: {phase_timings.get('ai_duration', 0):.2f}s")
+        ...     print(f"階段總時間: {response.data.metadata.total_phases_time:.2f}s")
+        >>>
         >>> print(response.data.analysis_report[:200])
     """
     start_time = time.time()
@@ -109,7 +125,13 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
         )
 
 
-@router.get("/health", response_model=HealthCheckResponse)
+@router.get(
+    "/health", 
+    response_model=HealthCheckResponse,
+    tags=["系統監控"],
+    summary="系統健康檢查",
+    response_description="API 服務和外部依賴的健康狀態"
+)
 async def health_check() -> HealthCheckResponse:
     """系統健康檢查。
 
@@ -160,7 +182,13 @@ async def health_check() -> HealthCheckResponse:
         )
 
 
-@router.get("/version", response_model=VersionResponse)
+@router.get(
+    "/version", 
+    response_model=VersionResponse,
+    tags=["系統監控"], 
+    summary="取得 API 版本資訊",
+    response_description="API 版本、Python 版本和依賴套件版本資訊"
+)
 async def get_version() -> VersionResponse:
     """取得 API 版本資訊。
 
@@ -504,5 +532,5 @@ def create_error_response(error_code: str, message: str, details: Optional[dict]
 
     return ErrorResponse(
         status="error",
-        error=error_info
+        error=error_info.model_dump()
     )

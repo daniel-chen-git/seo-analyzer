@@ -127,7 +127,8 @@ class IntegrationService:
                 serp_data=serp_data,
                 scraping_data=scraping_data,
                 analysis_result=analysis_result,
-                processing_time=total_time
+                processing_time=total_time,
+                timer=timer
             )
             
             # 效能警告檢查
@@ -178,7 +179,8 @@ class IntegrationService:
         serp_data: SerpResult,
         scraping_data: ScrapingResult,
         analysis_result: AnalysisResult,
-        processing_time: float
+        processing_time: float,
+        timer: 'PerformanceTimer' = None
     ) -> AnalyzeResponse:
         """建立成功回應。
         
@@ -200,13 +202,22 @@ class IntegrationService:
             avg_paragraphs=scraping_data.avg_paragraphs
         )
         
-        # 建立分析元資料
-        metadata = AnalysisMetadata(
-            keyword=request.keyword,
-            audience=request.audience,
-            generated_at=datetime.now(timezone.utc).isoformat(),
-            token_usage=analysis_result.token_usage
-        )
+        # 建立分析元資料 (包含階段計時資訊)
+        metadata_dict = {
+            "keyword": request.keyword,
+            "audience": request.audience,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "token_usage": analysis_result.token_usage
+        }
+        
+        # 添加階段計時資訊 (如果有的話)
+        if timer:
+            phase_timings = timer.get_all_timings()
+            if phase_timings:
+                metadata_dict["phase_timings"] = phase_timings
+                metadata_dict["total_phases_time"] = sum(phase_timings.values())
+        
+        metadata = AnalysisMetadata(**metadata_dict)
         
         # 建立分析資料
         data = AnalysisData(

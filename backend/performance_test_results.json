@@ -1,0 +1,184 @@
+{
+  "total_tests": 5,
+  "passed": 5,
+  "failed": 0,
+  "errors": 0,
+  "success_rate": 100.0,
+  "performance_stats": {
+    "avg_processing_time": 35.121633565425874,
+    "median_processing_time": 34.91244602203369,
+    "max_processing_time": 44.11284375190735,
+    "min_processing_time": 26.54879846572876,
+    "within_threshold": 4,
+    "total_samples": 4
+  },
+  "thresholds": {
+    "serp_duration": 15.0,
+    "scraping_duration": 25.0,
+    "ai_duration": 35.0,
+    "total_duration": 55.0
+  },
+  "details": [
+    {
+      "test_name": "基準效能測試",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "processing_time": 44.11284375190735,
+        "total_request_time": 44.17783498764038,
+        "exceeds_threshold": false,
+        "threshold": 55.0,
+        "token_usage": 5403,
+        "message": "處理時間: 44.11s ✅ 符合要求"
+      }
+    },
+    {
+      "test_name": "多關鍵字效能比較",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "total_tests": 5,
+        "successful_tests": 5,
+        "avg_processing_time": 26.54879846572876,
+        "median_processing_time": 26.915370225906372,
+        "max_processing_time": 33.49710202217102,
+        "min_processing_time": 19.642602920532227,
+        "results": [
+          {
+            "keyword": "Python 教學",
+            "processing_time": 25.170700073242188,
+            "total_request_time": 25.20195198059082,
+            "success": true
+          },
+          {
+            "keyword": "機器學習",
+            "processing_time": 19.642602920532227,
+            "total_request_time": 19.677644968032837,
+            "success": true
+          },
+          {
+            "keyword": "數位行銷策略",
+            "processing_time": 26.915370225906372,
+            "total_request_time": 26.94706392288208,
+            "success": true
+          },
+          {
+            "keyword": "網站 SEO 優化",
+            "processing_time": 33.49710202217102,
+            "total_request_time": 33.53555512428284,
+            "success": true
+          },
+          {
+            "keyword": "人工智慧應用",
+            "processing_time": 27.518217086791992,
+            "total_request_time": 27.55241894721985,
+            "success": true
+          }
+        ],
+        "message": "平均處理時間: 26.55s, 中位數: 26.92s, 範圍: 19.64s-33.50s"
+      }
+    },
+    {
+      "test_name": "不同選項效能影響",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "results": [
+          {
+            "scenario": "基本分析",
+            "processing_time": 23.88006019592285,
+            "token_usage": 6270,
+            "success": true
+          },
+          {
+            "scenario": "包含 FAQ",
+            "processing_time": 21.039196968078613,
+            "token_usage": 6464,
+            "success": true
+          },
+          {
+            "scenario": "包含表格",
+            "processing_time": 22.232677936553955,
+            "token_usage": 6455,
+            "success": true
+          },
+          {
+            "scenario": "完整功能",
+            "processing_time": 19.798844814300537,
+            "token_usage": 6525,
+            "success": true
+          }
+        ],
+        "impact_analysis": [
+          {
+            "scenario": "包含 FAQ",
+            "time_increase": -2.8408632278442383,
+            "percentage_increase": -11.896382188891096
+          },
+          {
+            "scenario": "包含表格",
+            "time_increase": -1.6473822593688965,
+            "percentage_increase": -6.898568286063875
+          },
+          {
+            "scenario": "完整功能",
+            "time_increase": -4.0812153816223145,
+            "percentage_increase": -17.0904735923535
+          }
+        ],
+        "message": "選項對效能影響分析完成，共 4 個有效結果"
+      }
+    },
+    {
+      "test_name": "並發處理效能",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "concurrent_requests": 3,
+        "successful_requests": 3,
+        "failed_requests": 0,
+        "total_concurrent_time": 55.42290687561035,
+        "avg_processing_time": 40.93496298789978,
+        "max_processing_time": 55.34232306480408,
+        "results": [
+          {
+            "request_id": 0,
+            "success": true,
+            "processing_time": 55.34232306480408,
+            "total_request_time": 55.42174816131592
+          },
+          {
+            "request_id": 1,
+            "success": true,
+            "processing_time": 28.571545839309692,
+            "total_request_time": 28.618601083755493
+          },
+          {
+            "request_id": 2,
+            "success": true,
+            "processing_time": 38.89102005958557,
+            "total_request_time": 38.91836977005005
+          }
+        ],
+        "message": "並發測試: 3/3 成功, 平均處理時間: 40.93s"
+      }
+    },
+    {
+      "test_name": "長時間運行穩定性",
+      "status": "PASS",
+      "details": {
+        "success": true,
+        "processing_time": 28.889929056167603,
+        "total_request_time": 28.923897981643677,
+        "near_threshold": false,
+        "exceeds_threshold": false,
+        "memory_usage": {
+          "start_mb": null,
+          "end_mb": null,
+          "increase_mb": null
+        },
+        "message": "長時間測試: 28.89s ✅ 正常"
+      }
+    }
+  ]
+}

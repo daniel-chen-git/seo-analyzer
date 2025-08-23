@@ -52,6 +52,8 @@ class AnalysisMetadata(BaseModel):
         audience: 原始受眾描述
         generated_at: 分析生成時間（ISO 8601 格式）
         token_usage: AI 模型使用的 token 數量
+        phase_timings: 各階段計時資訊（可選）
+        total_phases_time: 所有階段總時間（可選）
     """
 
     keyword: str = Field(
@@ -70,6 +72,15 @@ class AnalysisMetadata(BaseModel):
         ...,
         ge=0,
         description="AI 模型使用的 token 數量"
+    )
+    phase_timings: Optional[Dict[str, float]] = Field(
+        None,
+        description="各階段計時資訊（秒）"
+    )
+    total_phases_time: Optional[float] = Field(
+        None,
+        ge=0,
+        description="所有階段總計時間（秒）"
     )
 
 

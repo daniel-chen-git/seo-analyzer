@@ -8,11 +8,10 @@ import asyncio
 import time
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
-# urlparse 用於 URL 處理，目前未使用但保留供未來擴展
 
 import aiohttp
-from bs4 import BeautifulSoup
-# lxml 作為 BeautifulSoup 的解析器使用，無需直接 import
+from bs4 import BeautifulSoup, Tag
+from bs4.element import NavigableString
 
 from ..config import get_config
 
@@ -237,7 +236,7 @@ class ScraperService:
                 if attempt < self.max_retries - 1:
                     await asyncio.sleep(self.retry_delay * (2 ** attempt))
                     continue
-            except aiohttp.ClientError as e:
+            except (aiohttp.ClientError, aiohttp.ServerTimeoutError) as e:
                 last_error = ScraperException(f"網路錯誤: {str(e)}")
                 if attempt < self.max_retries - 1:
                     await asyncio.sleep(self.retry_delay * (2 ** attempt))
@@ -317,7 +316,7 @@ class ScraperService:
                     success=True
                 )
     
-    def _extract_seo_elements(self, html: str, original_url: str) -> Dict[str, Any]:
+    def _extract_seo_elements(self, html: str, _original_url: str) -> Dict[str, Any]:
         """從 HTML 內容中提取 SEO 相關元素。
         
         Args:
@@ -347,10 +346,15 @@ class ScraperService:
         if not meta_desc:
             meta_desc = soup.find('meta', attrs={'property': 'og:description'})
         
-        if meta_desc:
+        if meta_desc and isinstance(meta_desc, Tag):
             # 根據 BeautifulSoup 文檔，使用 get 方法安全存取屬性
             content = meta_desc.get('content', '')
-            result['meta_description'] = content.strip() if content else None
+            if content and isinstance(content, (str, list)):
+                # 處理可能的 list 類型 (如 class 屬性)
+                content_str = content[0] if isinstance(content, list) else content
+                result['meta_description'] = content_str.strip() if content_str else None
+            else:
+                result['meta_description'] = None
         else:
             result['meta_description'] = None
         
@@ -358,11 +362,11 @@ class ScraperService:
         h1_tag = soup.find('h1')
         result['h1'] = h1_tag.get_text(strip=True) if h1_tag else None
         
-        # 提取所有 H2 標籤  
+        # 提取所有 H2 標籤
         h2_tags = soup.find_all('h2')
         result['h2_list'] = []
         for h2 in h2_tags:
-            if h2 and hasattr(h2, 'get_text'):
+            if h2 and isinstance(h2, Tag):
                 h2_text = h2.get_text(strip=True)
                 if h2_text:
                     result['h2_list'].append(h2_text)
@@ -376,7 +380,7 @@ class ScraperService:
         main_content = (soup.find('main') or soup.find('article') or 
                        soup.find('div', class_='content') or soup.find('body'))
         
-        if main_content and hasattr(main_content, 'get_text'):
+        if main_content and isinstance(main_content, (Tag, NavigableString)):
             # 計算字數 (移除多餘空白)
             text_content = main_content.get_text(separator=' ', strip=True)
             # 中英文字數統計 (中文字符 + 英文單字)
@@ -386,14 +390,17 @@ class ScraperService:
             
             # 計算段落數 (p 標籤 + br 標籤組)
             paragraphs = []
-            if hasattr(main_content, 'find_all') and callable(getattr(main_content, 'find_all', None)):
+            if isinstance(main_content, Tag):
                 try:
-                    paragraphs = main_content.find_all('p')  # type: ignore
+                    paragraphs = main_content.find_all('p')
                 except Exception:
                     paragraphs = []
             
-            br_groups = len(main_content.get_text().split('\n\n'))
-            result['paragraph_count'] = max(len(paragraphs), br_groups - 1, 1)
+            if isinstance(main_content, Tag):
+                br_groups = len(main_content.get_text().split('\n\n'))
+                result['paragraph_count'] = max(len(paragraphs), br_groups - 1, 1)
+            else:
+                result['paragraph_count'] = 1
         else:
             result['word_count'] = 0
             result['paragraph_count'] = 0
@@ -401,8 +408,9 @@ class ScraperService:
         return result
 
 
+
 # 全域服務實例
-_scraper_service = None
+_SCRAPER_SERVICE = None
 
 
 def get_scraper_service() -> ScraperService:
@@ -413,7 +421,7 @@ def get_scraper_service() -> ScraperService:
     Returns:
         ScraperService: 爬蟲服務實例
     """
-    global _scraper_service
-    if _scraper_service is None:
-        _scraper_service = ScraperService()
-    return _scraper_service
+    global _SCRAPER_SERVICE
+    if _SCRAPER_SERVICE is None:
+        _SCRAPER_SERVICE = ScraperService()
+    return _SCRAPER_SERVICE

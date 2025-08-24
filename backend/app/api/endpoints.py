@@ -24,6 +24,11 @@ from ..services.job_manager import get_job_manager
 from ..services.serp_service import SerpAPIException
 from ..services.scraper_service import ScraperException
 from ..services.ai_service import AIServiceException, AIAPIException
+from ..utils.error_handler import (
+    create_service_error,
+    validate_analyze_request_input,
+    create_job_not_found_error
+)
 
 # 建立 API 路由器
 router = APIRouter()
@@ -90,6 +95,9 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
     start_time = time.time()
     
     try:
+        # 驗證輸入參數
+        validate_analyze_request_input(request.keyword, request.audience)
+        
         # 記錄請求開始
         print(f"🚀 API 請求開始: {request.keyword} -> {request.audience}")
         
@@ -100,33 +108,21 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
         print(f"✅ API 請求成功完成: {result.processing_time:.2f}s")
         return result
 
+    except HTTPException:
+        # 重新拋出 HTTPException（來自驗證或其他地方）
+        raise
+
     except (SerpAPIException, ScraperException, AIServiceException, AIAPIException) as e:
         # 處理已知的服務例外
         processing_time = time.time() - start_time
-        integration_service = get_integration_service()
-        error_response, status_code = integration_service.handle_analysis_error(
-            error=e, 
-            processing_time=processing_time
-        )
-        
-        raise HTTPException(
-            status_code=status_code,
-            detail=error_response.error
-        )
+        print(f"❌ 服務錯誤: {type(e).__name__}: {str(e)}")
+        raise create_service_error(e, processing_time)
 
     except Exception as e:
         # 處理未預期的例外
         processing_time = time.time() - start_time
         print(f"❌ 未預期錯誤: {str(e)} (耗時 {processing_time:.2f}s)")
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "code": "INTERNAL_ERROR",
-                "message": "系統內部錯誤，請稍後再試",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "processing_time": processing_time
-            }
-        )
+        raise create_service_error(e, processing_time)
 
 
 async def process_analysis_job(request: AnalyzeRequest, job_id: str) -> None:
@@ -192,6 +188,9 @@ async def analyze_seo_async(
         >>> print(f"任務ID: {response.job_id}")
         >>> print(f"狀態查詢URL: {response.status_url}")
     """
+    # 驗證輸入參數
+    validate_analyze_request_input(request.keyword, request.audience)
+    
     job_manager = get_job_manager()
     
     # 建立新任務
@@ -240,14 +239,7 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
     job_status = job_manager.get_job_status(job_id)
     
     if job_status is None:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "code": "JOB_NOT_FOUND",
-                "message": f"任務 {job_id} 不存在或已過期",
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-        )
+        raise create_job_not_found_error(job_id)
     
     return JobStatusResponse(
         job_id=job_status.job_id,

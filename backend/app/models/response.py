@@ -162,17 +162,36 @@ class AnalyzeResponse(BaseModel):
 class ErrorDetail(BaseModel):
     """錯誤詳細資訊。
 
-    包含錯誤的詳細資訊，用於除錯和使用者反饋。
+    符合 API 規格的錯誤詳細資訊格式，提供具體的錯誤內容，
+    例如驗證失敗的欄位名稱、長度限制等。
 
     Attributes:
         field: 發生錯誤的欄位名稱（可選）
+        provided_length: 提供的長度（可選）
+        max_length: 最大允許長度（可選）
+        min_length: 最小允許長度（可選）
         provided_value: 使用者提供的值（可選）
         expected_format: 期望的格式或範圍（可選）
+        job_id: 任務識別碼（可選）
+        processing_time: 處理時間（可選）
+        retry_after: 重試等待時間（可選）
     """
 
     field: Optional[str] = Field(
         None,
         description="發生錯誤的欄位名稱"
+    )
+    provided_length: Optional[int] = Field(
+        None,
+        description="提供的長度"
+    )
+    max_length: Optional[int] = Field(
+        None,
+        description="最大允許長度"
+    )
+    min_length: Optional[int] = Field(
+        None,
+        description="最小允許長度"
     )
     provided_value: Optional[Any] = Field(
         None,
@@ -181,6 +200,18 @@ class ErrorDetail(BaseModel):
     expected_format: Optional[str] = Field(
         None,
         description="期望的格式或範圍"
+    )
+    job_id: Optional[str] = Field(
+        None,
+        description="任務識別碼"
+    )
+    processing_time: Optional[float] = Field(
+        None,
+        description="處理時間（秒）"
+    )
+    retry_after: Optional[int] = Field(
+        None,
+        description="建議重試等待時間（秒）"
     )
 
 

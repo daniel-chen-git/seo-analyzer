@@ -13,7 +13,7 @@ from .job_manager import JobManager
 from ..models.request import AnalyzeRequest, AnalyzeOptions as RequestOptions
 from ..models.response import (
     AnalyzeResponse, AnalysisData, SerpSummary, 
-    AnalysisMetadata, ErrorResponse
+    AnalysisMetadata
 )
 from .serp_service import get_serp_service, SerpResult, SerpAPIException
 from .scraper_service import get_scraper_service, ScrapingResult, ScraperException
@@ -42,17 +42,6 @@ class IntegrationService:
             "scraping_duration": 25.0,  # 爬蟲階段警告閾值
             "ai_duration": 35.0,        # AI 階段警告閾值
             "total_duration": 55.0      # 總時間警告閾值
-        }
-        
-        # 錯誤映射配置
-        self.error_mappings = {
-            SerpAPIException: ("SERP_API_ERROR", 503),
-            ScraperException: ("SCRAPER_TIMEOUT", 504),
-            AIServiceException: ("AI_API_ERROR", 503),
-            AIAPIException: ("AI_API_ERROR", 503),
-            TokenLimitExceededException: ("AI_API_ERROR", 503),
-            ValueError: ("INVALID_INPUT", 400),
-            Exception: ("INTERNAL_ERROR", 500)
         }
     
     async def execute_full_analysis(self, request: AnalyzeRequest) -> AnalyzeResponse:
@@ -235,57 +224,6 @@ class IntegrationService:
             data=data
         )
     
-    def handle_analysis_error(
-        self, 
-        error: Exception, 
-        processing_time: float
-    ) -> tuple[ErrorResponse, int]:
-        """處理分析過程中的錯誤。
-        
-        Args:
-            error: 發生的例外
-            processing_time: 處理時間
-            
-        Returns:
-            tuple: (ErrorResponse, HTTP狀態碼)
-        """
-        # 根據例外類型決定錯誤碼和狀態碼
-        error_code, status_code = self._get_error_mapping(error)
-        
-        # 建立錯誤回應
-        error_response = ErrorResponse(
-            status="error",
-            error={
-                "code": error_code,
-                "message": str(error),
-                "details": {
-                    "error_type": type(error).__name__,
-                    "processing_time": processing_time
-                },
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-        )
-        
-        print(f"🚨 錯誤處理: {error_code} ({status_code}) - {str(error)}")
-        
-        return error_response, status_code
-    
-    def _get_error_mapping(self, error: Exception) -> tuple[str, int]:
-        """取得錯誤映射。
-        
-        Args:
-            error: 例外物件
-            
-        Returns:
-            tuple: (錯誤碼, HTTP狀態碼)
-        """
-        # 遍歷錯誤映射，找到最匹配的類型
-        for error_type, (code, status) in self.error_mappings.items():
-            if isinstance(error, error_type):
-                return code, status
-        
-        # 預設錯誤
-        return "INTERNAL_ERROR", 500
     
     def _check_performance_warnings(self, timer: 'PerformanceTimer') -> None:
         """檢查效能警告。

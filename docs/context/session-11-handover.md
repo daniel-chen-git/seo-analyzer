@@ -179,46 +179,233 @@ GET /status/{job_id} → 查詢進度 → 回傳狀態/結果
 
 ## 🚀 立即行動指南
 
-### 第一優先任務: 完成健康檢查實作
-1. **檔案**: `backend/app/api/endpoints.py`
-2. **方法**: 修改 `GET /api/health` 端點
-3. **實作重點**:
-   ```python
-   async def _test_serp_connection() -> str:
-       """測試 SerpAPI 連線狀態"""
-       try:
-           # 發送測試請求到 SerpAPI
-           return "ok"
-       except Exception:
-           return "error"
-   
-   async def _test_azure_openai_connection() -> str:
-       """測試 Azure OpenAI 連線狀態"""
-       try:
-           # 發送測試請求到 Azure OpenAI
-           return "ok"
-       except Exception:
-           return "error"
-   ```
+### 🎯 第一優先任務: 完成健康檢查外部服務連線測試
 
-### 建議測試方式
+**預估開發時間**: 2-2.5 小時  
+**優先級**: P0 (達到 100% API 規格符合度的最後一步)
+
+#### 📋 詳細實作規劃
+
+##### Phase 1: 服務測試方法實作 (45-60 分鐘)
+
+**1.1 SerpService 連線測試方法**
+- **檔案**: `backend/app/services/serp_service.py`
+- **新增方法**:
+```python
+async def _test_connection(self) -> bool:
+    """測試 SerpAPI 連線狀態
+    
+    使用最小配額的測試請求避免消耗過多 API 配額。
+    
+    Returns:
+        bool: 連線是否成功
+        
+    Raises:
+        SerpAPIException: 當 API 連線失敗時
+    """
+    try:
+        # 方案 1: 使用 SerpAPI 的帳戶資訊端點 (不消耗搜尋配額)
+        # 方案 2: 執行最簡單的搜尋請求 (消耗 1 次配額)
+        config = get_config()
+        api_key = config.get_serp_api_key()
+        
+        if not api_key:
+            raise SerpAPIException("SerpAPI key not configured")
+            
+        # 實作連線測試邏輯
+        # 建議使用 httpx 直接呼叫 SerpAPI 的狀態端點
+        import httpx
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                "https://serpapi.com/account",
+                params={"api_key": api_key}
+            )
+            if response.status_code == 200:
+                return True
+            else:
+                raise SerpAPIException(f"API key validation failed: {response.status_code}")
+                
+    except Exception as e:
+        raise SerpAPIException(f"Connection test failed: {str(e)}")
+```
+
+**1.2 AIService 連線測試方法**
+- **檔案**: `backend/app/services/ai_service.py`
+- **新增方法**:
+```python
+async def _test_connection(self) -> bool:
+    """測試 Azure OpenAI 連線狀態
+    
+    使用最小 token 的測試請求驗證連線。
+    
+    Returns:
+        bool: 連線是否成功
+        
+    Raises:
+        AIServiceException: 當 API 連線失敗時
+    """
+    try:
+        config = get_config()
+        api_key = config.get_azure_openai_key()
+        endpoint = config.get_azure_openai_endpoint()
+        
+        if not api_key or not endpoint:
+            raise AIServiceException("Azure OpenAI not configured")
+        
+        client = AsyncAzureOpenAI(
+            api_key=api_key,
+            api_version="2024-02-01",
+            azure_endpoint=endpoint
+        )
+        
+        # 發送最小的測試請求 (約 10-20 tokens)
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "test"}],
+            max_tokens=1,
+            timeout=10.0
+        )
+        
+        return True
+        
+    except Exception as e:
+        raise AIServiceException(f"Connection test failed: {str(e)}")
+```
+
+##### Phase 2: 健康檢查端點更新 (30-40 分鐘)
+
+**2.1 更新健康檢查邏輯**
+- **檔案**: `backend/app/api/endpoints.py`
+- **修改方法**: `health_check()` (第 262-309 行)
+
+**替換現有的服務狀態檢查邏輯**:
+```python
+# 當前程式碼 (第 286-290 行)
+services_status = {
+    "serp_api": "integrated",
+    "azure_openai": "not_implemented",
+    "redis": "disabled" if not config.get_cache_enabled() else "not_implemented"
+}
+
+# 替換為
+services_status = {
+    "serp_api": await _test_serp_connection(),
+    "azure_openai": await _test_azure_openai_connection(),
+    "redis": "disabled" if not config.get_cache_enabled() else "not_implemented"
+}
+```
+
+**2.2 新增服務測試輔助函數**
+```python
+async def _test_serp_connection() -> str:
+    """測試 SerpAPI 連線狀態"""
+    try:
+        from ..services.serp_service import get_serp_service
+        serp_service = get_serp_service()
+        await serp_service._test_connection()
+        return "ok"
+    except Exception as e:
+        print(f"SerpAPI connection test failed: {str(e)}")
+        return "error"
+
+async def _test_azure_openai_connection() -> str:
+    """測試 Azure OpenAI 連線狀態"""
+    try:
+        from ..services.ai_service import get_ai_service
+        ai_service = get_ai_service()
+        await ai_service._test_connection()
+        return "ok"
+    except Exception as e:
+        print(f"Azure OpenAI connection test failed: {str(e)}")
+        return "error"
+```
+
+##### Phase 3: 測試和驗證 (30-40 分鐘)
+
+**3.1 語法檢查**
 ```bash
-# 1. 語法檢查
+# 檢查修改的檔案語法
+.venv/bin/python -m py_compile backend/app/services/serp_service.py
+.venv/bin/python -m py_compile backend/app/services/ai_service.py
 .venv/bin/python -m py_compile backend/app/api/endpoints.py
+```
 
-# 2. 功能測試
+**3.2 功能測試**
+```bash
+# 啟動服務
+cd backend && .venv/bin/python -m app.main
+
+# 測試健康檢查端點
 curl http://localhost:8000/api/health
 
-# 3. 預期回應格式
+# 預期回應 (成功情況)
 {
   "status": "healthy",
   "timestamp": "2025-01-24T10:30:00Z",
   "services": {
     "serp_api": "ok",
-    "azure_openai": "ok"
+    "azure_openai": "ok",
+    "redis": "disabled"
+  }
+}
+
+# 預期回應 (部分服務失敗)
+{
+  "status": "healthy",
+  "timestamp": "2025-01-24T10:30:00Z", 
+  "services": {
+    "serp_api": "error",
+    "azure_openai": "ok",
+    "redis": "disabled"
   }
 }
 ```
+
+**3.3 錯誤情境測試**
+- 測試無效的 API Key 情況
+- 測試網路連線問題情況
+- 測試服務端點不可達情況
+
+#### 🔧 實作重點提醒
+
+**超時控制**:
+- 所有外部 API 調用設定 10 秒超時
+- 避免健康檢查響應過慢影響用戶體驗
+
+**錯誤處理**:
+- 捕捉網路錯誤、認證錯誤、超時錯誤
+- 記錄詳細錯誤訊息便於除錯
+- 不要讓單一服務失敗影響整體健康檢查
+
+**資源最小化**:
+- SerpAPI 使用帳戶資訊端點而非搜尋端點
+- Azure OpenAI 使用最小 token 請求
+- 考慮實作結果快取 (可選)
+
+**向後相容**:
+- 保持現有 API 介面不變
+- 錯誤時優雅降級而非崩潰
+
+#### ⚠️ 風險管控
+
+**潛在問題**:
+1. **API 配置問題** - 確保測試環境有正確的 API Keys
+2. **網路連線問題** - 實作適當的超時和重試機制
+3. **API 配額限制** - 使用最小消耗的測試方法
+4. **非同步操作複雜度** - 注意 async/await 的正確使用
+
+**應急方案**:
+- 如果外部服務測試實作困難，可先實作基礎版本返回 "unknown" 狀態
+- 分階段實作：先完成 SerpAPI，再實作 Azure OpenAI
+- 保留現有邏輯作為備用方案
+
+#### 📊 預期結果
+
+完成後將達到：
+- ✅ **100% API 規格符合度**
+- ✅ **生產級健康檢查監控**
+- ✅ **實時外部服務狀態監控**
+- ✅ **完整的 SEO Analyzer Backend**
 
 ---
 

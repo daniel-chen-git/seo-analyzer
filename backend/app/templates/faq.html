@@ -361,6 +361,144 @@
         .nav-item .nav-label {
             font-size: 0.95rem;
         }
+
+        /* 交叉引用通用樣式 */
+        .cross-reference {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #0ea5e9;
+            border-left: 4px solid #0ea5e9;
+            border-radius: 0 8px 8px 0;
+            padding: 15px 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .cross-reference::before {
+            content: "🔗";
+            position: absolute;
+            left: -2px;
+            top: -2px;
+            background: #0ea5e9;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .cross-reference p {
+            margin: 0;
+            color: #0c4a6e;
+            font-weight: 500;
+        }
+
+        .cross-reference a {
+            color: #0ea5e9;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px dotted #0ea5e9;
+            transition: all 0.3s ease;
+        }
+
+        .cross-reference a:hover {
+            color: #0284c7;
+            border-bottom-style: solid;
+            background: rgba(14, 165, 233, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        /* 相關頁面推薦區 */
+        .related-pages-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            margin: 40px 0;
+            padding: 30px;
+            border-top: 4px solid var(--primary-color);
+        }
+
+        .related-pages-section h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .related-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .related-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .related-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .related-card .card-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .related-card h4 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .related-card p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* 上下文提示 */
+        .contextual-hint {
+            background: #fffbeb;
+            border: 1px solid #f59e0b;
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 6px 6px 0;
+            padding: 12px 16px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            color: #92400e;
+        }
+
+        .contextual-hint a {
+            color: #d97706;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px dotted #d97706;
+        }
+
+        .contextual-hint a:hover {
+            color: #b45309;
+            border-bottom-style: solid;
+        }
     </style>
 </head>
 
@@ -381,15 +519,15 @@
                     <span class="nav-icon">❓</span>
                     <span class="nav-label">常見問題</span>
                 </a>
-                <a href="#" class="nav-item" onclick="alert('教學頁面即將推出！'); return false;">
+                <a href="/docs/tutorial" class="nav-item">
                     <span class="nav-icon">📚</span>
                     <span class="nav-label">使用教學</span>
                 </a>
-                <a href="#" class="nav-item" onclick="alert('錯誤處理指南即將推出！'); return false;">
+                <a href="/docs/errors" class="nav-item">
                     <span class="nav-icon">🛡️</span>
                     <span class="nav-label">錯誤處理</span>
                 </a>
-                <a href="#" class="nav-item" onclick="alert('效能指南即將推出！'); return false;">
+                <a href="/docs/performance" class="nav-item">
                     <span class="nav-icon">⚡</span>
                     <span class="nav-label">效能優化</span>
                 </a>
@@ -435,6 +573,33 @@
             <h3>找不到相關問題</h3>
             <p>請嘗試使用其他關鍵字或選擇不同的分類篩選器</p>
         </div>
+
+        <!-- 相關頁面推薦區 -->
+        <div class="related-pages-section">
+            <h3>📚 深入學習資源</h3>
+            <div class="related-cards">
+                <a href="/docs/tutorial" class="related-card">
+                    <span class="card-icon">📚</span>
+                    <h4>快速開始教學</h4>
+                    <p>5分鐘學會基本用法，包含完整程式語言範例和最佳實踐</p>
+                </a>
+                <a href="/docs/errors" class="related-card">
+                    <span class="card-icon">🛡️</span>
+                    <h4>錯誤處理指南</h4>
+                    <p>詳細的錯誤診斷和解決方案，讓你的 API 整合更穩定可靠</p>
+                </a>
+                <a href="/docs/performance" class="related-card">
+                    <span class="card-icon">⚡</span>
+                    <h4>效能優化指南</h4>
+                    <p>全方位效能優化策略，最大化 API 的效率和使用體驗</p>
+                </a>
+                <a href="/docs" class="related-card">
+                    <span class="card-icon">📖</span>
+                    <h4>完整 API 文檔</h4>
+                    <p>互動式 API 文檔，包含所有端點詳細說明和即時測試</p>
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- FAQ JavaScript -->
@@ -471,7 +636,10 @@ curl -X POST "http://localhost:8001/api/analyze" \\
          "include_table": false
        }
      }'
-                    </pre>`,
+                    </pre>
+                    <div class="cross-reference">
+                        <p>💡 <strong>需要更詳細的指引？</strong> 查看我們的 <a href="/docs/tutorial">快速開始教學</a>，包含完整的程式語言範例和最佳實踐。</p>
+                    </div>`,
                     category: "api"
                 },
                 {

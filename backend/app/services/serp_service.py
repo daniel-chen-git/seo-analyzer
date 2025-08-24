@@ -8,6 +8,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 from serpapi import GoogleSearch
+import httpx
 
 from ..config import get_config
 
@@ -343,6 +344,44 @@ class SerpService:
             raise
         except Exception as e:
             raise SearchFailedException(f"取得搜尋結果 URL 失敗: {str(e)}") from e
+
+    async def _test_connection(self) -> bool:
+        """測試 SerpAPI 連線狀態
+        
+        使用 SerpAPI 帳戶資訊端點測試連線，不消耗搜尋配額。
+        
+        Returns:
+            bool: 連線是否成功
+            
+        Raises:
+            SerpAPIException: 當 API 連線失敗時
+        """
+        try:
+            if not self.api_key:
+                raise SerpAPIException("SerpAPI key not configured")
+                
+            # 使用 SerpAPI 帳戶資訊端點測試連線
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(
+                    "https://serpapi.com/account",
+                    params={"api_key": self.api_key}
+                )
+                
+                if response.status_code == 200:
+                    return True
+                elif response.status_code == 401:
+                    raise SerpAPIException("Invalid API key")
+                else:
+                    raise SerpAPIException(f"API request failed: {response.status_code}")
+                    
+        except httpx.TimeoutException:
+            raise SerpAPIException("Connection timeout")
+        except httpx.NetworkError:
+            raise SerpAPIException("Network connection failed")
+        except Exception as e:
+            if isinstance(e, SerpAPIException):
+                raise
+            raise SerpAPIException(f"Connection test failed: {str(e)}")
 
 
 # 建立全域服務實例

@@ -521,6 +521,48 @@ class AIService:
         except (KeyError, IndexError, TypeError) as e:
             raise AIServiceException(f"OpenAI API 回應解析失敗: {str(e)}")
 
+    async def _test_connection(self) -> bool:
+        """測試 Azure OpenAI 連線狀態
+        
+        使用最小 token 的測試請求驗證連線。
+        
+        Returns:
+            bool: 連線是否成功
+            
+        Raises:
+            AIServiceException: 當 API 連線失敗時
+        """
+        try:
+            if not self.api_key or not self.endpoint:
+                raise AIServiceException("Azure OpenAI not configured")
+            
+            client = AsyncAzureOpenAI(
+                api_key=self.api_key,
+                api_version="2024-02-01",
+                azure_endpoint=self.endpoint
+            )
+            
+            # 發送最小的測試請求 (約 10-20 tokens)
+            response = await client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": "test"}],
+                max_tokens=1,
+                timeout=10.0
+            )
+            
+            return True
+            
+        except openai.AuthenticationError:
+            raise AIServiceException("Invalid Azure OpenAI credentials")
+        except openai.APITimeoutError:
+            raise AIServiceException("Azure OpenAI request timeout")
+        except openai.APIConnectionError:
+            raise AIServiceException("Azure OpenAI connection failed")
+        except Exception as e:
+            if isinstance(e, AIServiceException):
+                raise
+            raise AIServiceException(f"Connection test failed: {str(e)}")
+
 
 # 全域服務實例
 _ai_service = None

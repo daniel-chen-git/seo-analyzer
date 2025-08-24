@@ -252,6 +252,28 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
     )
 
 
+async def _test_serp_connection() -> str:
+    """測試 SerpAPI 連線狀態"""
+    try:
+        from ..services.serp_service import get_serp_service
+        serp_service = get_serp_service()
+        await serp_service._test_connection()
+        return "ok"
+    except Exception as e:
+        print(f"SerpAPI connection test failed: {str(e)}")
+        return "error"
+
+async def _test_azure_openai_connection() -> str:
+    """測試 Azure OpenAI 連線狀態"""
+    try:
+        from ..services.ai_service import get_ai_service
+        ai_service = get_ai_service()
+        await ai_service._test_connection()
+        return "ok"
+    except Exception as e:
+        print(f"Azure OpenAI connection test failed: {str(e)}")
+        return "error"
+
 @router.get(
     "/health", 
     response_model=HealthCheckResponse,
@@ -264,8 +286,8 @@ async def health_check() -> HealthCheckResponse:
 
     檢查 API 服務和相關外部服務的健康狀態，包括：
     - 基本配置載入狀態
-    - SerpAPI 連線狀態（未來版本）
-    - Azure OpenAI 連線狀態（未來版本）
+    - SerpAPI 實際連線測試
+    - Azure OpenAI 實際連線測試
     - Redis 快取狀態（若啟用）
 
     Returns:
@@ -274,18 +296,16 @@ async def health_check() -> HealthCheckResponse:
     Example:
         >>> response = await health_check()
         >>> print(response.status)  # "healthy" 
-        >>> print(response.services)  # 外部服務狀態
+        >>> print(response.services)  # {"serp_api": "ok", "azure_openai": "ok"}
     """
     try:
         # 檢查配置是否正常載入
         _ = config.get_server_port()
 
-        # 外部服務狀態檢查
-        # SerpAPI 已整合但不在健康檢查中測試以避免消耗配額
-        # Azure OpenAI 和 Redis 將在後續 Session 中實作
+        # 執行實際的外部服務連線測試
         services_status = {
-            "serp_api": "integrated",  # 已整合 SerpAPI 服務
-            "azure_openai": "not_implemented",  # 待實作
+            "serp_api": await _test_serp_connection(),
+            "azure_openai": await _test_azure_openai_connection(),
             "redis": "disabled" if not config.get_cache_enabled() else "not_implemented"
         }
 

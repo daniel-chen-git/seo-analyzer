@@ -30,6 +30,12 @@
 - 或直接使用虛擬環境 Python 路徑：`./.venv/bin/python`
 - 使用 `uv run python` 命令自動啟用虛擬環境
 
+#### NPM 套件管理
+- **務必使用本地安裝**：所有 npm 套件安裝都必須使用 `npm install package-name`
+- **禁止全域安裝**：不可使用 `npm install -g`，避免污染全域環境
+- **僅限專案範圍**：所有依賴都安裝在專案的 `node_modules` 目錄中
+- **開發依賴分離**：使用 `npm install --save-dev` 安裝開發工具
+
 #### 程式碼格式規範
 - **換行後不要使用四個空白鍵**：換行保持乾淨，避免不必要的縮排
 - 使用 IDE 自動格式化功能（如 Black、Prettier）

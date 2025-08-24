@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>錯誤處理指南 - SEO Analyzer API</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    
+    <!-- 自定義樣式檔案 -->
+    <link rel="stylesheet" type="text/css" href="/static/css/custom-swagger.css" />
+    
+    <!-- 錯誤處理頁面專用樣式 -->
+    <style>
+        /* 使用與其他頁面相同的品牌色彩 */
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #48bb78;
+            --background-color: #f7fafc;
+            --text-color: #2d3748;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --success-color: #38a169;
+            --warning-color: #d69e2e;
+            --error-color: #e53e3e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* 自定義標題區 */
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .custom-header h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+
+        .custom-header p {
+            font-size: 1.1rem;
+            margin: 10px auto;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        /* 導航選單樣式 */
+        .nav-menu {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.1em;
+        }
+
+        .nav-item .nav-label {
+            font-size: 0.95rem;
+        }
+
+        /* 主要內容區 */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 錯誤類別樣式 */
+        .error-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .error-section h2 {
+            background: linear-gradient(135deg, var(--error-color), #c53030);
+            color: white;
+            padding: 20px 30px;
+            margin: 0;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-section h2 .error-icon {
+            font-size: 1.2em;
+        }
+
+        .error-content {
+            padding: 30px;
+        }
+
+        /* 個別錯誤項目 */
+        .error-item {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .error-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .error-code {
+            background: var(--error-color);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .error-title {
+            color: var(--error-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .error-description {
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        /* 解決方案樣式 */
+        .solution {
+            background: #f0fff4;
+            border: 1px solid var(--success-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .solution h4 {
+            color: var(--success-color);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .solution-steps {
+            margin-left: 0;
+            padding-left: 20px;
+        }
+
+        .solution-steps li {
+            margin-bottom: 8px;
+            color: #276749;
+        }
+
+        /* 程式碼區塊樣式 */
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        /* 警告框樣式 */
+        .warning-box {
+            background: #fffbeb;
+            border: 1px solid var(--warning-color);
+            border-left: 4px solid var(--warning-color);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+            color: #92400e;
+        }
+
+        .info-box {
+            background: #ebf8ff;
+            border: 1px solid #3182ce;
+            border-left: 4px solid #3182ce;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+            color: #2b6cb0;
+        }
+
+        /* HTTP 狀態碼表格 */
+        .status-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .status-table th,
+        .status-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-table th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .status-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .status-code {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: bold;
+        }
+
+        .status-4xx {
+            color: var(--warning-color);
+        }
+
+        .status-5xx {
+            color: var(--error-color);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .custom-header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .error-content {
+                padding: 20px;
+            }
+
+            .error-item {
+                padding: 20px 15px;
+            }
+
+            .nav-menu {
+                margin-top: 20px;
+                gap: 8px;
+            }
+
+            .nav-item {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+
+            .status-table {
+                font-size: 0.9rem;
+            }
+
+            .status-table th,
+            .status-table td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定義標題區 -->
+    <div class="custom-header">
+        <div class="container">
+            <h1>🛡️ 錯誤處理指南</h1>
+            <p>完整的錯誤診斷和解決方案 - 讓你的 API 整合更穩定可靠</p>
+            
+            <!-- 文檔導航選單 -->
+            <div class="nav-menu">
+                <a href="/docs" class="nav-item">
+                    <span class="nav-icon">📖</span>
+                    <span class="nav-label">API 文檔</span>
+                </a>
+                <a href="/docs/faq" class="nav-item">
+                    <span class="nav-icon">❓</span>
+                    <span class="nav-label">常見問題</span>
+                </a>
+                <a href="/docs/tutorial" class="nav-item">
+                    <span class="nav-icon">📚</span>
+                    <span class="nav-label">使用教學</span>
+                </a>
+                <a href="/docs/errors" class="nav-item active">
+                    <span class="nav-icon">🛡️</span>
+                    <span class="nav-label">錯誤處理</span>
+                </a>
+                <a href="/docs/performance" class="nav-item">
+                    <span class="nav-icon">⚡</span>
+                    <span class="nav-label">效能優化</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要內容 -->
+    <div class="main-content">
+        <!-- HTTP 狀態碼參考 -->
+        <div class="error-section">
+            <h2>
+                <span class="error-icon">📊</span>
+                HTTP 狀態碼參考
+            </h2>
+            <div class="error-content">
+                <p>SEO Analyzer API 使用標準 HTTP 狀態碼來指示請求的結果：</p>
+                
+                <table class="status-table">
+                    <thead>
+                        <tr>
+                            <th>狀態碼</th>
+                            <th>說明</th>
+                            <th>處理建議</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-code">200</span></td>
+                            <td>成功 - 請求已成功處理</td>
+                            <td>繼續處理回應資料</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-4xx">400</span></td>
+                            <td>錯誤請求 - 請求格式不正確</td>
+                            <td>檢查請求格式和參數</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-4xx">422</span></td>
+                            <td>驗證錯誤 - 請求參數無效</td>
+                            <td>檢查參數類型和值</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-4xx">429</span></td>
+                            <td>請求過多 - 超過頻率限制</td>
+                            <td>等待後重試，實作退避策略</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-5xx">500</span></td>
+                            <td>內部服務器錯誤</td>
+                            <td>稍後重試，聯繫技術支援</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-5xx">503</span></td>
+                            <td>服務不可用 - 維護中</td>
+                            <td>等待服務恢復</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 常見錯誤與解決方案 -->
+        <div class="error-section">
+            <h2>
+                <span class="error-icon">⚠️</span>
+                常見錯誤與解決方案
+            </h2>
+            <div class="error-content">
+                <div class="error-item">
+                    <div class="error-header">
+                        <span class="error-code">400</span>
+                        <h3 class="error-title">請求格式錯誤</h3>
+                    </div>
+                    <p class="error-description">
+                        當請求的 JSON 格式不正確或缺少必要欄位時，會返回此錯誤。
+                    </p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>{
+    "detail": [
+        {
+            "loc": ["body", "keyword"],
+            "msg": "field required",
+            "type": "value_error.missing"
+        }
+    ]
+}</pre>
+                    </div>
+
+                    <div class="solution">
+                        <h4>🔧 解決方案</h4>
+                        <ol class="solution-steps">
+                            <li>確保請求包含必要的 "keyword" 欄位</li>
+                            <li>檢查 JSON 格式是否正確</li>
+                            <li>確認 Content-Type 標頭為 "application/json"</li>
+                        </ol>
+                        
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre># 正確的請求格式
+curl -X POST "http://localhost:8000/analyze" \
+     -H "Content-Type: application/json" \
+     -d '{"keyword": "SEO優化"}'</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-item">
+                    <div class="error-header">
+                        <span class="error-code">422</span>
+                        <h3 class="error-title">關鍵字驗證失敗</h3>
+                    </div>
+                    <p class="error-description">
+                        關鍵字為空、過長或包含不支援的字元時會發生此錯誤。
+                    </p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>{
+    "status": "error",
+    "error_code": "INVALID_INPUT",
+    "message": "關鍵字長度必須在 1-100 字元之間",
+    "details": {
+        "keyword": "",
+        "max_length": 100
+    }
+}</pre>
+                    </div>
+
+                    <div class="solution">
+                        <h4>🔧 解決方案</h4>
+                        <ol class="solution-steps">
+                            <li>確保關鍵字不為空</li>
+                            <li>限制關鍵字長度在 100 字元以內</li>
+                            <li>避免使用特殊符號或 HTML 標籤</li>
+                            <li>使用有意義的中英文關鍵字</li>
+                        </ol>
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>⚠️ 注意：</strong> 過於寬泛的關鍵字（如 "a", "the"）可能不會產生有用的分析結果。
+                    </div>
+                </div>
+
+                <div class="error-item">
+                    <div class="error-header">
+                        <span class="error-code">TIMEOUT</span>
+                        <h3 class="error-title">請求逾時</h3>
+                    </div>
+                    <p class="error-description">
+                        當分析過程超過預設時間限制（60秒）時，會發生逾時錯誤。
+                    </p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>{
+    "status": "error",
+    "error_code": "ANALYSIS_TIMEOUT",
+    "message": "分析請求逾時，請嘗試使用更具體的關鍵字",
+    "details": {
+        "timeout_seconds": 60,
+        "suggestion": "嘗試使用更具體的關鍵字"
+    }
+}</pre>
+                    </div>
+
+                    <div class="solution">
+                        <h4>🔧 解決方案</h4>
+                        <ol class="solution-steps">
+                            <li>使用更具體、範圍較小的關鍵字</li>
+                            <li>增加客戶端的逾時設定（建議 90 秒）</li>
+                            <li>實作重試機制，但要有適當的延遲</li>
+                            <li>考慮將大型關鍵字拆分為多個小型關鍵字</li>
+                        </ol>
+                        
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre># Python 範例：設定較長的逾時時間
+import requests
+
+def robust_analyze(keyword):
+    try:
+        response = requests.post(
+            "http://localhost:8000/analyze",
+            json={"keyword": keyword},
+            timeout=90  # 90 秒逾時
+        )
+        return response.json()
+    except requests.exceptions.Timeout:
+        return {"error": "請求逾時，請稍後再試"}
+    except requests.exceptions.RequestException as e:
+        return {"error": f"請求失敗: {str(e)}"}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-item">
+                    <div class="error-header">
+                        <span class="error-code">SERP_API</span>
+                        <h3 class="error-title">搜尋引擎 API 錯誤</h3>
+                    </div>
+                    <p class="error-description">
+                        SerpAPI 服務發生問題或 API 配額已耗盡時的錯誤。
+                    </p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>{
+    "status": "error",
+    "error_code": "SERP_API_ERROR",
+    "message": "搜尋引擎資料擷取失敗",
+    "details": {
+        "provider": "SerpAPI",
+        "reason": "API quota exceeded",
+        "retry_after": 3600
+    }
+}</pre>
+                    </div>
+
+                    <div class="solution">
+                        <h4>🔧 解決方案</h4>
+                        <ol class="solution-steps">
+                            <li>等待配額重置（通常每月重置）</li>
+                            <li>檢查 SerpAPI 帳戶狀態和餘額</li>
+                            <li>考慮升級 SerpAPI 方案</li>
+                            <li>實作 API 配額監控機制</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="error-item">
+                    <div class="error-header">
+                        <span class="error-code">AI_API</span>
+                        <h3 class="error-title">AI 分析服務錯誤</h3>
+                    </div>
+                    <p class="error-description">
+                        Azure OpenAI 服務發生問題或 Token 配額不足時的錯誤。
+                    </p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>{
+    "status": "error",
+    "error_code": "AI_API_ERROR",
+    "message": "AI 分析服務暫時不可用",
+    "details": {
+        "provider": "Azure OpenAI",
+        "reason": "Rate limit exceeded",
+        "retry_after": 60
+    }
+}</pre>
+                    </div>
+
+                    <div class="solution">
+                        <h4>🔧 解決方案</h4>
+                        <ol class="solution-steps">
+                            <li>等待速率限制重置（通常 1 分鐘）</li>
+                            <li>檢查 Azure OpenAI 服務狀態</li>
+                            <li>監控 Token 使用量</li>
+                            <li>考慮實作指數退避重試策略</li>
+                        </ol>
+                        
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre># Python 指數退避重試範例
+import time
+import random
+
+def exponential_backoff_retry(func, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise e
+            
+            # 指數退避：2^attempt + 隨機抖動
+            wait_time = (2 ** attempt) + random.uniform(0, 1)
+            time.sleep(wait_time)</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 防禦性編程建議 -->
+        <div class="error-section">
+            <h2>
+                <span class="error-icon">🛡️</span>
+                防禦性編程建議
+            </h2>
+            <div class="error-content">
+                <div class="info-box">
+                    <strong>💡 最佳實踐：</strong> 總是假設外部 API 呼叫可能失敗，並準備適當的備案。
+                </div>
+
+                <h3>1. 完整的錯誤處理範例</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre>import requests
+import time
+import logging
+from typing import Optional, Dict, Any
+
+class SEOAnalyzerClient:
+    def __init__(self, base_url: str = "http://localhost:8000"):
+        self.base_url = base_url
+        self.session = requests.Session()
+        
+    def analyze_keyword(self, keyword: str, max_retries: int = 3) -> Optional[Dict[Any, Any]]:
+        """
+        分析 SEO 關鍵字，包含完整錯誤處理
+        """
+        if not keyword or len(keyword) > 100:
+            logging.error(f"無效關鍵字: {keyword}")
+            return None
+            
+        for attempt in range(max_retries):
+            try:
+                response = self.session.post(
+                    f"{self.base_url}/analyze",
+                    json={"keyword": keyword},
+                    timeout=90,
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                # 檢查 HTTP 狀態碼
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("status") == "success":
+                        return data
+                    else:
+                        logging.error(f"API 回應錯誤: {data.get('message', '未知錯誤')}")
+                        return None
+                        
+                elif response.status_code == 429:
+                    # 請求過多，等待後重試
+                    wait_time = min(2 ** attempt, 60)  # 最多等待 60 秒
+                    logging.warning(f"請求過多，等待 {wait_time} 秒後重試")
+                    time.sleep(wait_time)
+                    continue
+                    
+                elif response.status_code in [400, 422]:
+                    # 客戶端錯誤，不應重試
+                    error_data = response.json()
+                    logging.error(f"請求錯誤: {error_data}")
+                    return None
+                    
+                else:
+                    # 伺服器錯誤，可以重試
+                    logging.warning(f"伺服器錯誤 {response.status_code}，嘗試重試")
+                    
+            except requests.exceptions.Timeout:
+                logging.warning(f"請求逾時（嘗試 {attempt + 1}/{max_retries}）")
+                
+            except requests.exceptions.ConnectionError:
+                logging.warning(f"連接錯誤（嘗試 {attempt + 1}/{max_retries}）")
+                
+            except requests.exceptions.RequestException as e:
+                logging.error(f"請求異常: {e}")
+                return None
+                
+            # 重試前等待
+            if attempt < max_retries - 1:
+                wait_time = min(2 ** attempt, 30)
+                time.sleep(wait_time)
+                
+        logging.error(f"達到最大重試次數，分析失敗: {keyword}")
+        return None
+
+# 使用範例
+client = SEOAnalyzerClient()
+result = client.analyze_keyword("數位行銷")
+if result:
+    print("分析成功！")
+else:
+    print("分析失敗，請檢查日誌")</pre>
+                </div>
+
+                <h3>2. 監控和日誌記錄</h3>
+                <p>實作適當的監控機制來追蹤 API 使用情況：</p>
+                
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre>import logging
+import time
+from datetime import datetime
+
+# 設定日誌格式
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('seo_analyzer.log'),
+        logging.StreamHandler()
+    ]
+)
+
+class APIMonitor:
+    def __init__(self):
+        self.request_count = 0
+        self.error_count = 0
+        self.total_processing_time = 0
+        
+    def log_request(self, keyword: str, success: bool, processing_time: float):
+        self.request_count += 1
+        if not success:
+            self.error_count += 1
+        self.total_processing_time += processing_time
+        
+        logging.info(f"關鍵字: {keyword}, 成功: {success}, 處理時間: {processing_time:.2f}s")
+        
+    def get_statistics(self):
+        if self.request_count == 0:
+            return "尚無統計資料"
+            
+        success_rate = (self.request_count - self.error_count) / self.request_count * 100
+        avg_processing_time = self.total_processing_time / self.request_count
+        
+        return f"""
+API 使用統計:
+- 總請求次數: {self.request_count}
+- 成功率: {success_rate:.1f}%
+- 平均處理時間: {avg_processing_time:.2f}s
+- 錯誤次數: {self.error_count}
+        """
+
+# 使用範例
+monitor = APIMonitor()
+
+def monitored_analyze(keyword: str):
+    start_time = time.time()
+    try:
+        result = client.analyze_keyword(keyword)
+        success = result is not None
+        return result
+    finally:
+        processing_time = time.time() - start_time
+        monitor.log_request(keyword, success, processing_time)</pre>
+                </div>
+
+                <h3>3. 環境變數和配置管理</h3>
+                <p>確保正確處理不同環境的配置：</p>
+                
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre>import os
+from typing import Optional
+
+class Config:
+    def __init__(self):
+        self.api_base_url = os.getenv('SEO_ANALYZER_API_URL', 'http://localhost:8000')
+        self.timeout = int(os.getenv('API_TIMEOUT', '90'))
+        self.max_retries = int(os.getenv('MAX_RETRIES', '3'))
+        self.debug = os.getenv('DEBUG', 'False').lower() == 'true'
+        
+    def validate(self) -> Optional[str]:
+        """驗證配置是否正確"""
+        if not self.api_base_url:
+            return "API_BASE_URL 不可為空"
+        if self.timeout < 1:
+            return "API_TIMEOUT 必須大於 0"
+        if self.max_retries < 0:
+            return "MAX_RETRIES 不可為負數"
+        return None
+
+# 使用範例
+config = Config()
+validation_error = config.validate()
+if validation_error:
+    raise ValueError(f"配置錯誤: {validation_error}")</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測試和驗證 -->
+        <div class="error-section">
+            <h2>
+                <span class="error-icon">🧪</span>
+                測試和驗證
+            </h2>
+            <div class="error-content">
+                <h3>錯誤處理測試腳本</h3>
+                <p>使用以下腳本測試各種錯誤情況：</p>
+                
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre>#!/usr/bin/env python3
+"""
+SEO Analyzer API 錯誤處理測試腳本
+"""
+
+import requests
+import json
+
+API_BASE_URL = "http://localhost:8000"
+
+def test_empty_keyword():
+    """測試空關鍵字"""
+    print("測試空關鍵字...")
+    response = requests.post(f"{API_BASE_URL}/analyze", json={"keyword": ""})
+    print(f"狀態碼: {response.status_code}")
+    print(f"回應: {response.json()}\n")
+
+def test_long_keyword():
+    """測試過長關鍵字"""
+    print("測試過長關鍵字...")
+    long_keyword = "a" * 101  # 101 個字元
+    response = requests.post(f"{API_BASE_URL}/analyze", json={"keyword": long_keyword})
+    print(f"狀態碼: {response.status_code}")
+    print(f"回應: {response.json()}\n")
+
+def test_invalid_json():
+    """測試無效 JSON"""
+    print("測試無效 JSON...")
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/analyze",
+            data="invalid json",
+            headers={"Content-Type": "application/json"}
+        )
+        print(f"狀態碼: {response.status_code}")
+        print(f"回應: {response.json()}\n")
+    except Exception as e:
+        print(f"錯誤: {e}\n")
+
+def test_missing_field():
+    """測試缺少欄位"""
+    print("測試缺少關鍵字欄位...")
+    response = requests.post(f"{API_BASE_URL}/analyze", json={})
+    print(f"狀態碼: {response.status_code}")
+    print(f"回應: {response.json()}\n")
+
+def test_connection_timeout():
+    """測試連接逾時"""
+    print("測試連接逾時...")
+    try:
+        response = requests.post(
+            "http://nonexistent-url.com/analyze",
+            json={"keyword": "test"},
+            timeout=1
+        )
+    except requests.exceptions.RequestException as e:
+        print(f"預期錯誤: {e}\n")
+
+if __name__ == "__main__":
+    print("開始錯誤處理測試...\n")
+    
+    test_empty_keyword()
+    test_long_keyword()
+    test_invalid_json()
+    test_missing_field()
+    test_connection_timeout()
+    
+    print("測試完成！")</pre>
+                </div>
+
+                <div class="warning-box">
+                    <strong>⚠️ 注意：</strong> 執行測試腳本前，請確保 SEO Analyzer API 服務正在運行。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 複製代碼功能
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                const originalText = button.textContent;
+                button.textContent = '已複製!';
+                button.style.background = '#38a169';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#667eea';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('複製失敗:', err);
+            });
+        }
+
+        // 導航功能
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+        });
+
+        function updateNavigation() {
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                const href = item.getAttribute('href');
+                
+                if (href === currentPath || 
+                    (currentPath.includes('/docs/errors') && href === '/docs/errors')) {
+                    item.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

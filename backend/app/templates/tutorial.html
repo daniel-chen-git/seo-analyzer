@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快速開始教學 - SEO Analyzer API</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    
+    <!-- 自定義樣式檔案 -->
+    <link rel="stylesheet" type="text/css" href="/static/css/custom-swagger.css" />
+    
+    <!-- 教學頁面專用樣式 -->
+    <style>
+        /* 使用與其他頁面相同的品牌色彩 */
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #48bb78;
+            --background-color: #f7fafc;
+            --text-color: #2d3748;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --success-color: #38a169;
+            --warning-color: #d69e2e;
+            --error-color: #e53e3e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* 自定義標題區 */
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .custom-header h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+
+        .custom-header p {
+            font-size: 1.1rem;
+            margin: 10px auto;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        /* 導航選單樣式 */
+        .nav-menu {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.1em;
+        }
+
+        .nav-item .nav-label {
+            font-size: 0.95rem;
+        }
+
+        /* 主要內容區 */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 教學步驟樣式 */
+        .tutorial-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .tutorial-section h2 {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 30px;
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .tutorial-content {
+            padding: 30px;
+        }
+
+        .step {
+            margin-bottom: 40px;
+            padding: 25px;
+            border-left: 4px solid var(--primary-color);
+            background: #f8fafc;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .step h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-number {
+            background: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* 程式碼區塊樣式 */
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        /* 提示框樣式 */
+        .tip-box {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+
+        .tip-box.info {
+            background: #ebf8ff;
+            border-color: #3182ce;
+            color: #2b6cb0;
+        }
+
+        .tip-box.warning {
+            background: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .tip-box.success {
+            background: #f0fff4;
+            border-color: var(--success-color);
+            color: #276749;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .custom-header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .tutorial-content {
+                padding: 20px;
+            }
+
+            .step {
+                padding: 20px 15px;
+            }
+
+            .nav-menu {
+                margin-top: 20px;
+                gap: 8px;
+            }
+
+            .nav-item {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定義標題區 -->
+    <div class="custom-header">
+        <div class="container">
+            <h1>📚 快速開始教學</h1>
+            <p>5 分鐘學會使用 SEO Analyzer API - 從零到專家的完整指南</p>
+            
+            <!-- 文檔導航選單 -->
+            <div class="nav-menu">
+                <a href="/docs" class="nav-item">
+                    <span class="nav-icon">📖</span>
+                    <span class="nav-label">API 文檔</span>
+                </a>
+                <a href="/docs/faq" class="nav-item">
+                    <span class="nav-icon">❓</span>
+                    <span class="nav-label">常見問題</span>
+                </a>
+                <a href="/docs/tutorial" class="nav-item active">
+                    <span class="nav-icon">📚</span>
+                    <span class="nav-label">使用教學</span>
+                </a>
+                <a href="/docs/errors" class="nav-item">
+                    <span class="nav-icon">🛡️</span>
+                    <span class="nav-label">錯誤處理</span>
+                </a>
+                <a href="/docs/performance" class="nav-item">
+                    <span class="nav-icon">⚡</span>
+                    <span class="nav-label">效能優化</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要內容 -->
+    <div class="main-content">
+        <!-- 快速開始 -->
+        <div class="tutorial-section">
+            <h2>🚀 快速開始</h2>
+            <div class="tutorial-content">
+                <div class="step">
+                    <h3>
+                        <span class="step-number">1</span>
+                        準備 API 請求
+                    </h3>
+                    <p>SEO Analyzer API 是一個 RESTful API，接受 POST 請求來分析 SEO 關鍵字。</p>
+                    
+                    <div class="tip-box info">
+                        <strong>💡 提示：</strong> API 端點位於 <code>/analyze</code>，接受 JSON 格式的請求。
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>POST /analyze
+Content-Type: application/json
+
+{
+    "keyword": "你要分析的關鍵字"
+}</pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>
+                        <span class="step-number">2</span>
+                        發送第一個請求
+                    </h3>
+                    <p>使用 curl、Postman 或任何 HTTP 客戶端發送請求：</p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>curl -X POST "http://localhost:8000/analyze" \
+     -H "Content-Type: application/json" \
+     -d '{"keyword": "SEO優化"}'</pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>
+                        <span class="step-number">3</span>
+                        理解回應格式
+                    </h3>
+                    <p>API 會返回詳細的 SEO 分析報告，包含競爭對手分析和 AI 建議：</p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>{
+    "status": "success",
+    "keyword": "SEO優化",
+    "analysis_time": "2024-01-15T10:30:00Z",
+    "serp_data": {
+        "total_results": 1234567,
+        "top_competitors": [...],
+        "featured_snippets": [...]
+    },
+    "content_analysis": {
+        "scraped_urls": 10,
+        "success_rate": 0.9,
+        "content_insights": [...]
+    },
+    "ai_recommendations": {
+        "content_strategy": "...",
+        "keyword_opportunities": [...],
+        "competitive_advantages": [...]
+    },
+    "metadata": {
+        "processing_time_seconds": 45.2,
+        "tokens_used": 7500
+    }
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 程式語言範例 -->
+        <div class="tutorial-section">
+            <h2>💻 程式語言範例</h2>
+            <div class="tutorial-content">
+                <div class="step">
+                    <h3>
+                        <span class="step-number">1</span>
+                        Python 範例
+                    </h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>import requests
+import json
+
+def analyze_seo_keyword(keyword):
+    url = "http://localhost:8000/analyze"
+    payload = {"keyword": keyword}
+    
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"錯誤: {e}")
+        return None
+
+# 使用範例
+result = analyze_seo_keyword("SEO優化")
+if result:
+    print(f"分析完成！關鍵字: {result['keyword']}")
+    print(f"處理時間: {result['metadata']['processing_time_seconds']} 秒")</pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>
+                        <span class="step-number">2</span>
+                        JavaScript 範例
+                    </h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>async function analyzeSEOKeyword(keyword) {
+    const url = 'http://localhost:8000/analyze';
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ keyword: keyword })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('分析失敗:', error);
+        return null;
+    }
+}
+
+// 使用範例
+analyzeSEOKeyword('SEO優化')
+    .then(result => {
+        if (result) {
+            console.log(`分析完成！關鍵字: ${result.keyword}`);
+            console.log(`AI 建議:`, result.ai_recommendations);
+        }
+    });</pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>
+                        <span class="step-number">3</span>
+                        Node.js 範例
+                    </h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>const axios = require('axios');
+
+async function analyzeSEOKeyword(keyword) {
+    const url = 'http://localhost:8000/analyze';
+    
+    try {
+        const response = await axios.post(url, {
+            keyword: keyword
+        });
+        
+        return response.data;
+    } catch (error) {
+        console.error('分析失敗:', error.response?.data || error.message);
+        return null;
+    }
+}
+
+// 使用範例
+(async () => {
+    const result = await analyzeSEOKeyword('SEO優化');
+    if (result) {
+        console.log(`分析完成！關鍵字: ${result.keyword}`);
+        console.log(`競爭對手數量: ${result.serp_data.top_competitors.length}`);
+    }
+})();</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最佳實踐 -->
+        <div class="tutorial-section">
+            <h2>🎯 最佳實踐</h2>
+            <div class="tutorial-content">
+                <div class="step">
+                    <h3>
+                        <span class="step-number">1</span>
+                        錯誤處理
+                    </h3>
+                    <p>總是包含適當的錯誤處理機制：</p>
+                    
+                    <div class="tip-box warning">
+                        <strong>⚠️ 注意：</strong> API 分析需要時間，請設置適當的超時時間（建議 60 秒以上）。
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+def create_session_with_retries():
+    session = requests.Session()
+    retry = Retry(
+        total=3,
+        read=3,
+        connect=3,
+        backoff_factor=0.3,
+        status_forcelist=(500, 502, 504)
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
+def robust_analyze(keyword):
+    session = create_session_with_retries()
+    try:
+        response = session.post(
+            "http://localhost:8000/analyze",
+            json={"keyword": keyword},
+            timeout=90  # 90 秒超時
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.Timeout:
+        print("請求超時，請稍後再試")
+    except requests.exceptions.RequestException as e:
+        print(f"請求失敗: {e}")
+    return None</pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>
+                        <span class="step-number">2</span>
+                        效能優化
+                    </h3>
+                    <p>為了獲得最佳效能，請遵循以下建議：</p>
+                    
+                    <div class="tip-box success">
+                        <strong>✅ 建議：</strong> 使用具體且相關的關鍵字，避免過於寬泛的詞彙。
+                    </div>
+                    
+                    <ul>
+                        <li><strong>關鍵字選擇</strong>：使用具體、相關的關鍵字</li>
+                        <li><strong>請求頻率</strong>：避免同時發送多個請求</li>
+                        <li><strong>結果快取</strong>：考慮快取分析結果以提高效能</li>
+                        <li><strong>監控使用量</strong>：追蹤 Token 使用量和處理時間</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <h3>
+                        <span class="step-number">3</span>
+                        資料處理
+                    </h3>
+                    <p>有效處理和使用分析結果：</p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre>def process_seo_results(result):
+    if not result or result.get('status') != 'success':
+        return None
+    
+    # 提取關鍵資訊
+    insights = {
+        'keyword': result['keyword'],
+        'competition_level': len(result['serp_data']['top_competitors']),
+        'opportunities': result['ai_recommendations']['keyword_opportunities'],
+        'performance_metrics': {
+            'processing_time': result['metadata']['processing_time_seconds'],
+            'success_rate': result['content_analysis']['success_rate']
+        }
+    }
+    
+    return insights
+
+# 使用範例
+result = analyze_seo_keyword("數位行銷")
+if result:
+    insights = process_seo_results(result)
+    print(f"競爭程度: {insights['competition_level']}")
+    print(f"機會關鍵字: {insights['opportunities'][:3]}")  # 前3個機會</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 故障排除 -->
+        <div class="tutorial-section">
+            <h2>🔧 故障排除</h2>
+            <div class="tutorial-content">
+                <div class="step">
+                    <h3>
+                        <span class="step-number">1</span>
+                        常見問題
+                    </h3>
+                    <p><strong>問題：連接被拒絕</strong></p>
+                    <ul>
+                        <li>確認 API 服務器正在運行</li>
+                        <li>檢查端口號是否正確（預設 8000）</li>
+                        <li>確認防火牆設置</li>
+                    </ul>
+                    
+                    <p><strong>問題：請求超時</strong></p>
+                    <ul>
+                        <li>增加超時時間設置</li>
+                        <li>檢查網路連接</li>
+                        <li>嘗試使用更簡單的關鍵字</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <h3>
+                        <span class="step-number">2</span>
+                        測試連接
+                    </h3>
+                    <p>使用以下命令測試 API 是否正常運行：</p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre># 測試服務器是否運行
+curl -X GET "http://localhost:8000/"
+
+# 檢查 API 文檔
+curl -X GET "http://localhost:8000/docs"
+
+# 測試簡單分析
+curl -X POST "http://localhost:8000/analyze" \
+     -H "Content-Type: application/json" \
+     -d '{"keyword": "test"}'</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 複製代碼功能
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                const originalText = button.textContent;
+                button.textContent = '已複製!';
+                button.style.background = '#38a169';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#667eea';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('複製失敗:', err);
+            });
+        }
+
+        // 導航功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化導航狀態
+            updateNavigation();
+        });
+
+        function updateNavigation() {
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                const href = item.getAttribute('href');
+                
+                if (href === currentPath || 
+                    (currentPath.includes('/docs/tutorial') && href === '/docs/tutorial')) {
+                    item.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

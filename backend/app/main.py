@@ -126,6 +126,63 @@ async def faq_html(request: Request):
     )
 
 
+@app.get("/docs/tutorial", response_class=HTMLResponse, include_in_schema=False)
+async def tutorial_html(request: Request):
+    """快速開始教學頁面。
+    
+    提供 SEO Analyzer API 的快速開始指南，
+    包含基本用法、範例程式碼和最佳實踐。
+    
+    Args:
+        request: HTTP 請求物件
+        
+    Returns:
+        HTMLResponse: 教學頁面
+    """
+    return templates.TemplateResponse(
+        "tutorial.html",
+        {"request": request}
+    )
+
+
+@app.get("/docs/errors", response_class=HTMLResponse, include_in_schema=False)
+async def errors_html(request: Request):
+    """錯誤處理指南頁面。
+    
+    提供 SEO Analyzer API 的錯誤處理指南，
+    包含常見錯誤、故障排除和解決方案。
+    
+    Args:
+        request: HTTP 請求物件
+        
+    Returns:
+        HTMLResponse: 錯誤處理頁面
+    """
+    return templates.TemplateResponse(
+        "errors.html",
+        {"request": request}
+    )
+
+
+@app.get("/docs/performance", response_class=HTMLResponse, include_in_schema=False)
+async def performance_html(request: Request):
+    """效能優化指南頁面。
+    
+    提供 SEO Analyzer API 的效能優化指南，
+    包含最佳實踐、效能調優和監控建議。
+    
+    Args:
+        request: HTTP 請求物件
+        
+    Returns:
+        HTMLResponse: 效能優化頁面
+    """
+    return templates.TemplateResponse(
+        "performance_optimization_guide.html",
+        {"request": request}
+    )
+
+
 @app.get("/redoc", response_class=HTMLResponse, include_in_schema=False)
 async def redoc_html():
     """ReDoc 文檔頁面（重定向到自定義文檔）。"""

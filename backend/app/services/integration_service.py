@@ -6,7 +6,7 @@
 
 import time
 from datetime import datetime, timezone
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from ..models.request import AnalyzeRequest, AnalyzeOptions as RequestOptions
 from ..models.response import (
@@ -180,7 +180,7 @@ class IntegrationService:
         scraping_data: ScrapingResult,
         analysis_result: AnalysisResult,
         processing_time: float,
-        timer: 'PerformanceTimer' = None
+        timer: Optional['PerformanceTimer'] = None
     ) -> AnalyzeResponse:
         """建立成功回應。
         

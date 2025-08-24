@@ -125,14 +125,21 @@ surface: '#FFFFFF',      /* 白色卡片 */
 
 ## 📦 相依套件版本 (2025年最新穩定版)
 
+### 🆙 版本更新說明 (2025-01-24)
+- **React**: 18.3.1 → 19.1.1 (需手動升級，包含新功能和效能改善)
+- **React Types**: 18.x → 19.0.0 (適配 React 19 新 API)
+- **React-Markdown**: 9.0.1 → 10.1.0 (支援更多 Markdown 功能)
+- **Tailwind CSS**: 4.0.1 → 4.0.12 (最新穩定版本)
+- **Node.js 要求**: Vite 6 需要 Node.js 20.19+ / 22.12+
+
 ### 核心依賴
 ```json
 {
-  "react": "^18.3.1",
-  "react-dom": "^18.3.1",
+  "react": "^19.1.1",
+  "react-dom": "^19.1.1",
   "typescript": "^5.9.2",
   "axios": "^1.11.0",
-  "react-markdown": "^9.0.1"
+  "react-markdown": "^10.1.0"
 }
 ```
 
@@ -141,12 +148,12 @@ surface: '#FFFFFF',      /* 白色卡片 */
 {
   "@vitejs/plugin-react": "^4.3.4",
   "vite": "^6.0.7",
-  "tailwindcss": "^4.0.1",
-  "@tailwindcss/vite": "^4.0.1",
+  "tailwindcss": "^4.0.12",
+  "@tailwindcss/vite": "^4.0.12",
   "autoprefixer": "^10.4.20",
   "postcss": "^8.5.1",
-  "@types/react": "^18.3.17",
-  "@types/react-dom": "^18.3.5"
+  "@types/react": "^19.0.0",
+  "@types/react-dom": "^19.0.0"
 }
 ```
 

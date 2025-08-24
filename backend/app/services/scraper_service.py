@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 
 import aiohttp
+from aiohttp import ClientError
 from bs4 import BeautifulSoup, Tag
 from bs4.element import NavigableString
 
@@ -236,7 +237,7 @@ class ScraperService:
                 if attempt < self.max_retries - 1:
                     await asyncio.sleep(self.retry_delay * (2 ** attempt))
                     continue
-            except (aiohttp.ClientError, aiohttp.ServerTimeoutError) as e:
+            except ClientError as e:
                 last_error = ScraperException(f"網路錯誤: {str(e)}")
                 if attempt < self.max_retries - 1:
                     await asyncio.sleep(self.retry_delay * (2 ** attempt))

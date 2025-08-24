@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>常見問題 - SEO Analyzer API</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    
+    <!-- 自定義樣式檔案 -->
+    <link rel="stylesheet" type="text/css" href="/static/css/custom-swagger.css" />
+    
+    <!-- FAQ 專用樣式 -->
+    <style>
+        /* 使用與其他頁面相同的品牌色彩 */
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #48bb78;
+            --background-color: #f7fafc;
+            --text-color: #2d3748;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --success-color: #38a169;
+            --warning-color: #d69e2e;
+            --error-color: #e53e3e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* 自定義標題區 */
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .custom-header h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+
+        .custom-header p {
+            font-size: 1.1rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 搜尋和篩選區域 */
+        .search-filter-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: #fff;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* 分類篩選器 */
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-tag {
+            padding: 8px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            background: white;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* FAQ 項目容器 */
+        .faq-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        /* FAQ 項目 */
+        .faq-item {
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 0;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .faq-question:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .faq-question h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .faq-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease;
+            color: var(--primary-color);
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px 20px;
+            max-height: 1000px;
+        }
+
+        .faq-answer-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .faq-answer-content p {
+            margin: 10px 0;
+        }
+
+        .faq-answer-content pre {
+            background: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+
+        .faq-answer-content code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        /* 分類標籤 */
+        .category-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .category-api { background: #e6f3ff; color: #0066cc; }
+        .category-errors { background: #ffe6e6; color: #cc0000; }
+        .category-performance { background: #e6ffe6; color: #006600; }
+        .category-integration { background: #fff3e6; color: #cc6600; }
+
+        /* 無結果狀態 */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .no-results-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .custom-header h1 {
+                font-size: 2rem;
+            }
+
+            .search-filter-container {
+                margin: 20px 0;
+                padding: 20px;
+            }
+
+            .category-filters {
+                justify-content: center;
+            }
+
+            .faq-question h3 {
+                font-size: 1rem;
+                margin-right: 10px;
+            }
+
+            .category-badge {
+                display: block;
+                margin: 5px 0 0 0;
+            }
+
+            .nav-menu {
+                margin-top: 20px;
+                gap: 8px;
+            }
+
+            .nav-item {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+
+            .nav-item .nav-icon {
+                font-size: 1em;
+            }
+
+            .nav-item .nav-label {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 載入動畫 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 導航選單樣式 */
+        .nav-menu {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.1em;
+        }
+
+        .nav-item .nav-label {
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 自定義標題區 -->
+    <div class="custom-header">
+        <div class="container">
+            <h1>常見問題</h1>
+            <p>SEO Analyzer API 使用指南與問題解答</p>
+            
+            <!-- 文檔導航選單 -->
+            <div class="nav-menu">
+                <a href="/docs" class="nav-item">
+                    <span class="nav-icon">📖</span>
+                    <span class="nav-label">API 文檔</span>
+                </a>
+                <a href="/docs/faq" class="nav-item active">
+                    <span class="nav-icon">❓</span>
+                    <span class="nav-label">常見問題</span>
+                </a>
+                <a href="#" class="nav-item" onclick="alert('教學頁面即將推出！'); return false;">
+                    <span class="nav-icon">📚</span>
+                    <span class="nav-label">使用教學</span>
+                </a>
+                <a href="#" class="nav-item" onclick="alert('錯誤處理指南即將推出！'); return false;">
+                    <span class="nav-icon">🛡️</span>
+                    <span class="nav-label">錯誤處理</span>
+                </a>
+                <a href="#" class="nav-item" onclick="alert('效能指南即將推出！'); return false;">
+                    <span class="nav-icon">⚡</span>
+                    <span class="nav-label">效能優化</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 搜尋和篩選區域 -->
+        <div class="search-filter-container">
+            <div class="search-box">
+                <input type="text" 
+                       class="search-input" 
+                       id="searchInput"
+                       placeholder="搜尋問題關鍵字... (Ctrl+K)"
+                       autocomplete="off">
+                <span class="search-icon">🔍</span>
+            </div>
+
+            <div class="category-filters">
+                <div class="filter-tag active" data-category="all">全部問題</div>
+                <div class="filter-tag" data-category="api">API 使用</div>
+                <div class="filter-tag" data-category="errors">錯誤處理</div>
+                <div class="filter-tag" data-category="performance">效能優化</div>
+                <div class="filter-tag" data-category="integration">整合指南</div>
+            </div>
+        </div>
+
+        <!-- 載入狀態 -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>載入中...</p>
+        </div>
+
+        <!-- FAQ 內容區域 -->
+        <div class="faq-container" id="faqContainer">
+            <!-- FAQ 項目將通過 JavaScript 動態載入 -->
+        </div>
+
+        <!-- 無搜尋結果狀態 -->
+        <div class="no-results" id="noResults" style="display: none;">
+            <div class="no-results-icon">❓</div>
+            <h3>找不到相關問題</h3>
+            <p>請嘗試使用其他關鍵字或選擇不同的分類篩選器</p>
+        </div>
+    </div>
+
+    <!-- FAQ JavaScript -->
+    <script>
+        // FAQ 資料結構
+        const faqData = {
+            api: [
+                {
+                    question: "如何開始使用 SEO Analyzer API？",
+                    answer: `<p>使用 SEO Analyzer API 非常簡單，只需要以下幾個步驟：</p>
+                    <p><strong>1. 發送 POST 請求</strong>到 <code>/api/analyze</code> 端點</p>
+                    <p><strong>2. 包含必要參數</strong>：</p>
+                    <pre>
+{
+  "keyword": "您要分析的關鍵字",
+  "audience": "目標受眾描述",
+  "options": {
+    "generate_draft": false,
+    "include_faq": false,
+    "include_table": false
+  }
+}
+                    </pre>
+                    <p><strong>3. cURL 範例</strong>：</p>
+                    <pre>
+curl -X POST "http://localhost:8001/api/analyze" \\
+     -H "Content-Type: application/json" \\
+     -d '{
+       "keyword": "SEO 優化工具",
+       "audience": "網站管理員和行銷人員",
+       "options": {
+         "generate_draft": true,
+         "include_faq": true,
+         "include_table": false
+       }
+     }'
+                    </pre>`,
+                    category: "api"
+                },
+                {
+                    question: "API 有什麼使用限制嗎？",
+                    answer: `<p>SEO Analyzer API 有以下使用限制：</p>
+                    <p><strong>參數限制：</strong></p>
+                    <ul>
+                        <li><code>keyword</code>：1-50 字元</li>
+                        <li><code>audience</code>：1-200 字元</li>
+                        <li>處理時間上限：70 秒</li>
+                    </ul>
+                    <p><strong>頻率限制：</strong></p>
+                    <ul>
+                        <li>每分鐘最多 20 次請求</li>
+                        <li>同時併發不超過 5 個請求</li>
+                        <li>單一 IP 每小時 100 次請求</li>
+                    </ul>
+                    <p><strong>處理能力：</strong></p>
+                    <ul>
+                        <li>平均處理時間：20-35 秒</li>
+                        <li>成功率：98%+</li>
+                        <li>Token 使用量：5000-7000 per request</li>
+                    </ul>`,
+                    category: "api"
+                },
+                {
+                    question: "如何檢查 API 服務是否正常運行？",
+                    answer: `<p>您可以使用健康檢查端點來確認 API 狀態：</p>
+                    <p><strong>健康檢查：</strong></p>
+                    <pre>
+curl http://localhost:8001/api/health
+                    </pre>
+                    <p><strong>正常回應：</strong></p>
+                    <pre>
+{
+  "status": "healthy",
+  "version": "1.0.0",
+  "timestamp": "2025-08-23T12:00:00Z",
+  "uptime": 3600
+}
+                    </pre>
+                    <p><strong>版本資訊：</strong></p>
+                    <pre>
+curl http://localhost:8001/api/version
+                    </pre>`,
+                    category: "api"
+                },
+                {
+                    question: "API 回應格式是什麼樣的？",
+                    answer: `<p>成功的 API 回應包含以下結構：</p>
+                    <pre>
+{
+  "status": "success",
+  "processing_time": 45.8,
+  "data": {
+    "serp_summary": {
+      "total_results": 10,
+      "successful_scrapes": 8,
+      "avg_word_count": 1250,
+      "avg_paragraphs": 12
+    },
+    "analysis_report": "# SEO 分析報告\\n\\n...",
+    "metadata": {
+      "keyword": "SEO 優化工具",
+      "audience": "網站管理員",
+      "generated_at": "2025-08-23T12:00:00Z",
+      "token_usage": 6500
+    }
+  }
+}
+                    </pre>
+                    <p><strong>主要欄位說明：</strong></p>
+                    <ul>
+                        <li><code>analysis_report</code>：Markdown 格式的 SEO 分析報告</li>
+                        <li><code>serp_summary</code>：搜尋結果統計資訊</li>
+                        <li><code>processing_time</code>：總處理時間（秒）</li>
+                        <li><code>token_usage</code>：AI Token 消耗量</li>
+                    </ul>`,
+                    category: "api"
+                }
+            ],
+            errors: [
+                {
+                    question: "遇到 422 驗證錯誤該如何處理？",
+                    answer: `<p>422 錯誤表示請求參數驗證失敗：</p>
+                    <p><strong>常見原因：</strong></p>
+                    <ul>
+                        <li>關鍵字長度不符要求（1-50 字元）</li>
+                        <li>受眾描述過長（>200 字元）</li>
+                        <li>缺少必要的參數</li>
+                        <li>參數類型不正確</li>
+                    </ul>
+                    <p><strong>正確的請求格式：</strong></p>
+                    <pre>
+{
+  "keyword": "有效關鍵字",  // 1-50 字元
+  "audience": "具體的目標受眾描述",  // 1-200 字元
+  "options": {
+    "generate_draft": true,
+    "include_faq": false,
+    "include_table": true
+  }
+}
+                    </pre>
+                    <p><strong>錯誤回應範例：</strong></p>
+                    <pre>
+{
+  "status": "error",
+  "error_code": "VALIDATION_ERROR", 
+  "message": "關鍵字長度必須在 1-50 字元之間",
+  "details": {
+    "field": "keyword",
+    "current_length": 55,
+    "max_length": 50
+  }
+}
+                    </pre>`,
+                    category: "errors"
+                },
+                {
+                    question: "如何處理 429 頻率限制錯誤？",
+                    answer: `<p>429 錯誤表示超過 API 使用頻率限制：</p>
+                    <p><strong>限制規則：</strong></p>
+                    <ul>
+                        <li>每分鐘最多 20 次請求</li>
+                        <li>同時併發不超過 5 個請求</li>
+                        <li>單一 IP 每小時 100 次請求</li>
+                    </ul>
+                    <p><strong>建議的重試策略：</strong></p>
+                    <pre>
+import time
+import random
+
+def request_with_backoff(make_request, max_retries=5):
+    """實作指數退避重試機制"""
+    for attempt in range(max_retries):
+        try:
+            response = make_request()
+            if response.status_code != 429:
+                return response
+        except Exception as e:
+            pass
+            
+        if attempt < max_retries - 1:
+            # 指數退避 + 隨機抖動
+            wait_time = (2 ** attempt) + random.uniform(0, 1)
+            print(f"等待 {wait_time:.1f} 秒後重試...")
+            time.sleep(wait_time)
+    
+    return None
+                    </pre>
+                    <p><strong>最佳實務：</strong></p>
+                    <ul>
+                        <li>實作請求佇列，控制併發數量</li>
+                        <li>監控 <code>Retry-After</code> header</li>
+                        <li>實作客戶端快取減少重複請求</li>
+                    </ul>`,
+                    category: "errors"
+                },
+                {
+                    question: "API 請求逾時該怎麼辦？",
+                    answer: `<p>API 請求可能因為各種原因發生逾時：</p>
+                    <p><strong>逾時設定：</strong></p>
+                    <ul>
+                        <li>API 處理上限：70 秒</li>
+                        <li>建議客戶端逾時：80 秒</li>
+                        <li>平均處理時間：20-35 秒</li>
+                    </ul>
+                    <p><strong>逾時處理範例：</strong></p>
+                    <pre>
+import requests
+from requests.exceptions import Timeout, RequestException
+
+def analyze_with_timeout(keyword, audience, timeout=80):
+    """帶逾時處理的 API 呼叫"""
+    try:
+        response = requests.post(
+            "http://localhost:8001/api/analyze",
+            json={
+                "keyword": keyword,
+                "audience": audience,
+                "options": {"generate_draft": False}  # 速度優化
+            },
+            timeout=timeout
+        )
+        return response.json()
+    
+    except Timeout:
+        return {
+            "error": "請求逾時",
+            "suggestion": "請嘗試簡化關鍵字或稍後再試"
+        }
+    except RequestException as e:
+        return {
+            "error": f"請求失敗: {str(e)}",
+            "suggestion": "請檢查網路連線和服務狀態"
+        }
+                    </pre>
+                    <p><strong>優化建議：</strong></p>
+                    <ul>
+                        <li>使用簡潔的關鍵字減少處理時間</li>
+                        <li>關閉不必要的選項（draft、FAQ、table）</li>
+                        <li>錯峰使用避開高峰時段</li>
+                    </ul>`,
+                    category: "errors"
+                },
+                {
+                    question: "收到 500 內部伺服器錯誤該如何處理？",
+                    answer: `<p>500 錯誤表示服務器內部發生未預期錯誤：</p>
+                    <p><strong>可能原因：</strong></p>
+                    <ul>
+                        <li>外部 API 服務不可用（SerpAPI、Azure OpenAI）</li>
+                        <li>服務器資源不足</li>
+                        <li>程式碼執行異常</li>
+                        <li>網路連線問題</li>
+                    </ul>
+                    <p><strong>處理策略：</strong></p>
+                    <pre>
+def handle_server_error(response):
+    """處理 500 錯誤的建議流程"""
+    if response.status_code == 500:
+        error_data = response.json()
+        error_code = error_data.get("error_code")
+        
+        if error_code == "SERP_API_ERROR":
+            print("SerpAPI 服務異常，請稍後再試")
+            return "retry_later"
+        elif error_code == "AI_API_ERROR":
+            print("AI 分析服務異常，請稍後再試")
+            return "retry_later"
+        elif error_code == "SCRAPER_ERROR":
+            print("網頁爬取失敗，請嘗試其他關鍵字")
+            return "try_different_keyword"
+        else:
+            print("服務暫時不可用，請稍後再試")
+            return "retry_later"
+                    </pre>
+                    <p><strong>建議行動：</strong></p>
+                    <ul>
+                        <li>等待 5-10 分鐘後重試</li>
+                        <li>檢查服務狀態頁面</li>
+                        <li>簡化請求參數</li>
+                        <li>聯繫技術支援</li>
+                    </ul>`,
+                    category: "errors"
+                }
+            ],
+            performance: [
+                {
+                    question: "如何提高 API 回應速度？",
+                    answer: `<p>以下策略可以顯著提升 API 效能：</p>
+                    <p><strong>1. 參數優化（速度優先配置）</strong></p>
+                    <pre>
+{
+  "keyword": "精準關鍵字",  // 避免過於寬泛
+  "audience": "具體目標群體",  // 簡潔明確
+  "options": {
+    "generate_draft": false,  // 關閉初稿生成
+    "include_faq": false,     // 關閉 FAQ
+    "include_table": false    // 關閉比較表格
+  }
+}
+                    </pre>
+                    <p><strong>處理時間對比：</strong></p>
+                    <ul>
+                        <li>速度優化：15-20 秒</li>
+                        <li>平衡配置：20-30 秒</li>
+                        <li>完整功能：30-45 秒</li>
+                    </ul>
+                    <p><strong>2. 實作智能重試機制</strong></p>
+                    <pre>
+import asyncio
+import aiohttp
+
+async def fast_analyze(keyword, audience):
+    """非同步快速分析"""
+    timeout = aiohttp.ClientTimeout(total=60)
+    
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        try:
+            async with session.post(
+                "http://localhost:8001/api/analyze",
+                json={
+                    "keyword": keyword,
+                    "audience": audience,
+                    "options": {"generate_draft": False}
+                }
+            ) as response:
+                return await response.json()
+        except asyncio.TimeoutError:
+            return {"error": "請求逾時"}
+                    </pre>`,
+                    category: "performance"
+                },
+                {
+                    question: "如何監控 API 效能？",
+                    answer: `<p>建立完整的效能監控體系：</p>
+                    <p><strong>階段計時監控：</strong></p>
+                    <pre>
+import time
+import requests
+
+def monitor_performance(keyword):
+    """監控各階段處理時間"""
+    start_time = time.time()
+    
+    response = requests.post(
+        "http://localhost:8001/api/analyze",
+        json={"keyword": keyword, "audience": "test"}
+    )
+    
+    total_time = time.time() - start_time
+    data = response.json()
+    
+    print(f"總處理時間: {total_time:.2f} 秒")
+    print(f"API 回報時間: {data.get('processing_time', 0):.2f} 秒")
+    print(f"Token 使用量: {data.get('data', {}).get('metadata', {}).get('token_usage', 0)}")
+    
+    # 效能警告
+    if total_time > 60:
+        print("⚠️ 處理時間超過 60 秒閾值")
+    elif total_time > 45:
+        print("⚠️ 處理時間接近閾值，建議優化")
+                    </pre>
+                    <p><strong>效能指標基準：</strong></p>
+                    <ul>
+                        <li><strong>SERP 階段</strong>：< 15 秒 ⚠️</li>
+                        <li><strong>爬蟲階段</strong>：< 25 秒 ⚠️</li>
+                        <li><strong>AI 分析階段</strong>：< 35 秒 ⚠️</li>
+                        <li><strong>總處理時間</strong>：< 55 秒 ⚠️</li>
+                    </ul>
+                    <p><strong>監控建議：</strong></p>
+                    <ul>
+                        <li>記錄每次請求的處理時間</li>
+                        <li>追蹤成功率和錯誤率</li>
+                        <li>監控 Token 使用量趨勢</li>
+                        <li>設定效能警告閾值</li>
+                    </ul>`,
+                    category: "performance"
+                },
+                {
+                    question: "如何實作併發請求控制？",
+                    answer: `<p>適當的併發控制能提升整體吞吐量：</p>
+                    <p><strong>併發限制：</strong></p>
+                    <ul>
+                        <li>建議併發數：3-5 個</li>
+                        <li>最大併發數：5 個（硬限制）</li>
+                        <li>超出限制會收到 429 錯誤</li>
+                    </ul>
+                    <p><strong>Python 併發實作：</strong></p>
+                    <pre>
+import asyncio
+import aiohttp
+from asyncio import Semaphore
+
+class ConcurrentAnalyzer:
+    def __init__(self, max_concurrent=3):
+        self.semaphore = Semaphore(max_concurrent)
+        self.session = None
+    
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.session.close()
+    
+    async def analyze(self, keyword, audience):
+        async with self.semaphore:
+            try:
+                async with self.session.post(
+                    "http://localhost:8001/api/analyze",
+                    json={"keyword": keyword, "audience": audience},
+                    timeout=aiohttp.ClientTimeout(total=80)
+                ) as response:
+                    return await response.json()
+            except Exception as e:
+                return {"error": str(e), "keyword": keyword}
+    
+    async def batch_analyze(self, keywords_audiences):
+        tasks = [
+            self.analyze(kw, aud) 
+            for kw, aud in keywords_audiences
+        ]
+        return await asyncio.gather(*tasks, return_exceptions=True)
+
+# 使用範例
+async def main():
+    data = [
+        ("SEO 工具", "網站管理員"),
+        ("關鍵字研究", "行銷人員"),
+        ("內容優化", "部落客")
+    ]
+    
+    async with ConcurrentAnalyzer(max_concurrent=3) as analyzer:
+        results = await analyzer.batch_analyze(data)
+        for result in results:
+            print(f"結果: {result.get('status', 'error')}")
+                    </pre>`,
+                    category: "performance"
+                },
+                {
+                    question: "如何選擇最佳的處理選項組合？",
+                    answer: `<p>根據需求選擇適合的選項組合：</p>
+                    <p><strong>🚀 速度優先（15-20 秒）：</strong></p>
+                    <pre>
+{
+  "options": {
+    "generate_draft": false,
+    "include_faq": false, 
+    "include_table": false
+  }
+}
+                    </pre>
+                    <p><strong>⚖️ 平衡配置（20-30 秒）：</strong></p>
+                    <pre>
+{
+  "options": {
+    "generate_draft": true,   // 提供內容建議
+    "include_faq": false,
+    "include_table": false
+  }
+}
+                    </pre>
+                    <p><strong>📊 完整功能（30-45 秒）：</strong></p>
+                    <pre>
+{
+  "options": {
+    "generate_draft": true,   // 完整初稿
+    "include_faq": true,      // 常見問題
+    "include_table": true     // 競品比較表
+  }
+}
+                    </pre>
+                    <p><strong>選擇建議：</strong></p>
+                    <ul>
+                        <li><strong>即時查詢</strong>：速度優先，快速獲得核心分析</li>
+                        <li><strong>內容規劃</strong>：平衡配置，含初稿建議</li>
+                        <li><strong>深度研究</strong>：完整功能，涵蓋所有資訊</li>
+                        <li><strong>批量處理</strong>：速度優先，提高吞吐量</li>
+                    </ul>`,
+                    category: "performance"
+                }
+            ],
+            integration: [
+                {
+                    question: "如何整合到 Python 應用程式？",
+                    answer: `<p>完整的 Python 整合範例：</p>
+                    <pre>
+import requests
+import json
+from typing import Dict, Any, Optional
+from dataclasses import dataclass
+
+@dataclass
+class AnalyzeOptions:
+    generate_draft: bool = False
+    include_faq: bool = False
+    include_table: bool = False
+
+class SEOAnalyzer:
+    def __init__(self, base_url: str = "http://localhost:8001"):
+        self.base_url = base_url
+        self.session = requests.Session()
+        self.session.headers.update({
+            "Content-Type": "application/json",
+            "User-Agent": "SEO-Analyzer-Client/1.0"
+        })
+    
+    def analyze(self, 
+                keyword: str, 
+                audience: str,
+                options: Optional[AnalyzeOptions] = None) -> Dict[str, Any]:
+        """執行 SEO 關鍵字分析"""
+        
+        if options is None:
+            options = AnalyzeOptions()
+        
+        payload = {
+            "keyword": keyword,
+            "audience": audience,
+            "options": {
+                "generate_draft": options.generate_draft,
+                "include_faq": options.include_faq,
+                "include_table": options.include_table
+            }
+        }
+        
+        try:
+            response = self.session.post(
+                f"{self.base_url}/api/analyze",
+                json=payload,
+                timeout=80
+            )
+            response.raise_for_status()
+            return response.json()
+            
+        except requests.exceptions.Timeout:
+            return {"error": "請求逾時", "error_code": "TIMEOUT"}
+        except requests.exceptions.RequestException as e:
+            return {"error": f"請求失敗: {str(e)}", "error_code": "REQUEST_FAILED"}
+    
+    def health_check(self) -> bool:
+        """檢查 API 健康狀態"""
+        try:
+            response = self.session.get(f"{self.base_url}/api/health", timeout=10)
+            return response.status_code == 200
+        except:
+            return False
+
+# 使用範例
+if __name__ == "__main__":
+    analyzer = SEOAnalyzer()
+    
+    # 檢查服務狀態
+    if not analyzer.health_check():
+        print("API 服務不可用")
+        exit(1)
+    
+    # 執行分析
+    options = AnalyzeOptions(generate_draft=True, include_faq=False)
+    result = analyzer.analyze(
+        keyword="Python 機器學習",
+        audience="數據科學初學者",
+        options=options
+    )
+    
+    if result.get("status") == "success":
+        print(f"分析完成，處理時間: {result['processing_time']:.1f} 秒")
+        print(f"Token 使用量: {result['data']['metadata']['token_usage']}")
+    else:
+        print(f"分析失敗: {result.get('error', '未知錯誤')}")
+                    </pre>`,
+                    category: "integration"
+                },
+                {
+                    question: "如何整合到 Node.js 應用程式？",
+                    answer: `<p>Node.js 整合範例，支援 Promise 和 async/await：</p>
+                    <pre>
+const axios = require('axios');
+
+class SEOAnalyzer {
+    constructor(baseUrl = 'http://localhost:8001') {
+        this.baseUrl = baseUrl;
+        this.client = axios.create({
+            baseURL: baseUrl,
+            timeout: 80000,
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'SEO-Analyzer-Client/1.0'
+            }
+        });
+    }
+
+    async analyze(keyword, audience, options = {}) {
+        const payload = {
+            keyword,
+            audience,
+            options: {
+                generate_draft: options.generateDraft || false,
+                include_faq: options.includeFAQ || false,
+                include_table: options.includeTable || false
+            }
+        };
+
+        try {
+            const response = await this.client.post('/api/analyze', payload);
+            return response.data;
+        } catch (error) {
+            if (error.code === 'ECONNABORTED') {
+                return { error: '請求逾時', errorCode: 'TIMEOUT' };
+            }
+            if (error.response) {
+                return {
+                    error: error.response.data.message || '請求失敗',
+                    errorCode: error.response.data.error_code,
+                    status: error.response.status
+                };
+            }
+            return { error: error.message, errorCode: 'NETWORK_ERROR' };
+        }
+    }
+
+    async healthCheck() {
+        try {
+            const response = await this.client.get('/api/health');
+            return response.status === 200;
+        } catch {
+            return false;
+        }
+    }
+
+    // 批量分析支援
+    async batchAnalyze(analyses, maxConcurrent = 3) {
+        const semaphore = new Array(maxConcurrent).fill(Promise.resolve());
+        let index = 0;
+
+        const execute = async () => {
+            if (index >= analyses.length) return;
+            
+            const currentIndex = index++;
+            const { keyword, audience, options } = analyses[currentIndex];
+            
+            try {
+                const result = await this.analyze(keyword, audience, options);
+                return { index: currentIndex, result };
+            } catch (error) {
+                return { index: currentIndex, error: error.message };
+            }
+        };
+
+        const results = await Promise.all(
+            semaphore.map(async (promise) => {
+                await promise;
+                const batch = [];
+                for (let i = 0; i < Math.ceil(analyses.length / maxConcurrent); i++) {
+                    batch.push(execute());
+                }
+                return Promise.all(batch.filter(Boolean));
+            })
+        );
+
+        return results.flat().sort((a, b) => a.index - b.index);
+    }
+}
+
+// 使用範例
+(async () => {
+    const analyzer = new SEOAnalyzer();
+    
+    // 健康檢查
+    const isHealthy = await analyzer.healthCheck();
+    if (!isHealthy) {
+        console.log('API 服務不可用');
+        return;
+    }
+
+    // 單一分析
+    const result = await analyzer.analyze(
+        'JavaScript 框架比較',
+        '前端開發者',
+        { generateDraft: true, includeFAQ: false, includeTable: true }
+    );
+
+    if (result.status === 'success') {
+        console.log(\`分析完成，處理時間: \${result.processing_time.toFixed(1)} 秒\`);
+        console.log(\`Token 使用量: \${result.data.metadata.token_usage}\`);
+    } else {
+        console.log(\`分析失敗: \${result.error}\`);
+    }
+})();
+                    </pre>`,
+                    category: "integration"
+                },
+                {
+                    question: "如何在 React 前端中使用？",
+                    answer: `<p>React 整合範例，包含 hooks 和狀態管理：</p>
+                    <pre>
+import React, { useState, useCallback } from 'react';
+import axios from 'axios';
+
+// 自定義 Hook
+const useSEOAnalyzer = (baseUrl = 'http://localhost:8001') => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [result, setResult] = useState(null);
+
+    const analyze = useCallback(async (keyword, audience, options = {}) => {
+        setLoading(true);
+        setError(null);
+        setResult(null);
+
+        try {
+            const response = await axios.post(\`\${baseUrl}/api/analyze\`, {
+                keyword,
+                audience,
+                options: {
+                    generate_draft: options.generateDraft || false,
+                    include_faq: options.includeFAQ || false,
+                    include_table: options.includeTable || false
+                }
+            }, {
+                timeout: 80000,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            setResult(response.data);
+        } catch (err) {
+            if (err.code === 'ECONNABORTED') {
+                setError('請求逾時，請稍後再試');
+            } else if (err.response) {
+                setError(err.response.data.message || \`請求失敗 (\${err.response.status})\`);
+            } else {
+                setError('網路連線錯誤');
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [baseUrl]);
+
+    return { loading, error, result, analyze };
+};
+
+// 分析表單元件
+const SEOAnalyzerForm = () => {
+    const [keyword, setKeyword] = useState('');
+    const [audience, setAudience] = useState('');
+    const [options, setOptions] = useState({
+        generateDraft: false,
+        includeFAQ: false,
+        includeTable: false
+    });
+
+    const { loading, error, result, analyze } = useSEOAnalyzer();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!keyword.trim() || !audience.trim()) {
+            alert('請填寫關鍵字和目標受眾');
+            return;
+        }
+        await analyze(keyword, audience, options);
+    };
+
+    return (
+        <div className="seo-analyzer">
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>關鍵字：</label>
+                    <input
+                        type="text"
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="輸入要分析的關鍵字"
+                        maxLength={50}
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label>目標受眾：</label>
+                    <textarea
+                        value={audience}
+                        onChange={(e) => setAudience(e.target.value)}
+                        placeholder="描述您的目標受眾"
+                        maxLength={200}
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={options.generateDraft}
+                            onChange={(e) => setOptions(prev => ({
+                                ...prev, generateDraft: e.target.checked
+                            }))}
+                        />
+                        生成內容初稿
+                    </label>
+                </div>
+
+                <button type="submit" disabled={loading}>
+                    {loading ? '分析中...' : '開始分析'}
+                </button>
+            </form>
+
+            {error && (
+                <div className="error">
+                    ❌ {error}
+                </div>
+            )}
+
+            {result && result.status === 'success' && (
+                <div className="result">
+                    <h3>分析完成！</h3>
+                    <p>處理時間: {result.processing_time.toFixed(1)} 秒</p>
+                    <p>Token 使用量: {result.data.metadata.token_usage}</p>
+                    <div className="report">
+                        <h4>SEO 分析報告：</h4>
+                        <pre>{result.data.analysis_report}</pre>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default SEOAnalyzerForm;
+                    </pre>`,
+                    category: "integration"
+                },
+                {
+                    question: "如何實作錯誤處理和重試機制？",
+                    answer: `<p>健壯的錯誤處理和重試策略：</p>
+                    <p><strong>重試機制實作：</strong></p>
+                    <pre>
+import time
+import random
+import requests
+
+def analyze_with_retry(keyword, audience, max_retries=5):
+    """帶重試機制的 API 呼叫"""
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(
+                "http://localhost:8001/api/analyze",
+                json={"keyword": keyword, "audience": audience},
+                timeout=80
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 429:
+                # 頻率限制，等待更久
+                time.sleep(60 + random.uniform(0, 30))
+            else:
+                # 其他錯誤，指數退避
+                wait_time = (2 ** attempt) + random.uniform(0, 1)
+                time.sleep(wait_time)
+                
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+            else:
+                return {"error": "請求逾時"}
+                
+        except Exception as e:
+            return {"error": f"網路錯誤: {str(e)}"}
+    
+    return {"error": "重試次數用盡"}
+
+# 使用範例
+result = analyze_with_retry("SEO 工具", "網站管理員")
+if result.get("status") == "success":
+    print("✅ 分析成功")
+else:
+    print(f"❌ 失敗: {result.get('error')}")
+                    </pre>
+                    <p><strong>最佳實務：</strong></p>
+                    <ul>
+                        <li>使用指數退避策略</li>
+                        <li>添加隨機抖動</li>
+                        <li>區分錯誤類型處理</li>
+                        <li>設定合理重試上限</li>
+                    </ul>`,
+                    category: "integration"
+                }
+            ]
+        };
+
+        // 全局變數
+        let currentCategory = 'all';
+        let currentSearch = '';
+
+        // DOM 元素
+        const searchInput = document.getElementById('searchInput');
+        const faqContainer = document.getElementById('faqContainer');
+        const noResults = document.getElementById('noResults');
+        const filterTags = document.querySelectorAll('.filter-tag');
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderFAQ();
+            setupKeyboardShortcuts();
+            
+            // 搜尋功能 - 添加防抖
+            let searchTimeout;
+            searchInput.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentSearch = e.target.value.toLowerCase().trim();
+                    renderFAQ();
+                }, 300); // 300ms 防抖
+            });
+
+            // 分類篩選
+            filterTags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    // 移除其他標籤的 active 狀態
+                    filterTags.forEach(t => t.classList.remove('active'));
+                    // 添加當前標籤的 active 狀態
+                    this.classList.add('active');
+                    
+                    currentCategory = this.dataset.category;
+                    renderFAQ();
+                });
+            });
+
+            // 添加搜尋統計元素
+            const searchContainer = document.querySelector('.search-filter-container');
+            const statsElement = document.createElement('div');
+            statsElement.id = 'searchStats';
+            statsElement.style.cssText = `
+                margin-top: 10px;
+                font-size: 14px;
+                color: var(--text-secondary);
+                text-align: center;
+                display: none;
+            `;
+            searchContainer.appendChild(statsElement);
+        });
+
+        // 渲染 FAQ
+        function renderFAQ() {
+            const filteredFAQ = getFilteredFAQ();
+            
+            if (filteredFAQ.length === 0) {
+                faqContainer.style.display = 'none';
+                noResults.style.display = 'block';
+                updateSearchStats();
+                return;
+            }
+
+            faqContainer.style.display = 'block';
+            noResults.style.display = 'none';
+            updateSearchStats();
+
+            faqContainer.innerHTML = filteredFAQ.map((item, index) => `
+                <div class="faq-item" data-category="${item.category}">
+                    <div class="faq-question" onclick="toggleFAQ(${index})">
+                        <div>
+                            <h3>${highlightText(item.question, currentSearch)}
+                                <span class="category-badge category-${item.category}">
+                                    ${getCategoryName(item.category)}
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="faq-icon">▼</div>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            ${highlightText(item.answer, currentSearch)}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 取得篩選後的 FAQ
+        function getFilteredFAQ() {
+            let allFAQ = [];
+            
+            // 合併所有分類的 FAQ
+            Object.keys(faqData).forEach(category => {
+                allFAQ = allFAQ.concat(faqData[category]);
+            });
+
+            // 分類篩選
+            if (currentCategory !== 'all') {
+                allFAQ = allFAQ.filter(item => item.category === currentCategory);
+            }
+
+            // 搜尋篩選
+            if (currentSearch) {
+                allFAQ = allFAQ.filter(item => 
+                    item.question.toLowerCase().includes(currentSearch) ||
+                    item.answer.toLowerCase().includes(currentSearch)
+                );
+            }
+
+            return allFAQ;
+        }
+
+        // 切換 FAQ 項目
+        function toggleFAQ(index) {
+            const faqItems = document.querySelectorAll('.faq-item');
+            const targetItem = faqItems[index];
+            
+            if (targetItem) {
+                const wasActive = targetItem.classList.contains('active');
+                
+                // 可選：關閉其他展開的項目（accordion 模式）
+                // faqItems.forEach(item => item.classList.remove('active'));
+                
+                // 切換當前項目
+                if (wasActive) {
+                    targetItem.classList.remove('active');
+                } else {
+                    targetItem.classList.add('active');
+                    
+                    // 平滑滾動到展開的項目
+                    setTimeout(() => {
+                        targetItem.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest'
+                        });
+                    }, 300);
+                }
+            }
+        }
+
+        // 高亮搜尋文字
+        function highlightText(text, search) {
+            if (!search || search.length < 2) return text;
+            
+            // 轉義特殊正則字符
+            const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedSearch})`, 'gi');
+            return text.replace(regex, '<mark style="background-color: #ffd700; padding: 2px; border-radius: 3px;">$1</mark>');
+        }
+
+        // 取得分類名稱
+        function getCategoryName(category) {
+            const names = {
+                'api': 'API 使用',
+                'errors': '錯誤處理', 
+                'performance': '效能優化',
+                'integration': '整合指南'
+            };
+            return names[category] || category;
+        }
+
+        // 新增：搜尋建議功能
+        function getSearchSuggestions(query) {
+            if (!query || query.length < 2) return [];
+            
+            const suggestions = new Set();
+            const allFAQ = [];
+            
+            Object.keys(faqData).forEach(category => {
+                allFAQ.push(...faqData[category]);
+            });
+            
+            allFAQ.forEach(item => {
+                // 從問題中提取關鍵字
+                const words = item.question.toLowerCase().split(/\s+/);
+                words.forEach(word => {
+                    if (word.includes(query.toLowerCase()) && word.length > 2) {
+                        suggestions.add(word);
+                    }
+                });
+            });
+            
+            return Array.from(suggestions).slice(0, 5);
+        }
+
+        // 新增：統計資訊顯示
+        function updateSearchStats() {
+            const filteredFAQ = getFilteredFAQ();
+            const statsElement = document.getElementById('searchStats');
+            
+            if (statsElement) {
+                const totalCount = Object.values(faqData).flat().length;
+                const currentCount = filteredFAQ.length;
+                
+                if (currentSearch || currentCategory !== 'all') {
+                    statsElement.textContent = `顯示 ${currentCount} / ${totalCount} 個問題`;
+                    statsElement.style.display = 'block';
+                } else {
+                    statsElement.style.display = 'none';
+                }
+            }
+        }
+
+        // 新增：鍵盤快捷鍵支援
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + K 聚焦搜尋框
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                
+                // ESC 清空搜尋
+                if (e.key === 'Escape' && document.activeElement === searchInput) {
+                    searchInput.value = '';
+                    currentSearch = '';
+                    renderFAQ();
+                    searchInput.blur();
+                }
+            });
+        }
+
+        // 導航功能
+        function initNavigation() {
+            // 根據當前 URL 設定 active 狀態
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                const href = item.getAttribute('href');
+                
+                if (href === currentPath || 
+                    (currentPath === '/docs' && href === '/docs') ||
+                    (currentPath.includes('/docs/faq') && href === '/docs/faq')) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // 在 DOMContentLoaded 中初始化導航
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化導航狀態
+            initNavigation();
+            
+            // 添加導航點擊處理
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // 如果是外部連結或 JavaScript 處理，不需要額外邏輯
+                    if (this.getAttribute('href').startsWith('#') || this.getAttribute('onclick')) {
+                        return;
+                    }
+                    
+                    // 移除其他項目的 active 狀態
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    // 添加當前項目的 active 狀態
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

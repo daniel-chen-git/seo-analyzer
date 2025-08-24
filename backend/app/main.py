@@ -107,6 +107,25 @@ async def custom_swagger_ui_html(request: Request):
     )
 
 
+@app.get("/docs/faq", response_class=HTMLResponse, include_in_schema=False)
+async def faq_html(request: Request):
+    """常見問題 FAQ 頁面。
+    
+    提供 SEO Analyzer API 的常見問題和解答，
+    包含 API 使用、錯誤處理、效能優化和整合指南。
+    
+    Args:
+        request: HTTP 請求物件
+        
+    Returns:
+        HTMLResponse: FAQ 頁面
+    """
+    return templates.TemplateResponse(
+        "faq.html",
+        {"request": request}
+    )
+
+
 @app.get("/redoc", response_class=HTMLResponse, include_in_schema=False)
 async def redoc_html():
     """ReDoc 文檔頁面（重定向到自定義文檔）。"""

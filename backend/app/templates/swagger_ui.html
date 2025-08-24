@@ -56,6 +56,51 @@
             font-size: 0.9rem;
             margin-top: 10px;
         }
+
+        /* 導航選單樣式 */
+        .nav-menu {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.1em;
+        }
+
+        .nav-item .nav-label {
+            font-size: 0.95rem;
+        }
         
         /* 功能特色區塊 */
         .features-section {
@@ -164,6 +209,24 @@
             
             .container {
                 padding: 0 15px;
+            }
+
+            .nav-menu {
+                margin-top: 20px;
+                gap: 8px;
+            }
+
+            .nav-item {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+
+            .nav-item .nav-icon {
+                font-size: 1em;
+            }
+
+            .nav-item .nav-label {
+                font-size: 0.85rem;
             }
         }
         
@@ -307,6 +370,30 @@
             <h1>🔍 SEO Analyzer API</h1>
             <p>智能 SEO 關鍵字分析工具 - 60 秒內生成專業分析報告</p>
             <div class="version-badge">版本 v1.0.0</div>
+            
+            <!-- 文檔導航選單 -->
+            <div class="nav-menu">
+                <a href="/docs" class="nav-item active">
+                    <span class="nav-icon">📖</span>
+                    <span class="nav-label">API 文檔</span>
+                </a>
+                <a href="/docs/faq" class="nav-item">
+                    <span class="nav-icon">❓</span>
+                    <span class="nav-label">常見問題</span>
+                </a>
+                <a href="#" class="nav-item" onclick="alert('教學頁面即將推出！'); return false;">
+                    <span class="nav-icon">📚</span>
+                    <span class="nav-label">使用教學</span>
+                </a>
+                <a href="#" class="nav-item" onclick="alert('錯誤處理指南即將推出！'); return false;">
+                    <span class="nav-icon">🛡️</span>
+                    <span class="nav-label">錯誤處理</span>
+                </a>
+                <a href="#" class="nav-item" onclick="alert('效能指南即將推出！'); return false;">
+                    <span class="nav-icon">⚡</span>
+                    <span class="nav-label">效能優化</span>
+                </a>
+            </div>
         </div>
     </div>
     
@@ -543,6 +630,49 @@
             }).catch(function(err) {
                 console.error('複製失敗:', err);
             });
+        }
+
+        // 導航功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化導航狀態
+            initNavigation();
+            
+            // 添加導航點擊處理
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // 如果是外部連結或 JavaScript 處理，不需要額外邏輯
+                    if (this.getAttribute('href').startsWith('#') || this.getAttribute('onclick')) {
+                        return;
+                    }
+                    
+                    // 移除其他項目的 active 狀態
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    // 添加當前項目的 active 狀態
+                    this.classList.add('active');
+                });
+            });
+        });
+
+        function initNavigation() {
+            // 根據當前 URL 設定 active 狀態
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                const href = item.getAttribute('href');
+                
+                if (href === currentPath || 
+                    (currentPath === '/docs' && href === '/docs') ||
+                    (currentPath.includes('/docs/faq') && href === '/docs/faq')) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // 檢查頁面載入狀態並更新導航
+        function updateNavigation() {
+            initNavigation();
         }
     </script>
 </body>

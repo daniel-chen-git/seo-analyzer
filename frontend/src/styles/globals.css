@@ -2,23 +2,188 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles */
-* {
-  box-sizing: border-box;
+/* CSS 自定義屬性 - 支援深色模式 */
+:root {
+  /* 色彩變數 */
+  --color-primary: 26 115 232; /* #1a73e8 */
+  --color-success: 52 168 83;  /* #34a853 */
+  --color-warning: 251 188 4;  /* #fbbc04 */
+  --color-error: 234 67 53;    /* #ea4335 */
+  
+  /* 中性色 */
+  --color-neutral-50: 248 249 250;   /* #f8f9fa */
+  --color-neutral-100: 241 243 244;  /* #f1f3f4 */
+  --color-neutral-200: 232 234 237;  /* #e8eaed */
+  --color-neutral-300: 218 220 224;  /* #dadce0 */
+  --color-neutral-400: 189 193 198;  /* #bdc1c6 */
+  --color-neutral-500: 95 99 104;    /* #5f6368 */
+  --color-neutral-600: 60 64 67;     /* #3c4043 */
+  --color-neutral-700: 32 33 36;     /* #202124 */
+  --color-neutral-800: 23 23 23;     /* #171717 */
+  --color-neutral-900: 15 15 15;     /* #0f0f0f */
+  
+  /* 背景色 */
+  --color-background: 255 255 255;    /* #ffffff */
+  --color-surface: 255 255 255;       /* #ffffff */
+  --color-surface-elevated: 248 249 250; /* #f8f9fa */
+  
+  /* 文字色彩 */
+  --color-text-primary: 32 33 36;     /* #202124 */
+  --color-text-secondary: 95 99 104;   /* #5f6368 */
+  --color-text-disabled: 189 193 198;  /* #bdc1c6 */
+  
+  /* 邊框和分隔線 */
+  --color-border: 218 220 224;        /* #dadce0 */
+  --color-divider: 232 234 237;       /* #e8eaed */
+  
+  /* 陰影 */
+  --shadow-xs: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+  --shadow-md: 0 2px 4px -1px rgba(60, 64, 67, 0.3), 0 4px 12px -1px rgba(60, 64, 67, 0.15);
+  --shadow-lg: 0 4px 6px -1px rgba(60, 64, 67, 0.3), 0 8px 20px -2px rgba(60, 64, 67, 0.15);
+  
+  /* 間距基準 */
+  --spacing-unit: 0.25rem; /* 4px */
 }
 
-html {
-  font-family: 'Inter', system-ui, sans-serif;
-  line-height: 1.6;
+/* 深色模式變數 */
+.dark {
+  --color-background: 32 33 36;       /* #202124 */
+  --color-surface: 48 49 52;          /* #303134 */
+  --color-surface-elevated: 60 64 67; /* #3c4043 */
+  
+  --color-text-primary: 232 234 237;   /* #e8eaed */
+  --color-text-secondary: 189 193 198; /* #bdc1c6 */
+  --color-text-disabled: 95 99 104;    /* #5f6368 */
+  
+  --color-border: 95 99 104;           /* #5f6368 */
+  --color-divider: 60 64 67;           /* #3c4043 */
+  
+  /* 深色模式陰影 */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 2px 4px -1px rgba(0, 0, 0, 0.3), 0 4px 12px -1px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 8px 20px -2px rgba(0, 0, 0, 0.15);
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  color: #202124;
-  background-color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  /* 重置和基礎樣式 */
+  *, *::before, *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: rgb(var(--color-border));
+  }
+
+  html {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    color: rgb(var(--color-text-primary));
+    background-color: rgb(var(--color-background));
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 改善可訪問性 */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* 聚焦樣式 */
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-primary));
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
+
+  /* 選取文字樣式 */
+  ::selection {
+    background-color: rgba(var(--color-primary), 0.2);
+    color: rgb(var(--color-text-primary));
+  }
+
+  /* 滾動條樣式 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--color-neutral-100));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-neutral-300));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-neutral-400));
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: rgb(var(--color-neutral-800));
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-neutral-600));
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-neutral-500));
+  }
 }
 
-/* Component styles will be implemented in Phase 2 */
+@layer utilities {
+  /* 工具類別 */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* 隱藏元素但保留螢幕閱讀器可訪問性 */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* 安全區域支援 */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}

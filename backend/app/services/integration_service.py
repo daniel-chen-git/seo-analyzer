@@ -8,6 +8,8 @@ import time
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
+from .job_manager import JobManager
+
 from ..models.request import AnalyzeRequest, AnalyzeOptions as RequestOptions
 from ..models.response import (
     AnalyzeResponse, AnalysisData, SerpSummary, 
@@ -301,6 +303,116 @@ class IntegrationService:
                 if duration > threshold:
                     print(f"⚠️ 效能警告: {phase_name} 階段耗時 {duration:.2f}s "
                           f"(超過 {threshold}s 閾值)")
+
+    async def execute_full_analysis_with_progress(
+        self,
+        request: AnalyzeRequest,
+        job_manager: 'JobManager',
+        job_id: str
+    ) -> AnalyzeResponse:
+        """執行完整分析流程並追蹤進度。
+
+        此方法與 execute_full_analysis 相同，但會更新任務進度。
+
+        Args:
+            request: SEO 分析請求
+            job_manager: 任務管理器
+            job_id: 任務識別碼
+
+        Returns:
+            AnalyzeResponse: 完整的分析結果
+
+        Raises:
+            各種服務相關例外
+        """
+        start_time = time.time()
+        timer = PerformanceTimer()
+
+        try:
+            # 階段 1: SERP 資料擷取
+            job_manager.update_progress(
+                job_id, 1, "正在擷取 SERP 資料...", 10.0
+            )
+            print(f"🔍 開始 SERP 資料擷取: {request.keyword}")
+            timer.start_phase("serp")
+
+            serp_data = await self.serp_service.search_keyword(
+                keyword=request.keyword,
+                num_results=10
+            )
+
+            timer.end_phase("serp")
+            job_manager.update_progress(
+                job_id, 1, "SERP 資料擷取完成", 30.0
+            )
+            print(f"✅ SERP 擷取完成，取得 {len(serp_data.organic_results)} 個結果 "
+                  f"({timer.get_phase_duration('serp'):.2f}s)")
+
+            # 階段 2: 網頁內容爬取
+            job_manager.update_progress(
+                job_id, 2, "正在爬取網頁內容...", 35.0
+            )
+            print("🕷️ 開始網頁內容爬取")
+            timer.start_phase("scraping")
+
+            scraping_data = await self.scraper_service.scrape_urls(
+                urls=[result.link for result in serp_data.organic_results]
+            )
+
+            timer.end_phase("scraping")
+            job_manager.update_progress(
+                job_id, 2, "網頁爬取完成", 60.0
+            )
+            print(f"✅ 爬取完成，成功率 {scraping_data.successful_scrapes}/"
+                  f"{scraping_data.total_results} "
+                  f"({timer.get_phase_duration('scraping'):.2f}s)")
+
+            # 階段 3: AI 分析
+            job_manager.update_progress(
+                job_id, 3, "正在進行 AI 分析...", 65.0
+            )
+            print("🤖 開始 AI 分析")
+            timer.start_phase("ai")
+
+            ai_options = self._convert_to_ai_options(request.options)
+            analysis_result = await self.ai_service.analyze_seo_content(
+                serp_data=serp_data,
+                scraping_data=scraping_data,
+                keyword=request.keyword,
+                audience=request.audience,
+                options=ai_options
+            )
+
+            timer.end_phase("ai")
+            job_manager.update_progress(
+                job_id, 3, "AI 分析完成", 95.0
+            )
+            print(f"✅ AI 分析完成，使用 {analysis_result.token_usage} tokens "
+                  f"({timer.get_phase_duration('ai'):.2f}s)")
+
+            # 建構回應
+            processing_time = time.time() - start_time
+            response = self._build_success_response(
+                request=request,
+                serp_data=serp_data,
+                scraping_data=scraping_data,
+                analysis_result=analysis_result,
+                processing_time=processing_time,
+                timer=timer
+            )
+
+            # 檢查效能警告
+            self._check_performance_warnings(timer)
+
+            job_manager.update_progress(
+                job_id, 3, "分析完成", 100.0
+            )
+            return response
+
+        except Exception as e:
+            # 任務失敗時更新狀態
+            job_manager.fail_job(job_id, str(e))
+            raise
 
 
 class PerformanceTimer:

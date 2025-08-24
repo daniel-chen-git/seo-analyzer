@@ -8,15 +8,19 @@ import time
 import sys
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 
 from ..models.request import AnalyzeRequest
 from ..models.response import (
     AnalyzeResponse, ErrorResponse, HealthCheckResponse, VersionResponse,
     ErrorInfo, ErrorDetail, DependencyInfo
 )
+from ..models.status import (
+    JobCreateResponse, JobStatusResponse
+)
 from ..config import get_config
 from ..services.integration_service import get_integration_service
+from ..services.job_manager import get_job_manager
 from ..services.serp_service import SerpAPIException
 from ..services.scraper_service import ScraperException
 from ..services.ai_service import AIServiceException, AIAPIException
@@ -123,6 +127,137 @@ async def analyze_seo(request: AnalyzeRequest) -> AnalyzeResponse:
                 "processing_time": processing_time
             }
         )
+
+
+async def process_analysis_job(request: AnalyzeRequest, job_id: str) -> None:
+    """背景任務：執行SEO分析並更新任務狀態。
+    
+    Args:
+        request: SEO分析請求
+        job_id: 任務識別碼
+    """
+    job_manager = get_job_manager()
+    integration_service = get_integration_service()
+    
+    try:
+        # 執行分析並追蹤進度
+        result = await integration_service.execute_full_analysis_with_progress(
+            request=request,
+            job_manager=job_manager,
+            job_id=job_id
+        )
+        
+        # 標記任務完成
+        job_manager.complete_job(job_id, result)
+        
+    except Exception as e:
+        # 任務失敗已經在 integration_service 中處理
+        print(f"❌ 任務 {job_id} 執行失敗: {str(e)}")
+
+
+@router.post(
+    "/analyze-async",
+    response_model=JobCreateResponse,
+    tags=["SEO 分析"],
+    summary="非同步 SEO 分析",
+    response_description="建立非同步分析任務並返回任務識別碼"
+)
+async def analyze_seo_async(
+    request: AnalyzeRequest,
+    background_tasks: BackgroundTasks
+) -> JobCreateResponse:
+    """建立非同步 SEO 分析任務。
+    
+    此端點立即返回任務識別碼，分析在背景執行。
+    可使用 GET /api/status/{job_id} 查詢處理進度。
+    
+    Args:
+        request: SEO 分析請求
+        background_tasks: FastAPI 背景任務管理器
+        
+    Returns:
+        JobCreateResponse: 包含任務識別碼的回應
+        
+    Example:
+        >>> request = AnalyzeRequest(
+        ...     keyword="Python 教學",
+        ...     audience="程式初學者",
+        ...     options=AnalyzeOptions(
+        ...         generate_draft=True,
+        ...         include_faq=True,
+        ...         include_table=False
+        ...     )
+        ... )
+        >>> response = await analyze_seo_async(request, background_tasks)
+        >>> print(f"任務ID: {response.job_id}")
+        >>> print(f"狀態查詢URL: {response.status_url}")
+    """
+    job_manager = get_job_manager()
+    
+    # 建立新任務
+    job_status = job_manager.create_job()
+    job_id = job_status.job_id
+    
+    print(f"🚀 建立非同步任務: {job_id} - {request.keyword}")
+    
+    # 加入背景任務佇列
+    background_tasks.add_task(process_analysis_job, request, job_id)
+    
+    return JobCreateResponse(
+        job_id=job_id,
+        status_url=f"/api/status/{job_id}"
+    )
+
+
+@router.get(
+    "/status/{job_id}",
+    response_model=JobStatusResponse,
+    tags=["任務管理"],
+    summary="查詢任務狀態",
+    response_description="任務執行狀態和進度資訊"
+)
+async def get_job_status(job_id: str) -> JobStatusResponse:
+    """查詢分析任務的執行狀態。
+    
+    Args:
+        job_id: 任務識別碼
+        
+    Returns:
+        JobStatusResponse: 任務狀態資訊
+        
+    Raises:
+        HTTPException: 任務不存在時返回404
+        
+    Example:
+        >>> response = await get_job_status("123e4567-e89b-12d3-a456-426614174000")
+        >>> print(f"狀態: {response.status}")
+        >>> print(f"進度: {response.progress.percentage}%")
+        >>> if response.result:
+        ...     print("任務已完成")
+        ...     print(response.result.data.analysis_report[:200])
+    """
+    job_manager = get_job_manager()
+    job_status = job_manager.get_job_status(job_id)
+    
+    if job_status is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "JOB_NOT_FOUND",
+                "message": f"任務 {job_id} 不存在或已過期",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        )
+    
+    return JobStatusResponse(
+        job_id=job_status.job_id,
+        status=job_status.status,
+        progress=job_status.progress,
+        result=job_status.result,
+        error=job_status.error,
+        created_at=job_status.created_at,
+        updated_at=job_status.updated_at
+    )
 
 
 @router.get(

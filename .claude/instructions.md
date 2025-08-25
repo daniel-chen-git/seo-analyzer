@@ -20,9 +20,12 @@
 - **每完成一個 Todo 任務都必須詢問使用者是否繼續**
 - 不可連續執行多個任務，需要使用者確認
 - 完成單一任務後立即停止並等待指令
+- **每完成一個開發步驟（Step）都必須立即 push 到 GitHub**
 - **每完成一個 Todo 任務有修改到檔案時，都要 push 到 GitHub**
 - **在使用者確認完成當前任務後，立即執行 git commit 和 push 操作**
 - **每次 push 前都要檢查 git status 和 git diff 確認變更內容**
+- **commit 訊息格式**: `feat: 完成 Phase X.X Step Y - [功能名稱]`
+- **所有品質檢查（TypeScript/ESLint/Build）都必須通過才可 push**
 
 #### 虛擬環境管理
 - 專案根目錄有 `.venv` 虛擬環境資料夾

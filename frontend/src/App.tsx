@@ -3,6 +3,8 @@ import { config, isDebugMode, isDevelopment } from '@/config'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import Layout from '@/components/layout/Layout'
 import DevPanel from '@/components/ui/DevPanel'
+import { InputForm } from '@/components/form'
+import type { AnalyzeFormData } from '@/types/form'
 // 開發工具會在 DevPanel 中載入
 import './styles/globals.css'
 
@@ -26,6 +28,8 @@ function App() {
   const [devPanelOpen, setDevPanelOpen] = useState(false)
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   const [healthLoading, setHealthLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // 健康檢查測試
   useEffect(() => {
@@ -97,6 +101,30 @@ function App() {
       console.groupEnd()
     }
   }, [appState])
+
+  // 處理表單提交
+  const handleAnalysisSubmit = async (data: AnalyzeFormData) => {
+    try {
+      setIsAnalyzing(true);
+      console.log('提交分析請求:', data);
+      
+      // 模擬 API 呼叫
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log('分析完成');
+    } catch (error) {
+      console.error('分析失敗:', error);
+      throw error;
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // 處理表單重置
+  const handleFormReset = () => {
+    setIsAnalyzing(false);
+    console.log('表單已重置');
+  };
 
   // 全域載入畫面
   if (appState.isLoading) {
@@ -279,11 +307,36 @@ function App() {
                 </div>
               </div>
 
-              {/* 開始使用按鈕 */}
-              <div className="text-center">
-                <button className="btn-primary text-lg px-8 py-3">
-                  開始分析
-                </button>
+              {/* Phase 2.1 InputForm 元件展示 */}
+              <div className="mb-12">
+                <div className="text-center mb-8">
+                  {!showForm ? (
+                    <button 
+                      onClick={() => setShowForm(true)}
+                      className="btn-primary text-lg px-8 py-3"
+                    >
+                      開始分析
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => setShowForm(false)}
+                      className="btn bg-gray-600 text-white hover:bg-gray-700 text-sm px-4 py-2"
+                    >
+                      隱藏表單
+                    </button>
+                  )}
+                </div>
+                
+                {showForm && (
+                  <div className="transition-all duration-500 ease-in-out">
+                    <InputForm
+                      onSubmit={handleAnalysisSubmit}
+                      onReset={handleFormReset}
+                      isSubmitting={isAnalyzing}
+                      estimatedTime={60}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* 除錯資訊 */}

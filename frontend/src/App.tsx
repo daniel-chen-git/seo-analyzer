@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { config, isDebugMode, isDevelopment } from '@/config'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import Layout from '@/components/layout/Layout'
+import DevPanel from '@/components/ui/DevPanel'
+// 開發工具會在 DevPanel 中載入
 import './styles/globals.css'
 
 interface AppState {
@@ -16,6 +18,7 @@ function App() {
     isOnline: navigator.onLine,
     error: null
   })
+  const [devPanelOpen, setDevPanelOpen] = useState(false)
 
   // 監聽網路連線狀態
   useEffect(() => {
@@ -39,6 +42,14 @@ function App() {
     // 模擬初始載入
     const loadingTimer = setTimeout(() => {
       setAppState(prev => ({ ...prev, isLoading: false }))
+      
+      // 記錄應用啟動完成
+      if (isDevelopment()) {
+        console.log('🚀 SEO Analyzer application loaded', {
+          loadTime: performance.now(),
+          online: navigator.onLine
+        })
+      }
     }, 1000)
 
     return () => {
@@ -153,6 +164,14 @@ function App() {
             </div>
           </main>
         </Layout>
+
+        {/* 開發者面板 (僅開發環境) */}
+        {isDevelopment() && (
+          <DevPanel
+            isOpen={devPanelOpen}
+            onToggle={setDevPanelOpen}
+          />
+        )}
       </div>
     </ErrorBoundary>
   )

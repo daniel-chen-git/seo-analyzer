@@ -427,4 +427,176 @@ npm run test:e2e
 
 ---
 
-最後更新：2025-08-23 (Session 08)
+## Session 12 Frontend 開發經驗與教訓
+
+### TypeScript 嚴格模式開發注意事項
+
+#### 1. 編譯器配置衝突
+**問題**: `erasableSyntaxOnly` 與某些語法結構衝突
+```typescript
+// ❌ 錯誤: TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled
+export enum ErrorType {
+  JAVASCRIPT_ERROR = 'javascript_error'
+}
+```
+
+**解決方案**: 
+- 使用常數物件替代 enum
+- 或調整 TypeScript 配置設定
+```typescript
+// ✅ 正確
+export const ErrorType = {
+  JAVASCRIPT_ERROR: 'javascript_error'
+} as const
+```
+
+#### 2. Node.js 型別定義問題
+**問題**: 缺少 `@types/node` 導致 `NodeJS.Timeout` 無法識別
+```typescript
+// ❌ 錯誤: Cannot find namespace 'NodeJS'
+private timer?: NodeJS.Timeout
+```
+
+**解決方案**:
+- 安裝 `@types/node`: `npm install --save-dev @types/node`
+- 或使用瀏覽器相容的替代方案
+```typescript
+// ✅ 正確 (瀏覽器相容)
+private timer?: ReturnType<typeof setTimeout>
+```
+
+#### 3. API 命名衝突
+**問題**: 自定義類別與瀏覽器原生 API 命名衝突
+```typescript
+// ❌ 錯誤: 與原生 PerformanceObserver 衝突
+class PerformanceObserver {
+  observe() {} // Property 'observe' does not exist
+}
+```
+
+**解決方案**: 使用不同的命名避免衝突
+```typescript
+// ✅ 正確
+class CustomPerformanceMonitor {
+  recordMetric() {}
+}
+```
+
+#### 4. 非同步函數型別定義
+**問題**: TypeScript 嚴格模式要求明確的 Promise 型別
+```typescript
+// ❌ 錯誤: return type must be Promise<T>
+private async flush(): void {}
+```
+
+**解決方案**: 明確指定 `Promise<void>`
+```typescript
+// ✅ 正確
+private async flush(): Promise<void> {}
+```
+
+#### 5. 環境變數型別安全
+**問題**: 環境變數可能為 `null`，但函數期望字串
+```typescript
+// ❌ 錯誤: Type 'null' not assignable to 'string'
+const value = import.meta.env[key] || defaultValue || ''
+```
+
+**解決方案**: 使用安全的型別檢查
+```typescript
+// ✅ 正確
+const getEnvVar = (key: string, defaultValue = ''): string => {
+  const value = import.meta.env[key]
+  return (value ?? defaultValue) as string
+}
+```
+
+### 開發工具實作策略
+
+#### 1. 漸進式開發原則
+- **先建立簡化版本**，確保核心功能運作
+- **避免過早優化**，複雜功能應該逐步實作
+- **保持編譯成功**，不要一次實作過多功能
+
+#### 2. 關注點分離
+```typescript
+// ❌ 錯誤: 在工具檔案中直接使用 React
+import React from 'react'
+export function usePerformanceTracking() {
+  const [state, setState] = React.useState()
+}
+
+// ✅ 正確: 分離工具邏輯和 React 邏輯
+export class PerformanceTracker {
+  recordMetric() {} // 純邏輯，不依賴 React
+}
+// React Hook 在元件中另外實作
+```
+
+#### 3. 環境分離策略
+```typescript
+// ✅ 開發工具只在開發環境載入
+if (isDevelopment()) {
+  // 載入開發工具
+  const devTools = new DevToolsManager()
+  devTools.init()
+  
+  // 暴露到全域 (僅開發環境)
+  ;(window as any).devTools = devTools
+}
+```
+
+#### 4. 錯誤處理最佳實踐
+```typescript
+// ✅ 全域錯誤處理
+window.addEventListener('error', (event) => {
+  if (isDevelopment()) {
+    console.error('JavaScript Error:', event.message)
+  }
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  if (isDevelopment()) {
+    console.error('Unhandled Promise:', event.reason)
+  }
+})
+```
+
+### 建置優化經驗
+
+#### 1. 依賴管理
+- **移除未使用的 imports** 避免編譯錯誤
+- **分離開發和生產依賴** 避免生產包含開發工具
+- **使用動態 imports** 對於大型開發工具
+
+#### 2. 型別檢查策略
+```typescript
+// ✅ 使用型別守衛
+function isError(value: unknown): value is Error {
+  return value instanceof Error
+}
+
+// ✅ 安全的型別轉換
+const safeParseJSON = (str: string): unknown => {
+  try {
+    return JSON.parse(str)
+  } catch {
+    return null
+  }
+}
+```
+
+### 學到的教訓總結
+
+1. **複雜功能分階段實作**: 避免一次性實作過多功能導致編譯錯誤
+2. **型別安全優先**: 寧可功能簡單也要確保型別正確
+3. **命名規範**: 避免與原生 API 或第三方庫的命名衝突
+4. **環境分離**: 開發工具不應影響生產建置
+5. **錯誤隔離**: 開發工具的錯誤不應影響主應用運行
+6. **依賴最小化**: 工具類盡量避免複雜的外部依賴
+
+這些經驗有助於後續 Phase 2 UI 元件開發時避免類似問題。
+
+---
+
+最後更新：2025-01-24 (Session 12 - Phase 1.5 完成)

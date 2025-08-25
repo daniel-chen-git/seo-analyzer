@@ -11,19 +11,22 @@ function DevPanel({ isOpen = false, onToggle }: DevPanelProps) {
   const [activeTab, setActiveTab] = useState<'config' | 'errors' | 'system' | 'tools'>('config')
   const [devInfo, setDevInfo] = useState(devTools.getDevInfo())
 
-  // 如果不是開發環境，不顯示面板
-  if (!isDevelopment()) {
-    return null
-  }
-
   // 定期更新開發資訊
   useEffect(() => {
+    if (!isDevelopment()) {
+      return
+    }
     const interval = setInterval(() => {
       setDevInfo(devTools.getDevInfo())
     }, 2000)
 
     return () => clearInterval(interval)
   }, [])
+
+  // 如果不是開發環境，不顯示面板
+  if (!isDevelopment()) {
+    return null
+  }
 
   const runTests = () => {
     devTools.runTests()
@@ -81,7 +84,7 @@ function DevPanel({ isOpen = false, onToggle }: DevPanelProps) {
           ].map(tab => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
+              onClick={() => setActiveTab(tab.key as 'config' | 'errors' | 'system' | 'tools')}
               className={`px-4 py-2 font-medium text-sm transition-colors ${
                 activeTab === tab.key
                   ? 'text-primary border-b-2 border-primary'

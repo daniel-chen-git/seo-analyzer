@@ -111,8 +111,8 @@ export class DevToolsManager {
 
   private exposeToWindow(): void {
     if (isDevelopment()) {
-      ;(window as any).devTools = this
-      ;(window as any).config = config
+      ;(window as Record<string, unknown>).devTools = this
+      ;(window as Record<string, unknown>).config = config
     }
   }
 

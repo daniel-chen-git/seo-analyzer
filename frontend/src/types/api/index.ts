@@ -76,7 +76,7 @@ export interface ErrorDetail {
   code: string
   message: string
   field?: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
   timestamp: string
 }
 

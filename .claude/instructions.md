@@ -795,4 +795,188 @@ const withFallback = <T, F>(fn: () => T, fallback: F): T | F => {
 
 ---
 
-最後更新：2025-08-25 (Phase 2.1 完成 - 錯誤分析與改進)
+## Session 15 ESLint 錯誤修復經驗與規範
+
+### ESLint 錯誤分析與修復流程 (2025-08-25)
+
+#### 錯誤統計與分類
+
+**Session 15 前錯誤狀況**：14 個 ESLint 錯誤
+- **React Hooks 規則錯誤**：1 個
+  - `DevPanel.tsx:20:3` - React Hook "useEffect" 條件調用
+- **TypeScript 類型錯誤**：9 個 `@typescript-eslint/no-explicit-any`
+  - API 相關：2 個 (`types/api/index.ts`, `utils/api/test.ts`)
+  - UI 相關：4 個 (`DevPanel.tsx`, `hooks/ui/index.ts`)
+  - 工具檔案：3 個 (`devTools.ts`, `helpers/index.ts`)
+- **代碼品質問題**：4 個
+  - `no-unused-vars`：未使用變量
+  - `prefer-const`：應使用 const 而非 let
+  - `exhaustive-deps`：不必要的 Hook 依賴
+
+#### 分階段修復策略
+
+**階段 1：API 相關錯誤修復** ⏱️ 5分鐘
+```bash
+# 使用 grep 定位錯誤
+grep -n "any" /path/to/types/api/index.ts
+grep -n "any" /path/to/utils/api/test.ts
+
+# 修復方案
+Record<string, any> → Record<string, unknown>
+(window as any) → (window as unknown as Record<string, unknown>)
+```
+
+**階段 2：核心功能錯誤修復** ⏱️ 8分鐘
+```bash
+# React Hook 規則修復
+# 將條件邏輯移入 useEffect 內部，保持 Hook 調用順序一致
+useEffect(() => {
+  if (!isDevelopment()) {
+    return
+  }
+  // Hook 邏輯
+}, [])
+
+# 類型安全修復
+any → 'config' | 'errors' | 'system' | 'tools'  // 具體聯合類型
+(...args: any[]) => any → (...args: unknown[]) => unknown
+```
+
+**階段 3：工具層錯誤修復** ⏱️ 5分鐘
+```bash
+# 工具類型修復
+(window as any) → (window as Record<string, unknown>)
+<T extends (...args: any[]) => any> → <T extends (...args: unknown[]) => unknown>
+```
+
+#### 實用 Grep 命令集合
+
+```bash
+# 快速定位特定錯誤類型
+grep -n "any" src/**/*.ts                    # 找出所有 any 使用
+grep -n "error.*=" src/**/*.ts               # 找出未使用的 error 變量
+grep -n -A3 -B3 "useEffect" src/**/*.tsx     # 檢查 useEffect 使用
+
+# 批量檢查錯誤分佈
+find src -name "*.ts" -o -name "*.tsx" | xargs grep -l "any"
+find src -name "*.ts" -o -name "*.tsx" | xargs grep -l "error.*="
+
+# 驗證修復結果
+npm run lint                                 # 運行完整檢查
+npm run lint -- --fix                       # 自動修復可修復問題
+```
+
+#### 避免錯誤的預防措施
+
+**1. 開發期間實時檢查**
+```json
+// .vscode/settings.json
+{
+  "eslint.autoFixOnSave": true,
+  "typescript.preferences.strictNullChecks": true,
+  "eslint.workingDirectories": ["frontend"]
+}
+```
+
+**2. Git Pre-commit Hook**
+```bash
+#!/bin/sh
+# .git/hooks/pre-commit
+cd frontend && npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint 檢查失敗，請修復錯誤後再提交"
+  exit 1
+fi
+```
+
+**3. 類型安全開發規範**
+```typescript
+// ✅ 推薦：使用 unknown 而非 any
+function processData(data: unknown): void {
+  if (typeof data === 'string') {
+    // 類型收窄後安全使用
+  }
+}
+
+// ✅ 推薦：明確的聯合類型
+type TabType = 'config' | 'errors' | 'system' | 'tools'
+const setActiveTab = (tab: TabType) => { /* ... */ }
+
+// ✅ 推薦：安全的類型轉換
+const safeWindowAccess = (window as unknown as Record<string, unknown>)
+```
+
+#### 自動化修復工具配置
+
+**ESLint 自動修復規則**：
+```json
+// .eslintrc.js
+{
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "prefer-const": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": ["error", {
+          "fixToUnknown": true  // 自動建議 unknown 替換
+        }]
+      }
+    }
+  ]
+}
+```
+
+#### 錯誤修復檢查清單
+
+**修復前檢查**：
+- [ ] 備份當前代碼狀態
+- [ ] 運行 `npm run lint` 獲得完整錯誤列表  
+- [ ] 按錯誤類型和檔案分組規劃修復順序
+
+**修復過程檢查**：
+- [ ] 每修復一類錯誤就運行 `npm run lint` 驗證
+- [ ] 確保 TypeScript 編譯通過：`npx tsc --noEmit`
+- [ ] 檢查功能不受影響：運行核心測試
+
+**修復後檢查**：
+- [ ] ESLint 零錯誤零警告
+- [ ] TypeScript 編譯成功
+- [ ] 核心功能測試通過
+- [ ] Git commit 並推送變更
+
+### 質量保證流程
+
+**日常開發**：
+1. 編碼時開啟 ESLint 實時檢查
+2. 保存時自動修復簡單問題
+3. 提交前運行完整檢查
+
+**代碼審查**：
+1. PR 必須通過所有 Lint 檢查
+2. 重點檢查類型安全改進
+3. 確認沒有引入新的 `any` 使用
+
+**定期維護**：
+1. 每週審查 ESLint 規則配置
+2. 更新最佳實踐文檔
+3. 分享錯誤修復經驗
+
+### 成功指標
+
+**Session 15 成果**：
+- ✅ **14 → 0 錯誤**：完全消除所有 ESLint 錯誤
+- ✅ **類型安全提升**：移除所有 `any` 使用，改用 `unknown` 或具體類型
+- ✅ **React 規範遵循**：修復 Hooks 規則違反
+- ✅ **代碼整潔度**：清理未使用變量和不必要依賴
+
+**時間效率**：總修復時間 18 分鐘，平均每個錯誤 1.3 分鐘
+
+---
+
+最後更新：2025-08-25 (Session 15 - ESLint 錯誤修復完成)

@@ -93,7 +93,7 @@ export const quickHealthCheck = async () => {
 
 // 僅在開發環境下掛載到 window 物件
 if (import.meta.env.DEV) {
-  (window as any).testAPI = {
+  (window as unknown as Record<string, unknown>).testAPI = {
     testApiIntegration,
     quickHealthCheck,
     analysisApi,

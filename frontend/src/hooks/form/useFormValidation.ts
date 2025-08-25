@@ -11,7 +11,6 @@ export function useFormValidation<T extends Record<string, unknown>>(
   options: ValidationConfig = {}
 ) {
   const {
-    validateOnChange = true,
     validateOnBlur = true
   } = options;
 
@@ -74,7 +73,7 @@ export function useFormValidation<T extends Record<string, unknown>>(
         }
       }
     }, 300);
-  }, [schema, validateOnChange]);
+  }, [schema]);
 
   /**
    * 驗證整個表單
@@ -102,7 +101,7 @@ export function useFormValidation<T extends Record<string, unknown>>(
    * 即時驗證
    */
   const validateFieldImmediate = useCallback((fieldName: string, value: unknown) => {
-    let errors: string[] = [];
+    const errors: string[] = [];
     
     // 簡化驗證邏輯
     if (fieldName === 'keyword' && typeof value === 'string') {

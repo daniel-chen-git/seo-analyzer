@@ -29,7 +29,7 @@ export const useJobProgress = (jobId: string | null, autoPolling = true) => {
 
       setJobResult(jobStatus)
       return jobStatus
-    } catch (error) {
+    } catch {
       setProgress(prev => ({
         ...prev,
         status: 'error',
@@ -95,15 +95,15 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
 }
 
 // 表單驗證 Hook
-export const useFormValidation = <T extends Record<string, any>>(
+export const useFormValidation = <T extends Record<string, unknown>>(
   initialValues: T,
-  validationRules: Partial<Record<keyof T, (value: any) => string | null>>
+  validationRules: Partial<Record<keyof T, (value: unknown) => string | null>>
 ) => {
   const [values, setValues] = useState<T>(initialValues)
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({})
   const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({})
 
-  const setValue = useCallback((field: keyof T, value: any) => {
+  const setValue = useCallback((field: keyof T, value: unknown) => {
     setValues(prev => ({ ...prev, [field]: value }))
     
     // 驗證該欄位

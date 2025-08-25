@@ -4,7 +4,9 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import Layout from '@/components/layout/Layout'
 import DevPanel from '@/components/ui/DevPanel'
 import { InputForm } from '@/components/form'
+import { ProgressIndicator } from '@/components/progress'
 import type { AnalyzeFormData } from '@/types/form'
+import type { ProgressState, StageInfo } from '@/types/progress'
 // 開發工具會在 DevPanel 中載入
 import './styles/globals.css'
 
@@ -30,6 +32,8 @@ function App() {
   const [healthLoading, setHealthLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [progressState, setProgressState] = useState<ProgressState | null>(null);
+  const [progressInterval, setProgressInterval] = useState<number | null>(null);
 
   // 健康檢查測試
   useEffect(() => {
@@ -102,27 +106,190 @@ function App() {
     }
   }, [appState])
 
+  // 創建初始進度狀態
+  const createInitialProgressState = (jobId: string): ProgressState => ({
+    currentStage: 1,
+    overallProgress: 0,
+    stageProgress: 0,
+    status: 'running',
+    stages: {
+      serp: createInitialStageInfo(),
+      crawler: createInitialStageInfo(),
+      ai: createInitialStageInfo()
+    },
+    timing: {
+      startTime: new Date(),
+      currentStageStartTime: new Date(),
+      estimatedTotalTime: 57, // 18 + 22 + 17 = 57 seconds
+      estimatedRemainingTime: 57
+    },
+    jobId,
+    canCancel: true
+  });
+
+  // 創建初始階段資訊
+  const createInitialStageInfo = (): StageInfo => ({
+    status: 'pending',
+    progress: 0,
+    subtasks: []
+  });
+
+  // 模擬進度更新
+  const simulateProgress = () => {
+    let stage = 1;
+    let stageProgress = 0;
+    let overallProgress = 0;
+    
+    const interval = setInterval(() => {
+      setProgressState(prevState => {
+        if (!prevState || prevState.status === 'completed' || prevState.status === 'cancelled') {
+          clearInterval(interval);
+          return prevState;
+        }
+
+        // 更新階段進度
+        stageProgress += Math.random() * 15 + 5; // 每次增加 5-20%
+        
+        if (stageProgress >= 100) {
+          // 當前階段完成，進入下一階段
+          const newStages = { ...prevState.stages };
+          const stageKeys = ['serp', 'crawler', 'ai'] as const;
+          const currentStageKey = stageKeys[stage - 1];
+          
+          newStages[currentStageKey] = {
+            ...newStages[currentStageKey],
+            status: 'completed',
+            progress: 100,
+            completedTime: new Date()
+          };
+
+          if (stage < 3) {
+            stage += 1;
+            stageProgress = 0;
+            
+            // 更新下一階段為運行中
+            const nextStageKey = stageKeys[stage - 1];
+            newStages[nextStageKey] = {
+              ...newStages[nextStageKey],
+              status: 'running',
+              startTime: new Date()
+            };
+          } else {
+            // 所有階段完成
+            clearInterval(interval);
+            setProgressInterval(null);
+            
+            return {
+              ...prevState,
+              currentStage: 3 as const,
+              overallProgress: 100,
+              stageProgress: 100,
+              status: 'completed',
+              stages: newStages,
+              canCancel: false,
+              timing: {
+                ...prevState.timing,
+                estimatedRemainingTime: 0
+              }
+            };
+          }
+
+          return {
+            ...prevState,
+            currentStage: stage as 1 | 2 | 3,
+            stageProgress,
+            stages: newStages,
+            timing: {
+              ...prevState.timing,
+              currentStageStartTime: new Date()
+            }
+          };
+        }
+
+        // 計算整體進度
+        const stageWeights = [18, 22, 17]; // SERP, Crawler, AI 權重
+        const totalWeight = 57;
+        let completedWeight = 0;
+        
+        for (let i = 0; i < stage - 1; i++) {
+          completedWeight += stageWeights[i];
+        }
+        
+        const currentStageWeight = (stageWeights[stage - 1] * stageProgress) / 100;
+        overallProgress = ((completedWeight + currentStageWeight) / totalWeight) * 100;
+
+        // 計算剩餘時間
+        const elapsed = (Date.now() - prevState.timing.startTime.getTime()) / 1000;
+        const estimatedTotal = elapsed / (overallProgress / 100);
+        const estimatedRemaining = Math.max(0, estimatedTotal - elapsed);
+
+        return {
+          ...prevState,
+          stageProgress: Math.min(100, stageProgress),
+          overallProgress: Math.min(100, overallProgress),
+          timing: {
+            ...prevState.timing,
+            estimatedRemainingTime: estimatedRemaining
+          }
+        };
+      });
+    }, 500); // 每 500ms 更新一次
+
+    setProgressInterval(interval);
+  };
+
+  // 處理分析取消
+  const handleAnalysisCancel = async () => {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      setProgressInterval(null);
+    }
+
+    setProgressState(prev => prev ? {
+      ...prev,
+      status: 'cancelled',
+      canCancel: false
+    } : null);
+
+    setIsAnalyzing(false);
+    console.log('分析已取消');
+  };
+
   // 處理表單提交
   const handleAnalysisSubmit = async (data: AnalyzeFormData) => {
     try {
       setIsAnalyzing(true);
       console.log('提交分析請求:', data);
       
-      // 模擬 API 呼叫
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 創建進度狀態
+      const jobId = `job_${Date.now()}`;
+      const initialProgress = createInitialProgressState(jobId);
+      setProgressState(initialProgress);
+
+      // 開始模擬進度
+      simulateProgress();
       
-      console.log('分析完成');
     } catch (error) {
       console.error('分析失敗:', error);
-      throw error;
-    } finally {
+      setProgressState(prev => prev ? {
+        ...prev,
+        status: 'error',
+        canCancel: false
+      } : null);
       setIsAnalyzing(false);
+      throw error;
     }
   };
 
   // 處理表單重置
   const handleFormReset = () => {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      setProgressInterval(null);
+    }
+    
     setIsAnalyzing(false);
+    setProgressState(null);
     console.log('表單已重置');
   };
 
@@ -307,34 +474,93 @@ function App() {
                 </div>
               </div>
 
-              {/* Phase 2.1 InputForm 元件展示 */}
+              {/* Phase 2.1 & 2.2 表單與進度指示器整合展示 */}
               <div className="mb-12">
                 <div className="text-center mb-8">
-                  {!showForm ? (
+                  {!showForm && !progressState ? (
                     <button 
                       onClick={() => setShowForm(true)}
                       className="btn-primary text-lg px-8 py-3"
                     >
                       開始分析
                     </button>
-                  ) : (
+                  ) : !progressState ? (
                     <button 
                       onClick={() => setShowForm(false)}
                       className="btn bg-gray-600 text-white hover:bg-gray-700 text-sm px-4 py-2"
                     >
                       隱藏表單
                     </button>
-                  )}
+                  ) : null}
                 </div>
                 
-                {showForm && (
-                  <div className="transition-all duration-500 ease-in-out">
+                {showForm && !progressState && (
+                  <div className="transition-all duration-500 ease-in-out mb-8">
                     <InputForm
                       onSubmit={handleAnalysisSubmit}
                       onReset={handleFormReset}
                       isSubmitting={isAnalyzing}
                       estimatedTime={60}
                     />
+                  </div>
+                )}
+
+                {/* Phase 2.2 ProgressIndicator 展示 */}
+                {progressState && (
+                  <div className="transition-all duration-500 ease-in-out">
+                    <ProgressIndicator
+                      progressState={progressState}
+                      onCancel={handleAnalysisCancel}
+                      layout={progressState.status === 'completed' ? 'detailed' : 'default'}
+                      displayOptions={{
+                        showProgressBar: true,
+                        showStageIndicator: true,
+                        showTimeEstimator: true,
+                        showCancelButton: true,
+                        showSubtasks: progressState.status === 'completed',
+                        timeEstimatorVariant: progressState.status === 'running' ? 'detailed' : 'compact'
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* 測試控制區域 (開發模式) */}
+                {isDevelopment() && progressState && (
+                  <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-semibold mb-4">🧪 進度測試控制</h4>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <button 
+                        onClick={() => setProgressState(prev => prev ? {...prev, status: 'running'} : null)}
+                        className="btn bg-blue-600 text-white hover:bg-blue-700 text-sm px-3 py-1"
+                      >
+                        設為運行中
+                      </button>
+                      <button 
+                        onClick={() => setProgressState(prev => prev ? {...prev, status: 'completed'} : null)}
+                        className="btn bg-green-600 text-white hover:bg-green-700 text-sm px-3 py-1"
+                      >
+                        設為完成
+                      </button>
+                      <button 
+                        onClick={() => setProgressState(prev => prev ? {...prev, status: 'error'} : null)}
+                        className="btn bg-red-600 text-white hover:bg-red-700 text-sm px-3 py-1"
+                      >
+                        模擬錯誤
+                      </button>
+                      <button 
+                        onClick={handleFormReset}
+                        className="btn bg-gray-600 text-white hover:bg-gray-700 text-sm px-3 py-1"
+                      >
+                        重置全部
+                      </button>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600">
+                      <div>當前狀態: <span className="font-mono">{progressState.status}</span></div>
+                      <div>整體進度: <span className="font-mono">{progressState.overallProgress.toFixed(1)}%</span></div>
+                      <div>當前階段: <span className="font-mono">{progressState.currentStage}</span></div>
+                      <div>任務 ID: <span className="font-mono">{progressState.jobId}</span></div>
+                    </div>
                   </div>
                 )}
               </div>

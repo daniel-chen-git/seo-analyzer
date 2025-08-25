@@ -1,0 +1,317 @@
+/* 進度相關動畫樣式 */
+
+/* 1. 流動效果動畫 (Progress Bar) */
+@keyframes progress-flow {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.progress-flow {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 30%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.3) 70%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: progress-flow 2s linear infinite;
+}
+
+/* 2. 脈衝效果動畫 (運行中狀態) */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 3. 旋轉加載動畫 (取消按鈕) */
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spinner 0.8s linear infinite;
+}
+
+/* 4. 淡入滑動動畫 (狀態完成提示) */
+@keyframes fade-in-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-slide-up {
+  animation: fade-in-slide-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 5. 震動效果 (錯誤狀態) */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-2px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(2px);
+  }
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 6. 呼吸光效 (活躍狀態邊框) */
+@keyframes breathing-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.breathing-glow {
+  animation: breathing-glow 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* 7. 進度條填充動畫 */
+@keyframes progress-fill {
+  0% {
+    width: 0%;
+  }
+}
+
+.progress-fill-animated {
+  animation: progress-fill 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 8. 階段指示器展開動畫 */
+@keyframes stage-expand {
+  0% {
+    max-height: 0;
+    opacity: 0;
+  }
+  100% {
+    max-height: 200px;
+    opacity: 1;
+  }
+}
+
+.stage-expand {
+  animation: stage-expand 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 9. 數字滾動效果 */
+@keyframes counter-roll {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+
+.counter-roll {
+  animation: counter-roll 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 10. 漸變背景動畫 (運行狀態) */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-shift {
+  background: linear-gradient(
+    -45deg,
+    rgba(59, 130, 246, 0.1),
+    rgba(16, 185, 129, 0.1),
+    rgba(59, 130, 246, 0.1),
+    rgba(16, 185, 129, 0.1)
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* 11. 微妙的浮動效果 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 12. 成功狀態的放大動畫 */
+@keyframes success-pop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-pop {
+  animation: success-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* 13. 文字打字效果 */
+@keyframes typing {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.typing {
+  overflow: hidden;
+  border-right: 2px solid transparent;
+  white-space: nowrap;
+  animation: typing 1.5s steps(30, end) forwards;
+}
+
+/* 14. 波浪載入效果 */
+@keyframes wave {
+  0%, 60%, 100% {
+    transform: initial;
+  }
+  30% {
+    transform: translateY(-8px);
+  }
+}
+
+.wave {
+  animation: wave 1.4s ease-in-out infinite;
+}
+
+.wave:nth-child(2) { animation-delay: -1.1s; }
+.wave:nth-child(3) { animation-delay: -0.9s; }
+
+/* 15. 響應式媒體查詢優化 */
+@media (max-width: 640px) {
+  /* 在小螢幕上減少動畫強度 */
+  .progress-flow {
+    animation-duration: 3s;
+  }
+  
+  .breathing-glow {
+    animation-duration: 3s;
+  }
+  
+  .gradient-shift {
+    animation-duration: 4s;
+  }
+}
+
+/* 16. 減少動畫偏好設定支援 */
+@media (prefers-reduced-motion: reduce) {
+  /* 對於偏好減少動畫的用戶，簡化或禁用動畫 */
+  .progress-flow,
+  .pulse-ring::before,
+  .breathing-glow,
+  .gradient-shift,
+  .float {
+    animation: none;
+  }
+  
+  .fade-in-slide-up,
+  .success-pop,
+  .stage-expand {
+    animation-duration: 0.1s;
+  }
+  
+  .spinner {
+    animation-duration: 1.5s;
+  }
+}
+
+/* 17. 高對比度模式支援 */
+@media (prefers-contrast: high) {
+  .progress-flow {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.8) 50%,
+      transparent 100%
+    );
+  }
+}
+
+/* 18. 工具類樣式 */
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.animate-out {
+  animation-fill-mode: both;
+  animation-direction: reverse;
+}
+
+/* 19. 性能優化 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* 20. 自定義緩動函數 */
+.ease-spring {
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ease-smooth {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

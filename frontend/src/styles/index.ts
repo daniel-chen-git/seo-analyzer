@@ -1,5 +1,6 @@
 import './globals.css'
 import './components.css'
+import './progress-animations.css'
 
 // SEO Analyzer 設計令牌
 export const theme = {

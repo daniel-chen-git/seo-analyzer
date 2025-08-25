@@ -156,6 +156,13 @@ export default {
         // 進度動畫
         'progress': 'progress 1.5s ease-in-out',
         'skeleton': 'skeleton 1.5s ease-in-out infinite',
+        'progress-flow': 'progress-flow 2s linear infinite',
+        'pulse-ring': 'pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'breathing-glow': 'breathing-glow 2s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        'gradient-shift': 'gradient-shift 3s ease infinite',
+        'success-pop': 'success-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+        'shake': 'shake 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        'float': 'float 3s ease-in-out infinite',
         
         // 互動動畫
         'button-press': 'buttonPress 0.1s ease-in-out',
@@ -197,6 +204,37 @@ export default {
         skeleton: {
           '0%': { backgroundPosition: '200% 0' },
           '100%': { backgroundPosition: '-200% 0' },
+        },
+        'progress-flow': {
+          '0%': { backgroundPosition: '-100% 0' },
+          '100%': { backgroundPosition: '100% 0' },
+        },
+        'pulse-ring': {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '100%': { transform: 'scale(1.3)', opacity: '0' },
+        },
+        'breathing-glow': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(59, 130, 246, 0.4)' },
+          '50%': { boxShadow: '0 0 0 8px rgba(59, 130, 246, 0.1)' },
+        },
+        'gradient-shift': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
+        'success-pop': {
+          '0%': { transform: 'scale(0.8)', opacity: '0' },
+          '50%': { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'shake': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-2px)' },
+          '20%, 40%, 60%, 80%': { transform: 'translateX(2px)' },
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
         },
         
         // 互動動畫

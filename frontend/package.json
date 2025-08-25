@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify": "node scripts/verify-setup.js",
+    "integration-test": "node scripts/integration-test.js",
+    "type-check": "tsc --noEmit",
+    "health": "curl -f http://localhost:3000/api/health || echo 'Backend not running'"
   },
   "dependencies": {
     "axios": "^1.11.0",

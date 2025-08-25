@@ -12,6 +12,11 @@ interface AppState {
   error: string | null
 }
 
+interface HealthStatus {
+  status: string;
+  backend_connected: boolean;
+}
+
 function App() {
   const [appState, setAppState] = useState<AppState>({
     isLoading: true,
@@ -19,6 +24,29 @@ function App() {
     error: null
   })
   const [devPanelOpen, setDevPanelOpen] = useState(false)
+  const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
+  const [healthLoading, setHealthLoading] = useState(true);
+
+  // 健康檢查測試
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+        setHealthStatus(data);
+        if (isDebugMode()) {
+          console.log('🔗 Backend health check successful:', data);
+        }
+      } catch (error) {
+        console.error('Health check failed:', error);
+        setHealthStatus({ status: 'error', backend_connected: false });
+      } finally {
+        setHealthLoading(false);
+      }
+    };
+
+    checkHealth();
+  }, []);
 
   // 監聽網路連線狀態
   useEffect(() => {
@@ -120,6 +148,115 @@ function App() {
                   </div>
                 )}
               </div>
+
+              {/* Phase 1.6 環境設定驗證 */}
+              {isDevelopment() && (
+                <div className="card max-w-4xl mx-auto mb-12">
+                  <div className="text-center mb-6">
+                    <h2 className="text-2xl font-semibold mb-4">🔍 Phase 1.6 環境設定驗證</h2>
+                  </div>
+                  
+                  {/* 技術棧資訊 */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-3">🚀 技術棧版本</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div className="flex justify-between p-2 bg-gray-50 rounded">
+                        <span>React:</span>
+                        <span className="font-mono text-success">19.1.1</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-gray-50 rounded">
+                        <span>Vite:</span>
+                        <span className="font-mono text-success">6.3.5</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-gray-50 rounded">
+                        <span>Tailwind CSS:</span>
+                        <span className="font-mono text-success">4.1.12</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-gray-50 rounded">
+                        <span>TypeScript:</span>
+                        <span className="font-mono text-success">5.8.3</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Backend 連線狀態 */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-3">🔗 Backend 連線狀態</h3>
+                    <div className="p-4 rounded-lg border-2 border-dashed">
+                      {healthLoading ? (
+                        <div className="flex items-center justify-center">
+                          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2"></div>
+                          <span>檢查中...</span>
+                        </div>
+                      ) : healthStatus?.backend_connected ? (
+                        <div className="flex items-center text-success">
+                          <span className="w-3 h-3 bg-success rounded-full mr-2"></span>
+                          <span>Backend 連線正常</span>
+                          <span className="ml-2 text-xs text-gray-500">({healthStatus.status})</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-warning">
+                          <span className="w-3 h-3 bg-warning rounded-full mr-2"></span>
+                          <span>Backend 未連線 (開發模式)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 環境變數測試 */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-3">⚙️ 環境配置</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between p-2 bg-gray-50 rounded">
+                        <span>API Base URL:</span>
+                        <span className="font-mono">{import.meta.env.VITE_API_BASE_URL}</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-gray-50 rounded">
+                        <span>App Title:</span>
+                        <span className="font-mono">{import.meta.env.VITE_APP_TITLE}</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-gray-50 rounded">
+                        <span>Debug Mode:</span>
+                        <span className="font-mono">{import.meta.env.VITE_ENABLE_DEBUG}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 樣式系統測試 */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-3">🎨 樣式系統測試</h3>
+                    <div className="space-y-3">
+                      <div className="flex gap-2 flex-wrap">
+                        <button className="btn-primary">Primary Button</button>
+                        <button className="btn bg-secondary text-white hover:bg-secondary/90">Secondary</button>
+                        <button className="btn bg-success text-white hover:bg-success/90">Success</button>
+                        <button className="btn bg-warning text-white hover:bg-warning/90">Warning</button>
+                        <button className="btn bg-error text-white hover:bg-error/90">Error</button>
+                      </div>
+                      <div className="space-y-2">
+                        <input 
+                          type="text" 
+                          className="input" 
+                          placeholder="測試輸入欄位 (Inter 字體)" 
+                        />
+                        <div className="p-3 bg-gray-100 rounded font-code text-sm">
+                          <code>console.log('Fira Code 字體測試');</code>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 狀態總結 */}
+                  <div className="text-center pt-4 border-t">
+                    <p className="text-success font-medium">
+                      ✅ Phase 1.6 環境設定完成
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      準備進入 Phase 2: 核心 UI 元件開發
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* 功能預覽卡片 */}
               <div className="grid md:grid-cols-3 gap-6 mb-12">

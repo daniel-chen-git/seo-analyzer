@@ -1,4 +1,5 @@
 // 進度追蹤類型定義
+import type { StageInfo } from './stageTypes';
 
 export type ProgressStatus = 'idle' | 'running' | 'completed' | 'error' | 'cancelled';
 
@@ -12,9 +13,9 @@ export interface ProgressState {
   
   // 階段狀態
   stages: {
-    serp: StageStatus;
-    crawler: StageStatus;
-    ai: StageStatus;
+    serp: StageInfo;
+    crawler: StageInfo;
+    ai: StageInfo;
   };
   
   // 時間追蹤

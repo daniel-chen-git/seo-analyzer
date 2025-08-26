@@ -488,7 +488,7 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
         setState(prev => ({ ...prev, websocketStatus: 'error' }))
       }
       
-    } catch (error) {
+    } catch {
       setState(prev => ({ ...prev, websocketStatus: 'error' }))
       if (finalConfig.pollingConfig.enabled) {
         startPolling(jobId)

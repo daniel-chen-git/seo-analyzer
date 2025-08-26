@@ -2,14 +2,16 @@
 // 此測試文件驗證企業級 API 客戶端的所有功能
 
 import { renderHook, act } from '@testing-library/react'
+import { vi } from 'vitest'
 import { useApiClient } from './useApiClient'
 import type { ApiClientConfig, RetryConfig } from './useApiClient'
+import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 
 // 模擬 console 方法避免測試輸出雜訊
 const mockConsole = {
-  debug: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn()
+  debug: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn()
 }
 
 // 保存原始 console 方法
@@ -33,7 +35,7 @@ afterAll(() => {
 
 describe('useApiClient Hook', () => {
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('基礎功能測試', () => {
@@ -208,13 +210,13 @@ describe('useApiClient Hook', () => {
       const customInterceptors = {
         requestInterceptors: [
           {
-            onFulfilled: (config: unknown) => config,
+            onFulfilled: (config: AxiosRequestConfig) => config,
             onRejected: (error: unknown) => Promise.reject(error)
           }
         ],
         responseInterceptors: [
           {
-            onFulfilled: (response: unknown) => response,
+            onFulfilled: (response: AxiosResponse) => response,
             onRejected: (error: unknown) => Promise.reject(error)
           }
         ]

@@ -10,6 +10,24 @@ import type {
 } from '@/types/api'
 import type { LoadingState } from '@/types/ui'
 
+// 導出企業級 API Hooks
+export { useApiClient } from './useApiClient'
+export type { 
+  ApiClientConfig, 
+  RetryConfig, 
+  TimeoutConfig, 
+  InterceptorConfig,
+  ApiClientState
+} from './useApiClient'
+
+export { useErrorHandling } from './useErrorHandling'
+export type { 
+  ErrorClassification,
+  ErrorHandlingResult,
+  ErrorStatistics,
+  ErrorHandlingConfig
+} from './useErrorHandling'
+
 // 同步分析 Hook (不推薦使用，因為會很慢)
 export const useSyncAnalysis = () => {
   const [state, setState] = useState<LoadingState & { data: AnalyzeResponse | null }>({

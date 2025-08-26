@@ -198,18 +198,29 @@ frontend/
 
 ## 🔄 下一階段任務 (Phase 3.0)
 
-### Phase 3.1: MarkdownViewer 結果展示系統 📋 待開發
+### Phase 3.1: 測試修復與穩定性提升 📋 最高優先級
+- **測試完善** - 修復剩餘 useAnalysis 測試 (8/27 個待修復)
+  - WebSocket 消息處理細節 (3個)
+  - 分析控制操作邏輯 (2個)
+  - 統計功能追蹤 (2個)
+  - 資源清理管理 (1個)
+
+### Phase 3.2: UI/UX 體驗優化 📋 高優先級
+- **UI/UX 優化** - 進階進度指示和用戶體驗改進
+- **錯誤處理 UI 改進** - 用戶友善錯誤訊息和恢復建議
+- **控制按鈕互動優化** - 暫停/恢復功能 UI 整合
+
+### Phase 3.3: 效能與穩定性優化 📋 中優先級
+- **效能最佳化** - WebSocket 穩定性和重連邏輯優化
+- **API 請求效能優化** - 請求去重和快取策略
+- **記憶體使用優化** - 資源管理和內存洩漏防護
+
+### Phase 3.4: MarkdownViewer 結果展示系統 📋 待後續開發
 - **MarkdownViewer.tsx** - SEO 報告渲染展示組件
 - **TableOfContents** - 報告目錄導航
 - **ExportButtons** - MD 匯出功能
 - **FullscreenMode** - 全螢幕閱讀模式
 - **SearchHighlight** - 搜尋與高亮功能
-
-### Phase 3.2: 系統優化與完善 📋 規劃中
-- **測試完善** - 修復剩餘 useAnalysis 測試 (8/27 個待修復)
-- **UI/UX 優化** - 進階進度指示和用戶體驗改進
-- **效能最佳化** - WebSocket 穩定性和重連邏輯優化
-- **錯誤體驗** - 用戶友善錯誤訊息和恢復建議
 
 ## 🎯 技術債務與改進點
 
@@ -499,8 +510,10 @@ export const analyzeKeyword = async (request: AnalyzeRequest): Promise<AnalyzeRe
 - **Phase 2.5**: UI 整合開發 (100%) ✅
 
 #### 📋 下一階段規劃
-- **Phase 3.1**: MarkdownViewer 結果展示系統 (待開發)
-- **Phase 3.2**: 系統優化與完善 (測試修復、UI/UX 優化)
+- **Phase 3.1**: 測試修復與穩定性提升 (最高優先級)
+- **Phase 3.2**: UI/UX 體驗優化 (高優先級)
+- **Phase 3.3**: 效能與穩定性優化 (中優先級)
+- **Phase 3.4**: MarkdownViewer 結果展示系統 (待後續開發)
 
 ### 🎯 技術成就
 - **企業級架構**: 完整的 API 管理、錯誤處理、分析生命週期系統

@@ -28,6 +28,15 @@ export type {
   ErrorHandlingConfig
 } from './useErrorHandling'
 
+export { useAnalysis } from './useAnalysis'
+export type { 
+  AnalysisStatus,
+  WebSocketStatus,
+  AnalysisConfig,
+  AnalysisControls,
+  AnalysisState
+} from './useAnalysis'
+
 // 同步分析 Hook (不推薦使用，因為會很慢)
 export const useSyncAnalysis = () => {
   const [state, setState] = useState<LoadingState & { data: AnalyzeResponse | null }>({

@@ -2,14 +2,24 @@ import { useMemo } from 'react';
 import { ProgressBar } from './ProgressBar';
 import { StageIndicator } from './StageIndicator';
 import { TimeEstimator } from './TimeEstimator';
-import { CancelButton } from './CancelButton';
+import { ControlPanel } from './ControlPanel';
+import { ToastContainer, useToast } from '../ui';
 import type { ProgressState } from '../../types/progress';
+import type { ControlFeedback } from './ControlPanel';
 
 export interface ProgressIndicatorProps {
   /** 當前進度狀態 */
   progressState: ProgressState;
+  /** 開始分析回調 */
+  onStart?: () => Promise<void> | void;
+  /** 暫停分析回調 */
+  onPause?: () => Promise<void> | void;
+  /** 恢復分析回調 */
+  onResume?: () => Promise<void> | void;
   /** 取消操作回調函數 */
   onCancel: () => Promise<void> | void;
+  /** 重試操作回調函數 */
+  onRetry?: () => Promise<void> | void;
   /** 顯示配置 */
   displayOptions?: {
     /** 是否顯示整體進度條 */
@@ -18,14 +28,24 @@ export interface ProgressIndicatorProps {
     showStageIndicator?: boolean;
     /** 是否顯示時間估算器 */
     showTimeEstimator?: boolean;
-    /** 是否顯示取消按鈕 */
-    showCancelButton?: boolean;
+    /** 是否顯示控制面板 */
+    showControlPanel?: boolean;
+    /** 控制面板佈局 */
+    controlPanelLayout?: 'compact' | 'default' | 'expanded';
     /** 是否顯示子任務詳情 */
     showSubtasks?: boolean;
     /** 階段指示器模式 */
     stageIndicatorMode?: 'horizontal' | 'vertical';
     /** 時間估算器變體 */
     timeEstimatorVariant?: 'compact' | 'detailed' | 'minimal';
+    /** 是否顯示錯誤詳情 */
+    showErrorDetails?: boolean;
+    /** 是否顯示錯誤恢復 */
+    showErrorRecovery?: boolean;
+    /** 是否啟用智能重試 */
+    enableSmartRetry?: boolean;
+    /** 是否顯示 Toast 通知 */
+    showToasts?: boolean;
   };
   /** 佈局配置 */
   layout?: 'default' | 'compact' | 'detailed';
@@ -39,20 +59,30 @@ const defaultDisplayOptions = {
   showProgressBar: true,
   showStageIndicator: true,
   showTimeEstimator: true,
-  showCancelButton: true,
+  showControlPanel: true,
+  controlPanelLayout: 'default' as const,
   showSubtasks: false,
   stageIndicatorMode: 'horizontal' as const,
-  timeEstimatorVariant: 'detailed' as const
+  timeEstimatorVariant: 'detailed' as const,
+  showErrorDetails: true,
+  showErrorRecovery: true,
+  enableSmartRetry: true,
+  showToasts: true
 };
 
 export function ProgressIndicator({
   progressState,
+  onStart,
+  onPause,
+  onResume,
   onCancel,
+  onRetry,
   displayOptions = {},
   layout = 'default',
   className = '',
   animated = true
 }: ProgressIndicatorProps) {
+  const toast = useToast();
   // 合併顯示配置
   const options = useMemo(() => ({
     ...defaultDisplayOptions,
@@ -68,14 +98,16 @@ export function ProgressIndicator({
           showProgressBar: true,
           showStageIndicator: false,
           timeEstimatorVariant: 'compact' as const,
-          stageIndicatorMode: 'horizontal' as const
+          stageIndicatorMode: 'horizontal' as const,
+          controlPanelLayout: 'compact' as const
         };
       case 'detailed':
         return {
           ...options,
           showSubtasks: true,
           timeEstimatorVariant: 'detailed' as const,
-          stageIndicatorMode: 'vertical' as const
+          stageIndicatorMode: 'vertical' as const,
+          controlPanelLayout: 'expanded' as const
         };
       default:
         return options;
@@ -138,6 +170,8 @@ export function ProgressIndicator({
               progressState={progressState}
               variant={layoutConfig.timeEstimatorVariant}
               showEfficiency={false}
+              animated={animated}
+              liveUpdate={true}
             />
           )}
         </div>
@@ -171,6 +205,8 @@ export function ProgressIndicator({
               variant={layoutConfig.timeEstimatorVariant}
               showDetails={layout === 'detailed'}
               showEfficiency={layout === 'detailed'}
+              animated={animated}
+              liveUpdate={true}
             />
           </div>
         )}
@@ -191,26 +227,50 @@ export function ProgressIndicator({
           progressState={progressState}
           showSubtasks={layoutConfig.showSubtasks}
           mode={layoutConfig.stageIndicatorMode}
+          enableEnhancedAnimations={animated}
+          showDetailedDescription={layout === 'detailed'}
         />
       </div>
     );
   };
 
-  // 渲染操作區域
-  const renderActions = () => {
-    if (!layoutConfig.showCancelButton) return null;
+  // 渲染控制面板
+  const renderControlPanel = () => {
+    if (!layoutConfig.showControlPanel) return null;
+
+    const handleFeedback = (feedback: ControlFeedback) => {
+      toast.addToast({
+        type: feedback.type,
+        message: feedback.message,
+        duration: feedback.duration || 3000
+      });
+    };
 
     return (
-      <div className={`
-        flex 
-        ${layout === 'compact' ? 'justify-end' : 'justify-center pt-4 border-t border-gray-200'}
-      `}>
-        <CancelButton
-          status={progressState.status}
-          canCancel={progressState.canCancel}
+      <div className={layout === 'compact' ? '' : 'pt-4 border-t border-gray-200'}>
+        <ControlPanel
+          progressState={progressState}
+          onStart={onStart}
+          onPause={onPause}
+          onResume={onResume}
           onCancel={onCancel}
+          onRetry={onRetry}
+          onFeedback={handleFeedback}
+          displayOptions={{
+            showStartButton: progressState.status === 'idle',
+            showPauseResumeButton: true,
+            showCancelButton: true,
+            showRetryButton: true,
+            enableConfirmDialogs: true,
+            orientation: layout === 'compact' ? 'horizontal' : 'horizontal',
+            spacing: layout === 'compact' ? 'tight' : 'normal'
+          }}
+          layout={layoutConfig.controlPanelLayout}
           size={layout === 'compact' ? 'sm' : 'md'}
           variant="outline"
+          touchOptimized={true}
+          hapticFeedback="light"
+          animated={animated}
         />
       </div>
     );
@@ -249,7 +309,7 @@ export function ProgressIndicator({
       {renderHeader()}
       {renderProgressOverview()}
       {renderStageIndicator()}
-      {renderActions()}
+      {renderControlPanel()}
 
       {/* 狀態完成時的特殊提示 */}
       {progressState.status === 'completed' && (
@@ -309,6 +369,15 @@ export function ProgressIndicator({
             分析已暫停，您可以選擇恢復分析或取消分析。
           </p>
         </div>
+      )}
+      {/* Toast 通知容器 */}
+      {layoutConfig.showToasts && (
+        <ToastContainer 
+          toasts={toast.toasts}
+          onDismiss={toast.removeToast}
+          position="top-right"
+          animated={animated}
+        />
       )}
     </div>
   );

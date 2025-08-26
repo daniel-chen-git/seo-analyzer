@@ -315,3 +315,116 @@
 .ease-smooth {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* 21. 暫停狀態增強動畫 */
+@keyframes paused-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+.paused-pulse {
+  animation: paused-pulse 2s ease-in-out infinite;
+}
+
+.paused-overlay {
+  position: relative;
+}
+
+.paused-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(251, 188, 4, 0.1) 25%,
+    transparent 25%,
+    transparent 75%,
+    rgba(251, 188, 4, 0.1) 75%,
+    rgba(251, 188, 4, 0.1)
+  );
+  background-size: 8px 8px;
+  animation: paused-stripes 1s linear infinite;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@keyframes paused-stripes {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 8px 8px;
+  }
+}
+
+/* 22. 慶祝完成動畫增強 */
+.celebration-bounce {
+  animation: celebration-bounce 0.8s ease-out;
+}
+
+@keyframes celebration-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  10% {
+    transform: translateY(-5px) scale(1.05);
+  }
+  40% {
+    transform: translateY(-3px) scale(1.02);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.01);
+  }
+}
+
+/* 23. 數據計數器動畫 */
+@keyframes count-up-bounce {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.15);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.count-animation {
+  animation: count-up-bounce 0.4s ease-out;
+}
+
+/* 24. 增強跳動效果 */
+@keyframes enhanced-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.enhanced-bounce {
+  animation: enhanced-bounce 1.5s infinite;
+}

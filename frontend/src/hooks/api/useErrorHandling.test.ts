@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useErrorHandling, ErrorClassification } from './useErrorHandling'
+import { useErrorHandling } from './useErrorHandling'
+import type { ErrorClassification } from './useErrorHandling'
 import type { ApiError } from '@/types/api'
 
 describe('useErrorHandling', () => {
@@ -608,7 +609,7 @@ describe('useErrorHandling', () => {
       const { result } = renderHook(() => useErrorHandling())
 
       // 第一個錯誤：網絡錯誤
-      let networkErrorResult: ReturnType<typeof result.current.handleError>
+      let networkErrorResult!: ReturnType<typeof result.current.handleError>
       act(() => {
         networkErrorResult = result.current.handleError({
           isAxiosError: true,
@@ -621,7 +622,7 @@ describe('useErrorHandling', () => {
       expect(networkErrorResult.retryDelay).toBe(2000)
 
       // 第二個錯誤：服務器錯誤  
-      let serverErrorResult: ReturnType<typeof result.current.handleError>
+      let serverErrorResult!: ReturnType<typeof result.current.handleError>
       act(() => {
         serverErrorResult = result.current.handleError({
           isAxiosError: true,

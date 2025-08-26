@@ -388,7 +388,7 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
         break
         
       case 'completed':
-        if (message.data && 'metadata' in message.data) {
+        if (message.data && 'status' in message.data) {
           handleAnalysisComplete(message.data as AnalyzeResponse)
         }
         break

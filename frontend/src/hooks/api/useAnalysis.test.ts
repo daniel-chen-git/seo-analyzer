@@ -32,12 +32,14 @@ vi.mock('./useErrorHandling', () => ({
   })
 }))
 
-// Mock WebSocket
+// Mock WebSocket with instance tracking
 class MockWebSocket {
   static CONNECTING = 0
   static OPEN = 1
   static CLOSING = 2
   static CLOSED = 3
+  static instances: MockWebSocket[] = []
+  static getLatestInstance = () => MockWebSocket.instances[MockWebSocket.instances.length - 1]
 
   url: string
   readyState = MockWebSocket.CONNECTING
@@ -48,13 +50,16 @@ class MockWebSocket {
 
   constructor(url: string) {
     this.url = url
-    // Simulate connection success
+    MockWebSocket.instances.push(this)
+    // Simulate connection success immediately for cleaner tests
     setTimeout(() => {
-      this.readyState = MockWebSocket.OPEN
-      if (this.onopen) {
-        this.onopen(new Event('open'))
+      if (this.readyState === MockWebSocket.CONNECTING) {
+        this.readyState = MockWebSocket.OPEN
+        if (this.onopen) {
+          this.onopen(new Event('open'))
+        }
       }
-    }, 10)
+    }, 5)
   }
 
   close() {
@@ -67,6 +72,22 @@ class MockWebSocket {
   send() {
     // Mock send implementation
   }
+
+  // Helper method to simulate receiving messages
+  simulateMessage(data: string) {
+    if (this.onmessage) {
+      const event = new MessageEvent('message', { data })
+      this.onmessage(event)
+    }
+  }
+
+  // Helper method to simulate connection close
+  simulateClose(code: number = 1000) {
+    this.readyState = MockWebSocket.CLOSED
+    if (this.onclose) {
+      this.onclose(new CloseEvent('close', { code }))
+    }
+  }
 }
 
 // @ts-expect-error - Mocking global WebSocket
@@ -76,6 +97,8 @@ describe('useAnalysis', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(Date, 'now').mockReturnValue(1234567890000)
+    // Clear WebSocket instances
+    MockWebSocket.instances = []
   })
 
   const mockRequest: AnalyzeRequest = {
@@ -256,19 +279,20 @@ describe('useAnalysis', () => {
         estimated_remaining: 120
       }
 
-      const messageEvent = new MessageEvent('message', {
-        data: JSON.stringify({
-          type: 'progress',
-          job_id: 'test-job-123',
-          data: progressUpdate
-        })
+      // Wait for WebSocket to connect and get the instance
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
       })
 
       act(() => {
-        // Simulate WebSocket message
-        const ws = MockWebSocket.prototype
-        if (ws.onmessage) {
-          ws.onmessage(messageEvent)
+        // Get the actual WebSocket instance and simulate message
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateMessage(JSON.stringify({
+            type: 'progress',
+            job_id: 'test-job-123',
+            data: progressUpdate
+          }))
         }
       })
 
@@ -287,18 +311,19 @@ describe('useAnalysis', () => {
         await result.current.controls.start(mockRequest)
       })
 
-      const completedMessage = new MessageEvent('message', {
-        data: JSON.stringify({
-          type: 'completed',
-          job_id: 'test-job-123',
-          data: mockResult
-        })
+      // Wait for WebSocket to connect
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
       })
 
       act(() => {
-        const ws = MockWebSocket.prototype
-        if (ws.onmessage) {
-          ws.onmessage(completedMessage)
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateMessage(JSON.stringify({
+            type: 'completed',
+            job_id: 'test-job-123',
+            data: mockResult
+          }))
         }
       })
 
@@ -318,18 +343,19 @@ describe('useAnalysis', () => {
         await result.current.controls.start(mockRequest)
       })
 
-      const errorMessage = new MessageEvent('message', {
-        data: JSON.stringify({
-          type: 'error',
-          job_id: 'test-job-123',
-          data: { message: 'Analysis failed' }
-        })
+      // Wait for WebSocket to connect
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
       })
 
       act(() => {
-        const ws = MockWebSocket.prototype
-        if (ws.onmessage) {
-          ws.onmessage(errorMessage)
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateMessage(JSON.stringify({
+            type: 'error',
+            job_id: 'test-job-123',
+            data: { message: 'Analysis failed' }
+          }))
         }
       })
 
@@ -398,20 +424,34 @@ describe('useAnalysis', () => {
     })
 
     it('應該能夠暫停分析', async () => {
-      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
-      mockApiClient.post.mockResolvedValueOnce({ data: { status: 'paused' } })
+      // Clean setup
+      vi.clearAllMocks()
+      
+      // Mock responses in order: start -> pause
+      mockApiClient.post
+        .mockResolvedValueOnce({ data: mockJobResponse })
+        .mockResolvedValueOnce({ data: { status: 'paused' } })
       
       const { result } = renderHook(() => useAnalysis())
 
+      // Start analysis
       await act(async () => {
         await result.current.controls.start(mockRequest)
       })
 
+      // Verify start completed successfully  
+      expect(result.current.status).toBe('running')
+      expect(result.current.jobId).toBe('test-job-123')
+      expect(result.current.canPause).toBe(true)
+
+      // Pause analysis
       await act(async () => {
         await result.current.controls.pause()
       })
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/api/analysis/test-job-123/pause')
+      // Verify pause completed successfully
+      expect(mockApiClient.post).toHaveBeenCalledTimes(2)
+      expect(mockApiClient.post).toHaveBeenLastCalledWith('/api/analysis/test-job-123/pause')
       expect(result.current.status).toBe('paused')
       expect(result.current.canPause).toBe(false)
       expect(result.current.canResume).toBe(true)
@@ -443,20 +483,23 @@ describe('useAnalysis', () => {
     })
 
     it('應該能夠重試分析', async () => {
-      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
-      const error = new Error('Network error')
-      mockApiClient.post.mockRejectedValueOnce(error)
+      // Clean setup
+      vi.clearAllMocks()
       
       const { result } = renderHook(() => useAnalysis())
+      
+      // Mock first start call to fail
+      const startError = new Error('Start failed')
+      mockApiClient.post.mockRejectedValueOnce(startError)
 
       // 首次啟動失敗
       await act(async () => {
-        await expect(result.current.controls.start(mockRequest)).rejects.toThrow()
+        await expect(result.current.controls.start(mockRequest)).rejects.toThrow('Start failed')
       })
 
       expect(result.current.status).toBe('error')
 
-      // 重試應該成功
+      // 重試應該成功 - Mock second start call to succeed
       mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
       
       await act(async () => {
@@ -507,19 +550,20 @@ describe('useAnalysis', () => {
       expect(result.current.statistics.reconnectAttempts).toBe(0)
       expect(result.current.statistics.pollCount).toBe(0)
 
-      // 模擬完成
-      const completedMessage = new MessageEvent('message', {
-        data: JSON.stringify({
-          type: 'completed',
-          job_id: 'test-job-123',
-          data: mockResult
-        })
+      // Wait for WebSocket to connect
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
       })
 
+      // 模擬完成
       act(() => {
-        const ws = MockWebSocket.prototype
-        if (ws.onmessage) {
-          ws.onmessage(completedMessage)
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateMessage(JSON.stringify({
+            type: 'completed',
+            job_id: 'test-job-123',
+            data: mockResult
+          }))
         }
       })
 
@@ -536,11 +580,16 @@ describe('useAnalysis', () => {
         await result.current.controls.start(mockRequest)
       })
 
+      // Wait for WebSocket to connect
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      })
+
       // 模擬連接斷開和重連
       act(() => {
-        const ws = MockWebSocket.prototype
-        if (ws.onclose) {
-          ws.onclose(new CloseEvent('close', { code: 1006 })) // 非正常關閉
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateClose(1006) // 非正常關閉
         }
       })
 
@@ -665,14 +714,25 @@ describe('useAnalysis', () => {
         await result.current.controls.start(mockRequest)
       })
 
+      // Wait for WebSocket to connect
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      })
+
+      // Debug WebSocket status
+      console.log('WebSocket status:', result.current.websocketStatus)
       expect(result.current.websocketStatus).toBe('connected')
+
+      // Check WebSocket instance exists before unmount
+      const wsInstance = MockWebSocket.getLatestInstance()
+      expect(wsInstance).toBeTruthy()
 
       act(() => {
         unmount()
       })
 
-      // WebSocket 應該被清理
-      expect(result.current.websocketStatus).toBe('disconnected')
+      // WebSocket instance should be closed (we can't check result after unmount)
+      expect(wsInstance.readyState).toBe(MockWebSocket.CLOSED)
     })
 
     it('應該正確清理定時器', async () => {

@@ -14,8 +14,7 @@ interface InputFormProps {
   onReset?: () => void;
   initialValues?: Partial<AnalyzeFormData>;
   isSubmitting?: boolean;
-  submitProgress?: number;
-  estimatedTime?: number;
+  analysisStatus?: 'idle' | 'starting' | 'running' | 'paused' | 'completed' | 'error' | 'cancelled';
   className?: string;
 }
 
@@ -24,8 +23,7 @@ export const InputForm: React.FC<InputFormProps> = ({
   onReset,
   initialValues,
   isSubmitting = false,
-  submitProgress = 0,
-  estimatedTime = 60,
+  analysisStatus = 'idle',
   className = ''
 }) => {
   // React Hook Form 設置
@@ -66,14 +64,28 @@ export const InputForm: React.FC<InputFormProps> = ({
   // 提交狀態
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  // 更新提交狀態
+  // 更新提交狀態，基於分析狀態
   useEffect(() => {
-    if (isSubmitting) {
-      setSubmitStatus('loading');
-    } else {
-      setSubmitStatus('idle');
+    switch (analysisStatus) {
+      case 'starting':
+      case 'running':
+        setSubmitStatus('loading');
+        break;
+      case 'completed':
+        setSubmitStatus('success');
+        break;
+      case 'error':
+        setSubmitStatus('error');
+        break;
+      default:
+        if (isSubmitting) {
+          setSubmitStatus('loading');
+        } else {
+          setSubmitStatus('idle');
+        }
+        break;
     }
-  }, [isSubmitting]);
+  }, [analysisStatus, isSubmitting]);
 
   // 處理關鍵字變更
   const handleKeywordChange = useCallback((value: string) => {
@@ -201,8 +213,6 @@ export const InputForm: React.FC<InputFormProps> = ({
             onReset={handleFormReset}
             status={submitStatus}
             isFormValid={isValid}
-            estimatedTime={estimatedTime}
-            progress={submitProgress}
             disabled={isSubmitting}
           />
         </div>

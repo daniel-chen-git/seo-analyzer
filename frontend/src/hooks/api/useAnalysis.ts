@@ -374,7 +374,7 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
     // 清理資源
     cleanupWebSocket()
     clearPolling()
-  }, [errorHandler])
+  }, [errorHandler, cleanupWebSocket, clearPolling])
 
   /**
    * WebSocket 消息處理
@@ -683,9 +683,34 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
     if (!state.request) return
     
     // 重置狀態並重新開始
-    reset()
+    cleanupWebSocket()
+    clearPolling()
+    
+    setState({
+      status: 'idle',
+      websocketStatus: 'disconnected',
+      progress: null,
+      result: null,
+      error: null,
+      jobId: null,
+      request: null,
+      canCancel: false,
+      canPause: false,
+      canResume: false,
+      statistics: {
+        startTime: null,
+        endTime: null,
+        totalDuration: null,
+        pollCount: 0,
+        reconnectAttempts: 0
+      }
+    })
+    
+    pollCountRef.current = 0
+    reconnectAttemptsRef.current = 0
+    
     await start(state.request)
-  }, [state.request])
+  }, [state.request, start, cleanupWebSocket, clearPolling])
 
   /**
    * 重置狀態

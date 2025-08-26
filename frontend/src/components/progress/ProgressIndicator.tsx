@@ -219,8 +219,11 @@ export function ProgressIndicator({
   // 根據狀態添加特殊樣式
   const getStatusClasses = () => {
     switch (progressState.status) {
+      case 'starting':
       case 'running':
         return 'ring-2 ring-blue-500/20 shadow-lg';
+      case 'paused':
+        return 'ring-2 ring-yellow-500/20 shadow-lg';
       case 'completed':
         return 'ring-2 ring-green-500/20 shadow-lg';
       case 'error':
@@ -284,6 +287,26 @@ export function ProgressIndicator({
           <h4 className="font-medium text-red-800 mb-1">分析失敗</h4>
           <p className="text-sm text-red-700">
             分析過程中發生錯誤，請重試或聯繫客服協助。
+          </p>
+        </div>
+      )}
+
+      {/* 暫停狀態的特殊提示 */}
+      {progressState.status === 'paused' && (
+        <div className={`
+          bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center
+          ${animated ? 'animate-in fade-in slide-in-from-bottom-2 duration-500' : ''}
+        `}>
+          <div className="flex items-center justify-center mb-2">
+            <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 002 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <h4 className="font-medium text-yellow-800 mb-1">分析已暫停</h4>
+          <p className="text-sm text-yellow-700">
+            分析已暫停，您可以選擇恢復分析或取消分析。
           </p>
         </div>
       )}

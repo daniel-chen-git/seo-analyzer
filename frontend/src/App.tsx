@@ -5,8 +5,10 @@ import Layout from '@/components/layout/Layout'
 import DevPanel from '@/components/ui/DevPanel'
 import { InputForm } from '@/components/form'
 import { ProgressIndicator } from '@/components/progress'
+import { useAnalysis, useErrorHandling } from '@/hooks/api'
+// 移除不需要的狀態映射導入
 import type { AnalyzeFormData } from '@/types/form'
-import type { ProgressState, StageInfo } from '@/types/progress'
+import type { AnalyzeRequest } from '@/types/api'
 // 開發工具會在 DevPanel 中載入
 import './styles/globals.css'
 
@@ -22,6 +24,7 @@ interface HealthStatus {
 }
 
 function App() {
+  // 基本應用狀態
   const [appState, setAppState] = useState<AppState>({
     isLoading: true,
     isOnline: navigator.onLine,
@@ -31,9 +34,25 @@ function App() {
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   const [healthLoading, setHealthLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [progressState, setProgressState] = useState<ProgressState | null>(null);
-  const [progressInterval, setProgressInterval] = useState<number | null>(null);
+
+  // 企業級 Hooks 整合
+  const analysisHook = useAnalysis({
+    enableWebSocket: true,
+    pollingConfig: {
+      enabled: true,
+      interval: 2000,
+      maxPolls: 150
+    }
+  })
+  const { handleError } = useErrorHandling()
+
+  // 從 useAnalysis 計算衍生狀態
+  const isAnalyzing = analysisHook.isRunning || analysisHook.status === 'starting'
+  const progressState = analysisHook.progress ? {
+    ...analysisHook.progress,
+    canCancel: analysisHook.canCancel
+  } : null
+  const hasError = analysisHook.error || appState.error
 
   // 健康檢查測試
   useEffect(() => {
@@ -106,192 +125,53 @@ function App() {
     }
   }, [appState])
 
-  // 創建初始進度狀態
-  const createInitialProgressState = (jobId: string): ProgressState => ({
-    currentStage: 1,
-    overallProgress: 0,
-    stageProgress: 0,
-    status: 'running',
-    stages: {
-      serp: createInitialStageInfo(),
-      crawler: createInitialStageInfo(),
-      ai: createInitialStageInfo()
-    },
-    timing: {
-      startTime: new Date(),
-      currentStageStartTime: new Date(),
-      estimatedTotalTime: 57, // 18 + 22 + 17 = 57 seconds
-      estimatedRemainingTime: 57
-    },
-    jobId,
-    canCancel: true
-  });
-
-  // 創建初始階段資訊
-  const createInitialStageInfo = (): StageInfo => ({
-    status: 'pending',
-    progress: 0,
-    subtasks: []
-  });
-
-  // 模擬進度更新
-  const simulateProgress = () => {
-    let stage = 1;
-    let stageProgress = 0;
-    let overallProgress = 0;
-    
-    const interval = setInterval(() => {
-      setProgressState(prevState => {
-        if (!prevState || prevState.status === 'completed' || prevState.status === 'cancelled') {
-          clearInterval(interval);
-          return prevState;
-        }
-
-        // 更新階段進度
-        stageProgress += Math.random() * 15 + 5; // 每次增加 5-20%
-        
-        if (stageProgress >= 100) {
-          // 當前階段完成，進入下一階段
-          const newStages = { ...prevState.stages };
-          const stageKeys = ['serp', 'crawler', 'ai'] as const;
-          const currentStageKey = stageKeys[stage - 1];
-          
-          newStages[currentStageKey] = {
-            ...newStages[currentStageKey],
-            status: 'completed',
-            progress: 100,
-            completedTime: new Date()
-          };
-
-          if (stage < 3) {
-            stage += 1;
-            stageProgress = 0;
-            
-            // 更新下一階段為運行中
-            const nextStageKey = stageKeys[stage - 1];
-            newStages[nextStageKey] = {
-              ...newStages[nextStageKey],
-              status: 'running',
-              startTime: new Date()
-            };
-          } else {
-            // 所有階段完成
-            clearInterval(interval);
-            setProgressInterval(null);
-            
-            return {
-              ...prevState,
-              currentStage: 3 as const,
-              overallProgress: 100,
-              stageProgress: 100,
-              status: 'completed',
-              stages: newStages,
-              canCancel: false,
-              timing: {
-                ...prevState.timing,
-                estimatedRemainingTime: 0
-              }
-            };
-          }
-
-          return {
-            ...prevState,
-            currentStage: stage as 1 | 2 | 3,
-            stageProgress,
-            stages: newStages,
-            timing: {
-              ...prevState.timing,
-              currentStageStartTime: new Date()
-            }
-          };
-        }
-
-        // 計算整體進度
-        const stageWeights = [18, 22, 17]; // SERP, Crawler, AI 權重
-        const totalWeight = 57;
-        let completedWeight = 0;
-        
-        for (let i = 0; i < stage - 1; i++) {
-          completedWeight += stageWeights[i];
-        }
-        
-        const currentStageWeight = (stageWeights[stage - 1] * stageProgress) / 100;
-        overallProgress = ((completedWeight + currentStageWeight) / totalWeight) * 100;
-
-        // 計算剩餘時間
-        const elapsed = (Date.now() - prevState.timing.startTime.getTime()) / 1000;
-        const estimatedTotal = elapsed / (overallProgress / 100);
-        const estimatedRemaining = Math.max(0, estimatedTotal - elapsed);
-
-        return {
-          ...prevState,
-          stageProgress: Math.min(100, stageProgress),
-          overallProgress: Math.min(100, overallProgress),
-          timing: {
-            ...prevState.timing,
-            estimatedRemainingTime: estimatedRemaining
-          }
-        };
-      });
-    }, 500); // 每 500ms 更新一次
-
-    setProgressInterval(interval);
-  };
+  // 轉換表單資料為 API 請求格式
+  const convertFormDataToRequest = (formData: AnalyzeFormData): AnalyzeRequest => ({
+    keyword: formData.keyword,
+    audience: formData.audience,
+    options: formData.options
+  })
 
   // 處理分析取消
   const handleAnalysisCancel = async () => {
-    if (progressInterval) {
-      clearInterval(progressInterval);
-      setProgressInterval(null);
+    try {
+      await analysisHook.controls.cancel()
+      console.log('分析已取消')
+    } catch (error) {
+      const errorResult = handleError(error)
+      console.error('取消分析失敗:', errorResult.userMessage)
+      setAppState(prev => ({ ...prev, error: errorResult.userMessage }))
     }
-
-    setProgressState(prev => prev ? {
-      ...prev,
-      status: 'cancelled',
-      canCancel: false
-    } : null);
-
-    setIsAnalyzing(false);
-    console.log('分析已取消');
-  };
+  }
 
   // 處理表單提交
   const handleAnalysisSubmit = async (data: AnalyzeFormData) => {
     try {
-      setIsAnalyzing(true);
-      console.log('提交分析請求:', data);
+      // 清除之前的錯誤
+      setAppState(prev => ({ ...prev, error: null }))
       
-      // 創建進度狀態
-      const jobId = `job_${Date.now()}`;
-      const initialProgress = createInitialProgressState(jobId);
-      setProgressState(initialProgress);
-
-      // 開始模擬進度
-      simulateProgress();
+      // 轉換表單資料為 API 請求格式
+      const request = convertFormDataToRequest(data)
+      
+      console.log('提交分析請求:', request)
+      
+      // 使用真實的分析 Hook 啟動分析
+      await analysisHook.controls.start(request)
       
     } catch (error) {
-      console.error('分析失敗:', error);
-      setProgressState(prev => prev ? {
-        ...prev,
-        status: 'error',
-        canCancel: false
-      } : null);
-      setIsAnalyzing(false);
-      throw error;
+      console.error('分析啟動失敗:', error)
+      const errorResult = handleError(error)
+      setAppState(prev => ({ ...prev, error: errorResult.userMessage }))
+      throw error
     }
-  };
+  }
 
   // 處理表單重置
   const handleFormReset = () => {
-    if (progressInterval) {
-      clearInterval(progressInterval);
-      setProgressInterval(null);
-    }
-    
-    setIsAnalyzing(false);
-    setProgressState(null);
-    console.log('表單已重置');
-  };
+    analysisHook.controls.reset()
+    setAppState(prev => ({ ...prev, error: null }))
+    console.log('表單已重置')
+  }
 
   // 全域載入畫面
   if (appState.isLoading) {
@@ -500,7 +380,7 @@ function App() {
                       onSubmit={handleAnalysisSubmit}
                       onReset={handleFormReset}
                       isSubmitting={isAnalyzing}
-                      estimatedTime={60}
+                      analysisStatus={analysisHook.status}
                     />
                   </div>
                 )}
@@ -516,9 +396,9 @@ function App() {
                         showProgressBar: true,
                         showStageIndicator: true,
                         showTimeEstimator: true,
-                        showCancelButton: true,
+                        showCancelButton: analysisHook.canCancel,
                         showSubtasks: progressState.status === 'completed',
-                        timeEstimatorVariant: progressState.status === 'running' ? 'detailed' : 'compact'
+                        timeEstimatorVariant: analysisHook.isRunning ? 'detailed' : 'compact'
                       }}
                     />
                   </div>
@@ -527,25 +407,28 @@ function App() {
                 {/* 測試控制區域 (開發模式) */}
                 {isDevelopment() && progressState && (
                   <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-4">🧪 進度測試控制</h4>
+                    <h4 className="font-semibold mb-4">🧪 分析控制面板</h4>
                     <div className="flex flex-wrap gap-2 mb-4">
                       <button 
-                        onClick={() => setProgressState(prev => prev ? {...prev, status: 'running'} : null)}
-                        className="btn bg-blue-600 text-white hover:bg-blue-700 text-sm px-3 py-1"
+                        onClick={() => analysisHook.controls.pause()}
+                        disabled={!analysisHook.canPause}
+                        className="btn bg-yellow-600 text-white hover:bg-yellow-700 disabled:opacity-50 text-sm px-3 py-1"
                       >
-                        設為運行中
+                        暫停分析
                       </button>
                       <button 
-                        onClick={() => setProgressState(prev => prev ? {...prev, status: 'completed'} : null)}
-                        className="btn bg-green-600 text-white hover:bg-green-700 text-sm px-3 py-1"
+                        onClick={() => analysisHook.controls.resume()}
+                        disabled={!analysisHook.canResume}
+                        className="btn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 text-sm px-3 py-1"
                       >
-                        設為完成
+                        恢復分析
                       </button>
                       <button 
-                        onClick={() => setProgressState(prev => prev ? {...prev, status: 'error'} : null)}
-                        className="btn bg-red-600 text-white hover:bg-red-700 text-sm px-3 py-1"
+                        onClick={() => analysisHook.controls.retry()}
+                        disabled={!analysisHook.isError}
+                        className="btn bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 text-sm px-3 py-1"
                       >
-                        模擬錯誤
+                        重試分析
                       </button>
                       <button 
                         onClick={handleFormReset}
@@ -555,11 +438,17 @@ function App() {
                       </button>
                     </div>
                     
-                    <div className="text-sm text-gray-600">
-                      <div>當前狀態: <span className="font-mono">{progressState.status}</span></div>
-                      <div>整體進度: <span className="font-mono">{progressState.overallProgress.toFixed(1)}%</span></div>
-                      <div>當前階段: <span className="font-mono">{progressState.currentStage}</span></div>
-                      <div>任務 ID: <span className="font-mono">{progressState.jobId}</span></div>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div>分析狀態: <span className="font-mono">{analysisHook.status}</span></div>
+                      <div>整體進度: <span className="font-mono">{analysisHook.progress?.overallProgress?.toFixed(1) || '0.0'}%</span></div>
+                      <div>階段進度: <span className="font-mono">{analysisHook.progress?.stageProgress?.toFixed(1) || '0.0'}%</span></div>
+                      <div>WebSocket: <span className="font-mono">{analysisHook.websocketStatus}</span></div>
+                      {analysisHook.jobId && <div>任務 ID: <span className="font-mono">{analysisHook.jobId}</span></div>}
+                      {analysisHook.error && (
+                        <div className="text-red-600">
+                          錯誤: <span className="font-mono">{analysisHook.error}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -574,6 +463,11 @@ function App() {
                     <div>版本: {config.app.version}</div>
                     <div>API 端點: {config.api.baseUrl}</div>
                     <div>連線狀態: {appState.isOnline ? '線上' : '離線'}</div>
+                    <div>分析狀態: {analysisHook.status}</div>
+                    <div>WebSocket 狀態: {analysisHook.websocketStatus}</div>
+                    <div>統計 - 重連次數: {analysisHook.statistics.reconnectAttempts}</div>
+                    <div>統計 - 輪詢次數: {analysisHook.statistics.pollCount}</div>
+                    {hasError && <div className="text-red-600">錯誤: {hasError}</div>}
                   </div>
                 </div>
               )}

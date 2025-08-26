@@ -1,7 +1,7 @@
 // 進度追蹤類型定義
 import type { StageInfo } from './stageTypes';
 
-export type ProgressStatus = 'idle' | 'running' | 'completed' | 'error' | 'cancelled';
+export type ProgressStatus = 'idle' | 'starting' | 'running' | 'paused' | 'completed' | 'error' | 'cancelled';
 
 export type StageType = 'serp' | 'crawler' | 'ai';
 

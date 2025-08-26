@@ -9,15 +9,18 @@ import type {
 } from '@/types/api'
 import type { ProgressUpdate } from '@/types/progress'
 
+// Mock ApiClient
+const mockApiClient = {
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
+  patch: vi.fn()
+}
+
 // Mock dependencies
 vi.mock('./useApiClient', () => ({
-  useApiClient: () => ({
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-    patch: vi.fn()
-  })
+  useApiClient: () => mockApiClient
 }))
 
 vi.mock('./useErrorHandling', () => ({
@@ -70,26 +73,9 @@ class MockWebSocket {
 global.WebSocket = MockWebSocket
 
 describe('useAnalysis', () => {
-  let mockApiClient: {
-    get: ReturnType<typeof vi.fn>
-    post: ReturnType<typeof vi.fn>
-    put: ReturnType<typeof vi.fn>
-    delete: ReturnType<typeof vi.fn>
-    patch: ReturnType<typeof vi.fn>
-  }
-
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(Date, 'now').mockReturnValue(1234567890000)
-    
-    // Reset mockApiClient before each test
-    mockApiClient = {
-      get: vi.fn(),
-      post: vi.fn(),
-      put: vi.fn(),
-      delete: vi.fn(),
-      patch: vi.fn()
-    }
   })
 
   const mockRequest: AnalyzeRequest = {

@@ -310,16 +310,16 @@ describe('useErrorHandling', () => {
     })
 
     it('應該正確計算錯誤率', () => {
-      const { result } = renderHook(() => useErrorHandling({ maxErrorHistory: 10 }))
+      const { result } = renderHook(() => useErrorHandling({ maxErrorHistory: 100 }))
 
       act(() => {
-        // 添加 5 個錯誤（錯誤率應該是 5/10 = 0.5）
+        // 添加 5 個錯誤（錯誤率應該是 5/100 = 0.05，因為分母是 max(100, errorCount)）
         for (let i = 0; i < 5; i++) {
           result.current.handleError(new Error(`Error ${i}`))
         }
       })
 
-      expect(result.current.statistics.errorRate).toBe(0.5)
+      expect(result.current.statistics.errorRate).toBe(0.05)
     })
 
     it('應該能夠標記錯誤為已解決並計算平均恢復時間', () => {

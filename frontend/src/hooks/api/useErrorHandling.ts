@@ -421,6 +421,48 @@ export const useErrorHandling = (config: ErrorHandlingConfig = {}) => {
   })
 
   /**
+   * 更新錯誤統計
+   */
+  const updateStatistics = useCallback(() => {
+    const history = errorHistoryRef.current
+    const recentHistory = history.slice(-100) // 最近 100 個錯誤
+
+    const errorsByType: Record<string, number> = {}
+    const errorsBySeverity: Record<string, number> = {}
+    let totalResolutionTime = 0
+    let resolvedCount = 0
+
+    recentHistory.forEach(record => {
+      // 按類型統計
+      errorsByType[record.classification.type] = (errorsByType[record.classification.type] || 0) + 1
+      
+      // 按嚴重程度統計
+      errorsBySeverity[record.classification.severity] = (errorsBySeverity[record.classification.severity] || 0) + 1
+      
+      // 計算恢復時間
+      if (record.resolved && record.resolutionTime) {
+        totalResolutionTime += record.resolutionTime
+        resolvedCount++
+      }
+    })
+
+    // 找出最常見的錯誤
+    const mostCommonError = Object.entries(errorsByType).reduce(
+      (max, [type, count]) => count > max.count ? { type, count } : max,
+      { type: '', count: 0 }
+    ).type || null
+
+    setStatistics({
+      totalErrors: history.length,
+      errorsByType,
+      errorsBySeverity,
+      mostCommonError,
+      errorRate: recentHistory.length / Math.max(100, recentHistory.length),
+      averageRecoveryTime: resolvedCount > 0 ? totalResolutionTime / resolvedCount : 0
+    })
+  }, [])
+
+  /**
    * 處理錯誤的主要函數
    */
   const handleError = useCallback((error: unknown): ErrorHandlingResult => {
@@ -466,48 +508,6 @@ export const useErrorHandling = (config: ErrorHandlingConfig = {}) => {
       errorId
     }
   }, [finalConfig, updateStatistics])
-
-  /**
-   * 更新錯誤統計
-   */
-  const updateStatistics = useCallback(() => {
-    const history = errorHistoryRef.current
-    const recentHistory = history.slice(-100) // 最近 100 個錯誤
-
-    const errorsByType: Record<string, number> = {}
-    const errorsBySeverity: Record<string, number> = {}
-    let totalResolutionTime = 0
-    let resolvedCount = 0
-
-    recentHistory.forEach(record => {
-      // 按類型統計
-      errorsByType[record.classification.type] = (errorsByType[record.classification.type] || 0) + 1
-      
-      // 按嚴重程度統計
-      errorsBySeverity[record.classification.severity] = (errorsBySeverity[record.classification.severity] || 0) + 1
-      
-      // 計算恢復時間
-      if (record.resolved && record.resolutionTime) {
-        totalResolutionTime += record.resolutionTime
-        resolvedCount++
-      }
-    })
-
-    // 找出最常見的錯誤
-    const mostCommonError = Object.entries(errorsByType).reduce(
-      (max, [type, count]) => count > max.count ? { type, count } : max,
-      { type: '', count: 0 }
-    ).type || null
-
-    setStatistics({
-      totalErrors: history.length,
-      errorsByType,
-      errorsBySeverity,
-      mostCommonError,
-      errorRate: recentHistory.length / Math.max(100, recentHistory.length),
-      averageRecoveryTime: resolvedCount > 0 ? totalResolutionTime / resolvedCount : 0
-    })
-  }, [])
 
   /**
    * 標記錯誤為已解決

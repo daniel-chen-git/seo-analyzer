@@ -1,72 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getRetryDelay, isRetryableError, getErrorCode } from './ErrorMessage';
-
-// 重試策略
-export type RetryStrategy = 'immediate' | 'exponential' | 'fixed' | 'custom';
-
-// 重試配置
-export interface RetryConfig {
-  maxRetries: number;
-  strategy: RetryStrategy;
-  baseDelay: number;
-  maxDelay: number;
-  backoffFactor: number;
-  jitter: boolean;
-}
-
-// 重試狀態
-export interface RetryState {
-  attempt: number;
-  nextRetryIn: number;
-  isRetrying: boolean;
-  canRetry: boolean;
-  lastAttemptAt?: Date;
-  totalElapsed: number;
-}
-
-// 預設配置
-const DEFAULT_CONFIGS: Record<string, RetryConfig> = {
-  'NETWORK_ERROR': {
-    maxRetries: 3,
-    strategy: 'exponential',
-    baseDelay: 1000,
-    maxDelay: 10000,
-    backoffFactor: 2,
-    jitter: true
-  },
-  'CONNECTION_TIMEOUT': {
-    maxRetries: 2,
-    strategy: 'fixed',
-    baseDelay: 5000,
-    maxDelay: 15000,
-    backoffFactor: 1,
-    jitter: false
-  },
-  'API_ERROR_500': {
-    maxRetries: 2,
-    strategy: 'exponential',
-    baseDelay: 2000,
-    maxDelay: 20000,
-    backoffFactor: 3,
-    jitter: true
-  },
-  'API_ERROR_429': {
-    maxRetries: 1,
-    strategy: 'fixed',
-    baseDelay: 60000,
-    maxDelay: 60000,
-    backoffFactor: 1,
-    jitter: false
-  },
-  'WEBSOCKET_CONNECTION_FAILED': {
-    maxRetries: 5,
-    strategy: 'exponential',
-    baseDelay: 1000,
-    maxDelay: 30000,
-    backoffFactor: 1.5,
-    jitter: true
-  }
-};
+import { isRetryableError, getErrorCode } from './errorMessageUtils';
+import type { RetryConfig, RetryState } from './smartRetryTypes';
+import { DEFAULT_CONFIGS } from './smartRetryUtils';
 
 export interface SmartRetryProps {
   /** 錯誤物件或錯誤代碼 */
@@ -117,9 +52,9 @@ export function SmartRetry({
     totalElapsed: 0
   });
 
-  const startTimeRef = useRef<Date>();
-  const countdownRef = useRef<NodeJS.Timeout>();
-  const retryTimeoutRef = useRef<NodeJS.Timeout>();
+  const startTimeRef = useRef<Date | null>(null);
+  const countdownRef = useRef<number | null>(null);
+  const retryTimeoutRef = useRef<number | null>(null);
 
   // 獲取錯誤代碼和配置
   const resolvedErrorCode = errorCode || getErrorCode(error);
@@ -472,45 +407,3 @@ export function SmartRetry({
   );
 }
 
-// 重試配置工具函數
-export function createRetryConfig(
-  errorCode: string,
-  overrides: Partial<RetryConfig> = {}
-): RetryConfig {
-  return {
-    ...DEFAULT_CONFIGS[errorCode] || DEFAULT_CONFIGS['NETWORK_ERROR'],
-    ...overrides
-  };
-}
-
-// 計算重試延遲工具函數
-export function calculateRetryDelay(
-  attempt: number,
-  strategy: RetryStrategy,
-  baseDelay: number,
-  backoffFactor: number,
-  maxDelay: number,
-  jitter: boolean = false
-): number {
-  let delay: number;
-  
-  switch (strategy) {
-    case 'immediate':
-      delay = 0;
-      break;
-    case 'exponential':
-      delay = Math.min(baseDelay * Math.pow(backoffFactor, attempt - 1), maxDelay);
-      break;
-    case 'fixed':
-      delay = baseDelay;
-      break;
-    default:
-      delay = baseDelay;
-  }
-
-  if (jitter) {
-    delay = delay + Math.random() * delay * 0.1;
-  }
-
-  return Math.min(delay, maxDelay);
-}

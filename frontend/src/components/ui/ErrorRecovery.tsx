@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ErrorCategory, ErrorSeverity, getErrorCode, isRetryableError, getRetryDelay } from './ErrorMessage';
+import { getErrorCode, getRetryDelay } from './errorMessageUtils';
 
 // 錯誤恢復選項介面
 export interface ErrorRecoveryOptions {
@@ -58,7 +58,7 @@ const RECOVERY_SUGGESTIONS: Record<string, ErrorRecoveryOptions> = {
       '聯繫管理員重置權限'
     ],
     alternativeActions: [
-      { label: '重新登入', action: () => window.location.href = '/login', icon: '🔐' },
+      { label: '重新登入', action: () => { window.location.href = '/login'; }, icon: '🔐' },
       { label: '清除快取', action: () => window.location.reload(), icon: '🧹' }
     ]
   },
@@ -82,7 +82,7 @@ const RECOVERY_SUGGESTIONS: Record<string, ErrorRecoveryOptions> = {
       '回到首頁重新開始'
     ],
     alternativeActions: [
-      { label: '回到首頁', action: () => window.location.href = '/', icon: '🏠' }
+      { label: '回到首頁', action: () => { window.location.href = '/'; }, icon: '🏠' }
     ]
   },
   'API_ERROR_429': {
@@ -215,7 +215,7 @@ export function ErrorRecovery({
 
       return () => clearInterval(timer);
     }
-  }, [showAutoRetry, recoveryOptions.canRetry, retryCount, resolvedErrorCode]);
+  }, [showAutoRetry, recoveryOptions.canRetry, recoveryOptions.retryDelay, retryCount, resolvedErrorCode, autoRetryCountdown, handleAutoRetry]);
 
   // 處理手動重試
   const handleManualRetry = useCallback(async () => {
@@ -402,19 +402,3 @@ export function ErrorRecovery({
   );
 }
 
-// 錯誤恢復建議工具函數
-export function getRecoveryOptions(errorCode?: string): ErrorRecoveryOptions {
-  return RECOVERY_SUGGESTIONS[errorCode || ''] || {
-    canRetry: false,
-    recoverySteps: ['請重新嘗試或聯繫技術支援'],
-    contactSupport: true
-  };
-}
-
-// 判斷是否應該顯示恢復建議
-export function shouldShowRecovery(error: unknown): boolean {
-  if (!error) return false;
-  
-  const errorCode = getErrorCode(error);
-  return !!(errorCode && RECOVERY_SUGGESTIONS[errorCode]);
-}

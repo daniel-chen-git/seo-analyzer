@@ -589,6 +589,67 @@ export const analyzeKeyword = async (request: AnalyzeRequest): Promise<AnalyzeRe
 - **錯誤邊界**: 實作 ErrorBoundary 元件
 - **環境變數**: 使用 VITE_ 前綴的環境變數
 
+### 🔄 Fast Refresh 最佳實踐 (2025-08-26 新增)
+為了確保 React Fast Refresh 正常運作，所有元件文件必須遵循以下規則：
+
+#### ✅ 必須遵守的規則
+1. **元件文件只能導出 React 組件**
+   - ❌ 錯誤：`export const CONFIG = {...}` 
+   - ✅ 正確：將常數移到單獨的 `constants.ts` 文件
+
+2. **類型定義移到專用文件**
+   - ❌ 錯誤：在組件文件中 `export interface Props {}`
+   - ✅ 正確：移到 `types.ts` 或使用 `interface` (不導出)
+
+3. **工具函數移到專用文件**
+   - ❌ 錯誤：在組件文件中 `export function helper() {}`
+   - ✅ 正確：移到 `utils.ts` 文件
+
+4. **Hooks 移到專用文件**
+   - ❌ 錯誤：在組件文件中 `export function useCustomHook() {}`
+   - ✅ 正確：移到 `hooks.ts` 文件
+
+#### 📁 文件組織結構範例
+```
+components/ui/
+├── Button.tsx              # 只導出 Button 組件
+├── buttonTypes.ts          # Button 相關類型
+├── buttonUtils.ts          # Button 工具函數
+└── buttonHooks.ts          # Button 相關 Hooks
+```
+
+#### 🛠️ 已修復的文件 (Phase 3.2 Step 3)
+- **ConfirmDialog.tsx** → 分離為：
+  - `dialogConstants.ts` - 預設對話框配置
+  - `dialogUtils.ts` - 工具函數  
+  - `dialogHooks.ts` - useConfirmDialog Hook
+- **ErrorMessage.tsx** → 分離為：
+  - `errorConstants.ts` - 錯誤類型常數
+  - `errorMessageUtils.ts` - 工具函數和錯誤映射
+- **SmartRetry.tsx** → 分離為：
+  - `smartRetryTypes.ts` - 重試相關類型
+  - `smartRetryUtils.ts` - 工具函數
+- **Toast.tsx** → 分離為：
+  - `toastTypes.ts` - Toast 相關類型
+  - `toastHooks.ts` - useToast Hook
+  - `toastUtils.ts` - 工具函數
+- **ErrorRecovery.tsx** → 分離為：
+  - `errorRecoveryUtils.ts` - 恢復選項工具
+
+#### 🎯 Fast Refresh 檢查清單
+每當創建新組件時，確保：
+- [ ] 文件只導出 React 組件和組件相關的 interface
+- [ ] 所有常數移到 `*Constants.ts` 文件  
+- [ ] 所有工具函數移到 `*Utils.ts` 文件
+- [ ] 所有 Hooks 移到 `*Hooks.ts` 文件
+- [ ] 所有類型定義移到 `*Types.ts` 文件
+- [ ] 使用正確的 TypeScript import 語法 (`import type`)
+
+這樣做可以確保：
+1. **Fast Refresh 正常運作** - 組件修改時立即更新
+2. **代碼組織更清晰** - 職責分離，易於維護
+3. **重用性更高** - 工具函數和類型可以跨組件使用
+
 ## 📊 效能最佳化策略
 1. **程式碼分割**: React.lazy() 延遲載入 MarkdownViewer
 2. **API 快取**: 相同參數的請求結果快取

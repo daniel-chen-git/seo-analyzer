@@ -1,43 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ErrorCategory, ErrorSeverity } from './ErrorMessage';
-
-// Toast 類型
-export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
-
-// Toast 位置
-export type ToastPosition = 
-  | 'top-left' | 'top-center' | 'top-right'
-  | 'bottom-left' | 'bottom-center' | 'bottom-right';
-
-// Toast 配置
-export interface ToastConfig {
-  id: string;
-  type: ToastType;
-  title?: string;
-  message: string;
-  duration?: number;
-  position?: ToastPosition;
-  dismissible?: boolean;
-  persistent?: boolean;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-  metadata?: {
-    category?: ErrorCategory;
-    severity?: ErrorSeverity;
-    timestamp?: Date;
-    errorCode?: string;
-  };
-}
-
-// Toast 狀態
-export interface ToastState extends ToastConfig {
-  isVisible: boolean;
-  isEntering: boolean;
-  isExiting: boolean;
-  progress: number;
-}
+import { useState, useEffect } from 'react';
+import type { ToastPosition, ToastState } from './toastTypes';
 
 // Toast 樣式配置
 const TOAST_STYLES = {
@@ -99,16 +61,15 @@ export interface ToastItemProps {
 export function ToastItem({ 
   toast, 
   onDismiss, 
-  onActionClick,
   animated = true 
 }: ToastItemProps) {
   const [progress, setProgress] = useState(100);
   
-  const styles = TOAST_STYLES[toast.type];
+  const styles = TOAST_STYLES[toast.type || 'info'];
   
   // 進度條動畫
   useEffect(() => {
-    if (toast.duration && toast.duration > 0 && !toast.persistent) {
+    if (toast.duration && toast.duration > 0 && !toast.isPaused) {
       const interval = setInterval(() => {
         setProgress((prev) => {
           const newProgress = prev - (100 / (toast.duration! / 100));
@@ -123,7 +84,7 @@ export function ToastItem({
 
       return () => clearInterval(interval);
     }
-  }, [toast.duration, toast.persistent, toast.id, onDismiss]);
+  }, [toast.duration, toast.isPaused, toast.id, onDismiss]);
 
   // 動畫類名
   const getAnimationClasses = () => {
@@ -134,9 +95,7 @@ export function ToastItem({
     
     let classes = 'transition-all duration-300 ease-out ';
     
-    if (toast.isEntering) {
-      classes += `opacity-0 ${slideDirection} scale-95`;
-    } else if (toast.isExiting) {
+    if (toast.isClosing) {
       classes += `opacity-0 ${slideDirection} scale-95`;
     } else {
       classes += 'opacity-100 translate-y-0 scale-100';
@@ -156,7 +115,7 @@ export function ToastItem({
       `}
     >
       {/* 頂部進度條 */}
-      {!toast.persistent && toast.duration && toast.duration > 0 && (
+      {toast.showProgress && toast.duration && toast.duration > 0 && (
         <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 rounded-t-lg overflow-hidden">
           <div
             className={`h-full ${styles.accent} transition-all duration-100 ease-linear`}
@@ -168,13 +127,15 @@ export function ToastItem({
       {/* 主要內容 */}
       <div className="flex items-start space-x-3">
         {/* 圖示 */}
-        <div className="flex-shrink-0 text-lg">
-          {toast.type === 'loading' ? (
-            <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <span>{styles.icon}</span>
-          )}
-        </div>
+        {toast.showIcon && (
+          <div className="flex-shrink-0 text-lg">
+            {toast.type === 'loading' ? (
+              <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <span>{styles.icon}</span>
+            )}
+          </div>
+        )}
 
         {/* 內容區域 */}
         <div className="flex-1 min-w-0">
@@ -188,53 +149,14 @@ export function ToastItem({
             {toast.message}
           </p>
 
-          {/* 元資訊 */}
-          {toast.metadata && (
-            <div className="mt-2 flex items-center space-x-2 text-xs opacity-75">
-              {toast.metadata.category && (
-                <span className="px-2 py-1 bg-white bg-opacity-50 rounded">
-                  {toast.metadata.category}
-                </span>
-              )}
-              {toast.metadata.severity && (
-                <span className={`px-2 py-1 rounded ${
-                  toast.metadata.severity === ErrorSeverity.CRITICAL ? 'bg-red-200' :
-                  toast.metadata.severity === ErrorSeverity.HIGH ? 'bg-orange-200' :
-                  toast.metadata.severity === ErrorSeverity.MEDIUM ? 'bg-yellow-200' :
-                  'bg-blue-200'
-                }`}>
-                  {toast.metadata.severity}
-                </span>
-              )}
-              {toast.metadata.timestamp && (
-                <span>{toast.metadata.timestamp.toLocaleTimeString()}</span>
-              )}
-            </div>
-          )}
-
-          {/* 動作按鈕 */}
-          {toast.action && (
-            <div className="mt-3">
-              <button
-                onClick={() => {
-                  toast.action!.onClick();
-                  onActionClick?.(toast.id);
-                }}
-                className={`
-                  text-sm font-medium underline hover:no-underline
-                  ${styles.text} opacity-90 hover:opacity-100
-                  transition-opacity duration-200
-                  ${animated ? 'hover:scale-105' : ''}
-                `}
-              >
-                {toast.action.label}
-              </button>
-            </div>
-          )}
+          {/* 時間戳 */}
+          <div className="mt-2 text-xs opacity-75">
+            <span>{toast.createdAt.toLocaleTimeString()}</span>
+          </div>
         </div>
 
         {/* 關閉按鈕 */}
-        {toast.dismissible !== false && (
+        {toast.closable && (
           <button
             onClick={() => onDismiss(toast.id)}
             className={`
@@ -276,7 +198,7 @@ export function ToastContainer({
 }: ToastContainerProps) {
   // 限制顯示的 toast 數量
   const visibleToasts = toasts
-    .filter(toast => toast.isVisible)
+    .filter(toast => !toast.isClosing)
     .slice(-maxToasts);
 
   if (visibleToasts.length === 0) return null;
@@ -302,166 +224,4 @@ export function ToastContainer({
       ))}
     </div>
   );
-}
-
-// Toast 管理 Hook
-export function useToast(defaultPosition: ToastPosition = 'top-right') {
-  const [toasts, setToasts] = useState<ToastState[]>([]);
-
-  // 添加 toast
-  const addToast = useCallback((config: Omit<ToastConfig, 'id'>) => {
-    const id = Math.random().toString(36).substring(2, 11);
-    const newToast: ToastState = {
-      ...config,
-      id,
-      position: config.position || defaultPosition,
-      duration: config.duration ?? (config.type === 'loading' ? 0 : 5000),
-      dismissible: config.dismissible ?? true,
-      persistent: config.persistent ?? false,
-      isVisible: true,
-      isEntering: true,
-      isExiting: false,
-      progress: 100,
-      metadata: {
-        timestamp: new Date(),
-        ...config.metadata
-      }
-    };
-
-    setToasts(prev => [...prev, newToast]);
-
-    // 入場動畫
-    setTimeout(() => {
-      setToasts(prev => 
-        prev.map(toast => 
-          toast.id === id 
-            ? { ...toast, isEntering: false }
-            : toast
-        )
-      );
-    }, 50);
-
-    return id;
-  }, [defaultPosition]);
-
-  // 移除 toast
-  const removeToast = useCallback((id: string) => {
-    setToasts(prev => 
-      prev.map(toast => 
-        toast.id === id 
-          ? { ...toast, isExiting: true }
-          : toast
-      )
-    );
-
-    // 出場動畫後完全移除
-    setTimeout(() => {
-      setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, 300);
-  }, []);
-
-  // 清除所有 toast
-  const clearToasts = useCallback(() => {
-    setToasts([]);
-  }, []);
-
-  // 更新 toast
-  const updateToast = useCallback((id: string, updates: Partial<ToastConfig>) => {
-    setToasts(prev => 
-      prev.map(toast => 
-        toast.id === id 
-          ? { ...toast, ...updates }
-          : toast
-      )
-    );
-  }, []);
-
-  // 便利方法
-  const success = useCallback((message: string, options?: Partial<ToastConfig>) => {
-    return addToast({ ...options, type: 'success', message });
-  }, [addToast]);
-
-  const error = useCallback((message: string, options?: Partial<ToastConfig>) => {
-    return addToast({ ...options, type: 'error', message, duration: 8000 });
-  }, [addToast]);
-
-  const warning = useCallback((message: string, options?: Partial<ToastConfig>) => {
-    return addToast({ ...options, type: 'warning', message });
-  }, [addToast]);
-
-  const info = useCallback((message: string, options?: Partial<ToastConfig>) => {
-    return addToast({ ...options, type: 'info', message });
-  }, [addToast]);
-
-  const loading = useCallback((message: string, options?: Partial<ToastConfig>) => {
-    return addToast({ 
-      ...options, 
-      type: 'loading', 
-      message, 
-      persistent: true, 
-      dismissible: false 
-    });
-  }, [addToast]);
-
-  return {
-    toasts,
-    addToast,
-    removeToast,
-    clearToasts,
-    updateToast,
-    success,
-    error,
-    warning,
-    info,
-    loading
-  };
-}
-
-// Toast 工具函數
-export function createErrorToast(
-  error: Error | string,
-  errorCode?: string,
-  options?: Partial<ToastConfig>
-): Omit<ToastConfig, 'id'> {
-  const message = error instanceof Error ? error.message : error;
-  
-  return {
-    type: 'error',
-    title: '發生錯誤',
-    message,
-    duration: 8000,
-    metadata: {
-      errorCode,
-      category: errorCode ? ErrorCategory.SYSTEM : undefined,
-      severity: ErrorSeverity.HIGH,
-      timestamp: new Date()
-    },
-    ...options
-  };
-}
-
-export function createSuccessToast(
-  message: string,
-  options?: Partial<ToastConfig>
-): Omit<ToastConfig, 'id'> {
-  return {
-    type: 'success',
-    title: '操作成功',
-    message,
-    duration: 3000,
-    ...options
-  };
-}
-
-export function createWarningToast(
-  message: string,
-  options?: Partial<ToastConfig>
-): Omit<ToastConfig, 'id'> {
-  return {
-    type: 'warning',
-    title: '注意',
-    message,
-    duration: 5000,
-    ...options
-  };
 }

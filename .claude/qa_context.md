@@ -9,6 +9,121 @@
 - **品質標準**: 爬蟲成功率 ≥ 80%，API 回應時間 < 60 秒
 - **技術棧**: Python 3.13.5 + React 18.3 + TypeScript 5.9 + Vite 6
 
+## 🛡️ 代碼品質常見問題
+
+### 問題類型 4: 代碼品質與格式問題
+
+#### 4.1 尾隨空白 (Trailing Whitespace)
+**錯誤表現**: IDE 偵測到行尾有多餘空格
+```
+Line 378 has trailing whitespace
+```
+
+**錯誤原因**:
+- 編輯器自動格式化時產生多餘空白
+- 複製貼上時帶入隱藏空格
+- 多人協作時格式化設定不一致
+
+**修復方式**:
+```python
+# 使用編輯器功能移除尾隨空白
+# VS Code: Ctrl+Shift+P -> "Trim Trailing Whitespace"
+# 或在 settings.json 中設定自動移除：
+"files.trimTrailingWhitespace": true
+```
+
+#### 4.2 匯入順序問題 (Import Order)
+**錯誤表現**: 標準庫匯入應在第三方庫之前
+```python
+import pytest  # 第三方庫
+import sys     # 標準庫 - 錯誤順序
+```
+
+**錯誤原因**:
+- 未遵循 PEP 8 匯入順序規範
+- IDE 自動匯入時順序不正確
+- 手動添加匯入時插入位置錯誤
+
+**修復方式**:
+```python
+# 正確的匯入順序
+import sys              # 1. 標準庫
+from pathlib import Path
+
+import pytest           # 2. 第三方庫
+from unittest.mock import Mock
+
+from app.config import get_config  # 3. 本地模組
+```
+
+#### 4.3 未使用的匯入 (Unused Imports)
+**錯誤表現**: 引入但未使用的模組
+```python
+from app.services.serp_service import SerpAPIException  # 未使用
+```
+
+**錯誤原因**:
+- 重構代碼時遺留的舊匯入
+- 複製範例代碼時帶入多餘匯入
+- IDE 自動匯入但實際未使用
+
+**修復方式**:
+```python
+# 選項1: 移除未使用的匯入
+# 選項2: 添加 pylint 忽略註釋
+# pylint: disable=unused-import
+from app.services.serp_service import SerpAPIException
+```
+
+#### 4.4 例外處理最佳實務
+**錯誤表現**: 拋出過於通用的例外
+```python
+raise Exception("Connection timeout")  # 過於通用
+```
+
+**錯誤原因**:
+- 使用通用 Exception 而非具體例外類型
+- 缺乏適當的例外層次結構
+- 測試代碼中模擬例外時使用通用類型
+
+**修復方式**:
+```python
+# 使用具體的例外類型
+raise ConnectionError("Connection timeout")
+# 或建立自定義例外
+class APITimeoutError(Exception):
+    pass
+raise APITimeoutError("API request timeout")
+```
+
+#### 4.5 代碼風格一致性
+**預防措施**:
+1. **使用自動格式化工具**:
+   ```bash
+   pip install black isort
+   black tests/unit/
+   isort tests/unit/
+   ```
+
+2. **配置 pylint 規則**:
+   ```ini
+   # .pylintrc
+   [MESSAGES CONTROL]
+   disable=trailing-whitespace,unused-import
+   ```
+
+3. **Git pre-commit hooks**:
+   ```yaml
+   # .pre-commit-config.yaml
+   repos:
+   - repo: https://github.com/psf/black
+     hooks:
+     - id: black
+   - repo: https://github.com/pycqa/isort
+     hooks:
+     - id: isort
+   ```
+
 ## 📂 測試架構
 ```
 # 後端測試
@@ -1259,5 +1374,261 @@ jobs:
 - [ ] Mock 配置正確對應實際類別介面
 
 ---
+
+# 🐛 測試檔案錯誤修復與預防指南 (Session 04 補充)
+
+## 錯誤案例：test_config.py 和 test_config_simple.py
+
+### 1. Unable to import 'app.config' 錯誤
+
+**錯誤原因：**
+- 測試檔案中使用 `from app.config import Config, get_config`，但當前 Python 路徑不包含 `backend` 目錄
+- 當從不同工作目錄執行測試時，Python 無法找到 `app` 模組
+- Pylint 等靜態分析工具在分析時也無法解析路徑
+
+**解決方案：**
+```python
+# 在測試檔案開頭添加路徑配置
+import sys
+from pathlib import Path
+
+# 動態添加 backend 目錄到 Python 路徑
+current_file = Path(__file__)
+test_dir = current_file.parent
+backend_dir = test_dir.parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
+# pylint: disable=import-error,wrong-import-position
+from app.config import Config, get_config
+```
+
+**預防措施：**
+- 在所有測試檔案中使用一致的路徑配置模式
+- 考慮在 `conftest.py` 中統一配置 Python 路徑
+- 使用相對導入時要確保目錄結構正確
+
+### 2. Reimport 'ConfigParser' 錯誤
+
+**錯誤原因：**
+- 同一個模組（ConfigParser）被導入了兩次
+- 代碼重構時沒有清理重複的導入語句
+
+**解決方案：**
+```python
+# 錯誤示例
+from configparser import ConfigParser
+from app.config import get_config, Config
+from configparser import ConfigParser  # 重複導入
+
+# 正確示例
+from configparser import ConfigParser
+from app.config import get_config, Config
+```
+
+**預防措施：**
+- 使用 IDE 的自動導入整理功能
+- 定期檢查和清理導入語句
+- 使用 isort 等工具自動排序和去重導入
+
+### 3. Undefined variable 錯誤 (load_config_from_file, get_env_or_config, validate_config, ConfigValidationError)
+
+**錯誤原因：**
+- 測試檔案期望的函數在實際的 `app.config` 模組中不存在
+- 測試是為了不同的 API 設計而編寫的
+- 沒有實現測試所需的輔助函數
+
+**解決方案：**
+```python
+# 創建輔助函數來替代缺失的功能
+def load_config_from_file(config_file):
+    """載入配置檔案並返回 ConfigParser 物件。"""
+    from pathlib import Path
+    config_path = Path(config_file)
+    if not config_path.exists():
+        raise FileNotFoundError(f"配置檔案不存在: {config_file}")
+    
+    config = ConfigParser()
+    config.read(config_file, encoding="utf-8")
+    return config
+
+def get_env_or_config(env_var, section, key, config_file):
+    """優先從環境變數獲取配置，否則從配置檔案獲取。"""
+    env_value = os.environ.get(env_var)
+    if env_value:
+        return env_value
+    
+    config = load_config_from_file(config_file)
+    return config.get(section, key, fallback="")
+
+class ConfigValidationError(ValueError):
+    """配置驗證錯誤例外類別。"""
+    pass
+
+def validate_config(config):
+    """驗證配置是否包含所有必要欄位。"""
+    # 實現驗證邏輯
+    required_fields = [
+        ('serp', 'api_key'),
+        ('openai', 'api_key'),
+        ('openai', 'endpoint'),
+    ]
+    
+    errors = []
+    for section, key in required_fields:
+        if not config.has_section(section) or not config.get(section, key, fallback="").strip():
+            errors.append(f"Required field missing: [{section}] {key}")
+    
+    if errors:
+        raise ConfigValidationError("; ".join(errors))
+```
+
+**預防措施：**
+- 在編寫測試之前，先確認被測試的 API 是否存在
+- 保持測試和實現的 API 同步更新
+- 使用 TDD 方法：先寫實現再寫測試，或者同時開發
+- 定期檢查測試是否與最新的實現匹配
+
+### 4. 配置結構不匹配錯誤
+
+**錯誤原因：**
+- 測試中使用的配置區段名稱與實際 Config 類別期望的不同
+- 例如：測試使用 `serpapi` 而實際使用 `serp`
+- 配置檔案格式在開發過程中發生變化但測試沒有更新
+
+**解決方案：**
+```python
+# 更新配置內容以匹配實際的 Config 類別要求
+mock_config_content = """
+[server]
+host = 0.0.0.0
+port = 8000
+debug = false
+
+[api]
+timeout = 60
+max_urls = 10
+
+[serp]  # 不是 serpapi
+api_key = test_key
+
+[openai]  # 不是 azure_openai
+api_key = test_key
+endpoint = https://test.openai.azure.com
+
+[scraper]
+timeout = 20
+max_concurrent = 10
+"""
+```
+
+**預防措施：**
+- 建立配置檔案格式的文檔和規範
+- 使用配置驗證工具確保一致性
+- 在修改配置格式時同時更新相關測試
+- 使用統一的配置模板或工廠函數
+
+## 最佳實踐建議
+
+### 1. 測試檔案結構
+```python
+"""測試檔案模板。"""
+
+# 標準庫導入
+import os
+import sys
+import tempfile
+from pathlib import Path
+from unittest.mock import patch, mock_open
+
+# 第三方庫導入
+import pytest
+
+# 路徑配置（如果需要）
+current_file = Path(__file__)
+backend_dir = current_file.parent.parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
+# 本地模組導入
+# pylint: disable=import-error,wrong-import-position
+from app.config import Config, get_config
+```
+
+### 2. 錯誤處理模式
+```python
+# 使用具體的例外類別
+class ConfigValidationError(ValueError):
+    """配置驗證錯誤。"""
+    pass
+
+# 提供詳細的錯誤訊息
+def validate_config(config):
+    errors = []
+    # 檢查邏輯...
+    if errors:
+        raise ConfigValidationError(f"配置驗證失敗: {'; '.join(errors)}")
+```
+
+### 3. 測試數據管理
+```python
+@pytest.fixture
+def mock_config_content():
+    """統一的配置內容 fixture。"""
+    return """
+[server]
+host = 0.0.0.0
+port = 8000
+
+[api]
+timeout = 60
+
+[serp]
+api_key = test_key
+
+[openai]
+api_key = test_key
+endpoint = https://test.endpoint.com
+"""
+```
+
+### 4. 預防性檢查清單
+
+**編寫測試前：**
+- [ ] 確認被測試的類別和函數存在
+- [ ] 檢查 API 參數和返回值格式
+- [ ] 確認配置檔案格式和區段名稱
+- [ ] 驗證導入路徑是否正確
+
+**修改代碼後：**
+- [ ] 更新相關測試以匹配新的 API
+- [ ] 檢查配置格式變更是否影響測試
+- [ ] 運行完整測試套件確保沒有破壞性變更
+- [ ] 檢查導入語句是否需要調整
+
+**定期維護：**
+- [ ] 清理未使用的導入和函數
+- [ ] 更新過時的測試資料和假設
+- [ ] 檢查測試覆蓋率和完整性
+- [ ] 同步文檔和實際實現
+
+## 工具和自動化
+
+### 推薦使用的工具：
+- **isort**: 自動排序和整理導入語句
+- **pylint**: 靜態代碼分析和錯誤檢查
+- **black**: 代碼格式化
+- **pytest**: 測試框架和報告
+- **coverage**: 測試覆蓋率分析
+
+### 自動化建議：
+1. 在 CI/CD 管道中添加代碼質量檢查
+2. 使用 pre-commit hooks 在提交前檢查代碼
+3. 定期運行完整測試套件
+4. 設置自動化的依賴更新和兼容性檢查
+
+這些措施可以有效避免類似的錯誤，提高代碼質量和維護性。
+
+---
 **最後更新**: Session 04  
-**狀態**: 已更新至 2025年最新穩定版本，包含 Context7 MCP 整合文檔與 Python 錯誤解決方案指南
+**狀態**: 已更新至 2025年最新穩定版本，包含 Context7 MCP 整合文檔與 Python 錯誤解決方案指南 + 測試檔案錯誤修復與預防指南

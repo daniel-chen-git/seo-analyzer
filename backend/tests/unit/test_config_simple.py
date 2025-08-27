@@ -3,10 +3,22 @@
 測試現有的 Config 類別功能。
 """
 
-import pytest
-import tempfile
 import os
+import sys
+import tempfile
 from pathlib import Path
+
+import pytest
+
+# 確保可以從不同的工作目錄執行測試
+# 動態添加 backend 目錄到 Python 路徑
+current_file = Path(__file__)
+test_dir = current_file.parent
+backend_dir = test_dir.parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
+# pylint: disable=import-error,wrong-import-position
 from app.config import Config, get_config
 
 
@@ -17,7 +29,7 @@ class TestConfigSimple:
         """測試配置初始化。"""
         # Act
         config = get_config()
-        
+
         # Assert
         assert isinstance(config, Config)
         assert hasattr(config, '_config')
@@ -61,16 +73,16 @@ user_agent = Test-Agent
 retry_delay = 1.0
 """)
             temp_file = f.name
-        
+
         try:
             # Act
             config = Config(temp_file)
-            
+
             # Assert
             assert config.get_server_host() == "127.0.0.1"
             assert config.get_server_port() == 9000
             assert config.get_server_debug() is True
-            
+
         finally:
             os.unlink(temp_file)
 
@@ -78,29 +90,29 @@ retry_delay = 1.0
         """測試預設值。"""
         # Arrange & Act
         config = get_config()
-        
+
         # Assert - 測試一些基本的預設值
         assert isinstance(config.get_server_host(), str)
         assert isinstance(config.get_server_port(), int)
         assert isinstance(config.get_server_debug(), bool)
-        
+
     def test_config_type_conversion(self):
         """測試型別轉換。"""
         # Arrange - 使用現有配置檔案測試
         config = get_config()
-        
+
         # Assert - 測試型別轉換
         assert isinstance(config.get_server_host(), str)
         assert isinstance(config.get_server_port(), int)
         assert isinstance(config.get_server_debug(), bool)
-        assert isinstance(config.get_api_timeout(), int) 
+        assert isinstance(config.get_api_timeout(), int)
         assert isinstance(config.get_scraper_timeout(), float)
-            
+
     def test_config_file_not_found(self):
         """測試配置檔案不存在的處理。"""
         # Arrange
         non_existent_file = "/non/existent/config.ini"
-        
+
         # Act & Assert
         with pytest.raises(FileNotFoundError):
             Config(non_existent_file)

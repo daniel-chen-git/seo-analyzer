@@ -1,13 +1,270 @@
 # QA 測試上下文
 
-## 最後更新：2025-08-27 11:30
+## 最後更新：2025-08-27 14:00
 ## 負責人：QA Engineer  
 ## 當前 Session：#4
+## 重要更新：新增正確的測試開發流程
 
 ## 🎯 測試目標與策略
 - **總體目標**: 確保 SEO Analyzer 在 60 秒內穩定產出高質量報告
 - **品質標準**: 爬蟲成功率 ≥ 80%，API 回應時間 < 60 秒
 - **技術棧**: Python 3.13.5 + React 18.3 + TypeScript 5.9 + Vite 6
+
+## 📋 正確的測試開發流程 (2025年最佳實務)
+
+### 🚨 **重要原則：先檢查，後測試**
+
+#### ❌ **錯誤流程** (避免使用)
+```mermaid
+graph TD
+    A[寫測試程式] --> B[直接執行測試]
+    B --> C[發現語法錯誤]
+    C --> D[修正錯誤]
+    D --> B
+    B --> E[發現匯入錯誤]
+    E --> F[修正匯入]
+    F --> B
+    B --> G[發現邏輯錯誤]
+    G --> H[調整程式]
+    H --> B
+```
+**問題：浪費大量時間在反覆修正明顯錯誤**
+
+#### ✅ **正確流程** (必須遵守)
+```mermaid
+graph TD
+    A[寫測試程式] --> B[語法檢查]
+    B --> C[修正語法錯誤]
+    C --> D[匯入檢查]
+    D --> E[修正匯入錯誤]
+    E --> F[靜態分析檢查]
+    F --> G[修正所有警告]
+    G --> H[確認程式碼無錯誤]
+    H --> I[執行測試]
+    I --> J[專注於功能測試和調整]
+```
+**優勢：一次性解決靜態問題，專注於邏輯測試**
+
+### 🛠️ **詳細執行步驟**
+
+#### **第1步：寫測試程式時的思考方法**
+```python
+# 🧠 寫程式前先 THINK HARD:
+"""
+1. 我要匯入哪些模組？這些模組存在嗎？
+2. 路徑設定正確嗎？
+3. 變數名稱拼寫正確嗎？
+4. 函數參數對應正確嗎？
+5. 回傳值格式符合預期嗎？
+"""
+
+# ✅ 先確認模組存在再匯入
+try:
+    from app.services.ai_service import AIService
+except ImportError:
+    # 設定路徑再重試
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from app.services.ai_service import AIService
+```
+
+#### **第2步：語法和匯入檢查**
+```bash
+# 🔍 語法檢查 (必須通過)
+cd backend
+python -m py_compile tests/integration/test_api_endpoints.py
+
+# 🔍 匯入檢查 (必須通過)
+python -c "import tests.integration.test_api_endpoints"
+
+# 🔍 收集測試檢查 (必須通過)
+python -m pytest tests/integration/test_api_endpoints.py --collect-only
+```
+
+#### **第3步：靜態分析檢查**
+```bash
+# 🔍 Pylint 檢查 (修正所有錯誤和警告)
+pylint tests/integration/test_api_endpoints.py
+
+# 🔍 類型檢查 (如果使用 mypy)
+mypy tests/integration/test_api_endpoints.py
+
+# 🔍 IDE 診斷檢查
+# 在 VS Code 中檢查 Problems 面板，確保無紅色錯誤
+```
+
+#### **第4步：修正所有靜態問題**
+```python
+# ❌ 常見問題和修正
+# 1. 尾隨空格 - 使用編輯器自動清除
+# 2. 匯入順序 - 標準庫 → 第三方 → 本地模組
+# 3. 未使用變數 - 使用 _ 前綴或移除
+# 4. 行長度 - 拆分為多行
+# 5. Missing docstring - 添加說明文字
+```
+
+#### **第5步：確認檢查清單**
+- [ ] `python -m py_compile` 通過
+- [ ] `python -c "import module_name"` 通過
+- [ ] `pytest --collect-only` 通過
+- [ ] Pylint 分數 > 8.0 (或無錯誤)
+- [ ] IDE 無紅色錯誤提示
+- [ ] 所有警告已處理或標註忽略原因
+
+#### **第6步：執行測試**
+```bash
+# 🚀 現在才執行測試
+python -m pytest tests/integration/test_api_endpoints.py -v
+
+# 🎯 專注於功能邏輯問題
+# - 測試邏輯是否正確
+# - Mock 設定是否適當
+# - 斷言條件是否準確
+# - 效能要求是否滿足
+```
+
+### 🧠 **Think Hard 原則**
+
+#### **寫程式前思考 (Pre-Code Thinking)**
+```python
+"""
+🧠 THINK HARD:
+1. 這個測試要驗證什麼？
+2. 需要 Mock 哪些外部依賴？
+3. 輸入資料格式是什麼？
+4. 預期輸出格式是什麼？
+5. 可能的邊界情況有哪些？
+6. 效能要求是什麼？
+"""
+
+class TestAPIEndpoints:
+    """API 端點測試 - 經過深思熟慮的設計。"""
+    
+    def test_analyze_success(self):
+        # 🧠 思考：要測試成功案例
+        # 🧠 需要：mock integration service
+        # 🧠 輸入：AnalyzeRequest 物件
+        # 🧠 輸出：AnalyzeResponse 物件
+        # 🧠 驗證：狀態碼、回應格式、處理時間
+        pass
+```
+
+#### **寫每行程式碼時思考 (Line-by-Line Thinking)**
+```python
+# 🧠 THINK: 需要匯入什麼？檢查模組是否存在
+from backend.app.models.request import AnalyzeRequest
+
+# 🧠 THINK: 變數名稱拼寫正確嗎？
+response = await async_client.post(  # ✅ client, post 都對
+    "/api/analyze",                  # ✅ endpoint 正確
+    json=request.model_dump()        # ✅ Pydantic 方法正確
+)
+
+# 🧠 THINK: 回應結構是什麼？
+assert response.status_code == 200   # ✅ HTTP 狀態碼
+assert response_data["status"] == "success"  # ✅ API 回應格式
+```
+
+### 🚫 **嚴禁的反面模式**
+
+#### **反面模式 1：寫完就跑**
+```python
+# ❌ 不思考就寫，立即執行
+def test_something():
+    result = some_function()  # 拼寫錯誤
+    assert result == expected  # 變數未定義
+# 直接執行 pytest，浪費時間修正明顯錯誤
+```
+
+#### **反面模式 2：邊寫邊跑**
+```python
+# ❌ 每寫幾行就執行測試
+def test_api():
+    response = client.post("/api")  # 測試一下
+    # 發現錯誤，修正...
+    assert response.status == 200   # 再測試一下
+    # 又發現錯誤，再修正...
+```
+
+#### **反面模式 3：忽視警告**
+```python
+# ❌ 有警告但直接執行測試
+import unused_module  # Pylint警告但不管
+def test_func(arg1):  # 參數未使用但不管
+    pass
+# 直接執行，增加後續維護成本
+```
+
+### 🎯 **效益分析**
+
+#### **時間效益**
+- **錯誤流程**：平均每個測試檔案需要 5-8 輪修正
+- **正確流程**：平均每個測試檔案需要 1-2 輪修正
+- **時間節省**：60-75% 的調試時間
+
+#### **品質效益**
+- **程式碼品質**：Pylint 分數 > 8.0
+- **維護性**：清晰的程式碼結構和文檔
+- **穩定性**：減少因粗心錯誤導致的問題
+
+#### **心理效益**
+- **專注力**：專注於邏輯而非語法錯誤
+- **成就感**：一次通過帶來的滿足感
+- **信心**：對程式碼品質的信心
+
+### 📋 **檢查清單模板**
+
+```markdown
+## 測試檔案開發檢查清單
+
+### Phase 1: 設計和規劃
+- [ ] 明確測試目標和範圍
+- [ ] 確認被測試的 API 存在且了解其介面
+- [ ] 設計測試資料和 Mock 策略
+- [ ] 規劃測試案例和邊界條件
+
+### Phase 2: 程式碼撰寫
+- [ ] 使用正確的匯入順序 (標準庫 → 第三方 → 本地)
+- [ ] 添加適當的 docstring 和註釋
+- [ ] 使用描述性的變數和函數名稱
+- [ ] 遵循一致的程式碼風格
+
+### Phase 3: 靜態檢查
+- [ ] `python -m py_compile <test_file>` 通過
+- [ ] `python -c "import <test_module>"` 通過
+- [ ] `pytest --collect-only <test_file>` 通過
+- [ ] Pylint 檢查無錯誤或已標註忽略原因
+- [ ] IDE 診斷無紅色錯誤
+
+### Phase 4: 測試執行
+- [ ] 執行測試並驗證功能邏輯
+- [ ] 檢查測試覆蓋率和邊界情況
+- [ ] 驗證效能要求
+- [ ] 確認錯誤處理和異常情況
+
+### Phase 5: 程式碼審查
+- [ ] 移除未使用的匯入和變數
+- [ ] 確認測試案例的完整性
+- [ ] 驗證 Mock 設定的正確性
+- [ ] 檢查文檔和註釋的準確性
+```
+
+### 🎓 **培養習慣**
+
+#### **日常實踐**
+1. **每次寫程式前**：花 30 秒思考要做什麼
+2. **每寫 10 行程式碼**：停下來檢查語法和邏輯
+3. **每完成一個函數**：執行靜態檢查
+4. **每完成一個檔案**：執行完整檢查清單
+
+#### **長期改進**
+1. **記錄常犯錯誤**：建立個人錯誤清單
+2. **建立程式碼模板**：標準化常用結構
+3. **使用自動化工具**：pre-commit hooks, IDE 擴展
+4. **定期檢討**：分析哪些錯誤可以提前避免
+
+這個流程將大幅提高開發效率和程式碼品質，並且養成良好的程式設計習慣。
 
 ## 🛡️ 代碼品質常見問題
 

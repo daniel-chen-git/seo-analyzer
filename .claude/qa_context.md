@@ -925,6 +925,339 @@ locust_使用指南:
   pytest_asyncio: "1.1.0 (2025年7月16日發佈)"
 ```
 
+## 🐛 Python 測試常見錯誤及解決方案 (2025年最新)
+
+### ❌ 導入路徑錯誤 (Import Path Issues)
+
+#### **錯誤症狀**:
+```python
+# test_ai_service.py 中的錯誤
+from app.services.ai_service import AIService
+# ❌ Unable to import 'app.services.ai_service'
+# ❌ ModuleNotFoundError: No module named 'app'
+```
+
+#### **根本原因**:
+1. **Python 路徑未設定**: pytest 執行時找不到專案根目錄
+2. **相對路徑問題**: 測試檔案與應用程式檔案的路徑關係
+3. **缺少 `__init__.py`**: 雖然現代Python不強制要求，但某些情況下仍需要
+
+#### **解決方案** (2025年最佳實務):
+```python
+# ✅ 方案一：Try-except 回退機制 (推薦)
+try:
+    from app.services.ai_service import (
+        AIService,
+        TokenLimitExceededException,
+        AIAPIException,
+        AITimeoutException,
+        AnalysisOptions,
+        AnalysisResult,
+    )
+except ImportError:
+    # 當直接運行測試時的回退方案
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from app.services.ai_service import (
+        AIService,
+        TokenLimitExceededException,
+        AIAPIException,
+        AITimeoutException,
+        AnalysisOptions,
+        AnalysisResult,
+    )
+```
+
+```python
+# ✅ 方案二：conftest.py 路徑配置 (全域設定)
+# tests/conftest.py
+import sys
+from pathlib import Path
+
+# 添加專案根目錄到 Python 路徑
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+```
+
+```bash
+# ✅ 方案三：執行時 PYTHONPATH 設定 (CI/CD 友善)
+PYTHONPATH=/path/to/project python -m pytest tests/unit/test_ai_service.py
+```
+
+### ❌ Pylint 類別結構警告
+
+#### **錯誤症狀**:
+```python
+# Mock 類別定義
+class MockChoice:              # ❌ Missing class docstring
+    def __init__(self, content):  # ❌ Too few public methods (0/2)
+        self.message = type("Message", (), {"content": content})()
+```
+
+#### **解決方案**:
+```python
+# ✅ 添加 docstring 和 pylint 禁用註解
+class MockChoice:
+    """Mock OpenAI API Choice 對象."""  # 📝 添加類別說明
+    # pylint: disable=too-few-public-methods  # 🔇 禁用方法數量警告
+    
+    def __init__(self, content):
+        self.message = type("Message", (), {"content": content})()
+
+class MockUsage:
+    """Mock OpenAI API Usage 統計對象."""
+    # pylint: disable=too-few-public-methods
+    
+    def __init__(self):
+        self.prompt_tokens = 2500
+        self.completion_tokens = 800
+        self.total_tokens = 3300
+```
+
+### ❌ 模組內導入警告 (Import Outside Toplevel)
+
+#### **錯誤症狀**:
+```python
+def test_content_quality_validation(self, ai_service, mock_openai_response):
+    # ❌ Import outside toplevel
+    from app.services.serp_service import SerpResult, OrganicResult  
+    from app.services.scraper_service import ScrapingResult, PageContent
+```
+
+#### **解決方案**:
+```python
+# ✅ 方案一：將導入移到檔案頂層 (推薦)
+try:
+    from app.services.ai_service import (
+        AIService, AnalysisOptions, AnalysisResult,
+        TokenLimitExceededException, AIAPIException, AITimeoutException,
+    )
+    from app.services.serp_service import SerpResult, OrganicResult
+    from app.services.scraper_service import ScrapingResult, PageContent
+except ImportError:
+    # 回退機制...
+    pass
+
+# ✅ 方案二：使用 pylint 禁用註解
+def test_content_quality_validation(self, ai_service, mock_openai_response):
+    # pylint: disable=import-outside-toplevel
+    from app.services.serp_service import SerpResult, OrganicResult
+    from app.services.scraper_service import ScrapingResult, PageContent
+```
+
+### ❌ 未使用變數警告
+
+#### **錯誤症狀**:
+```python
+for i, result in enumerate(results):  # ❌ 未存取 "i" (Pylint)
+    assert isinstance(result, AnalysisResult)
+```
+
+#### **解決方案**:
+```python
+# ✅ 方案一：移除未使用的變數 (推薦)
+for result in results:
+    assert isinstance(result, AnalysisResult)
+
+# ✅ 方案二：使用底線前綴標示未使用
+for _i, result in enumerate(results):
+    assert isinstance(result, AnalysisResult)
+
+# ✅ 方案三：使用 pylint 禁用註解
+for i, result in enumerate(results):  # pylint: disable=unused-variable
+    assert isinstance(result, AnalysisResult)
+```
+
+### ❌ 未使用導入警告
+
+#### **錯誤症狀**:
+```python
+from app.services.ai_service import (
+    AIService,
+    AIServiceException,  # ❌ Unused AIServiceException imported
+    TokenLimitExceededException,
+    # ...
+)
+```
+
+#### **解決方案**:
+```python
+# ✅ 移除未使用的導入
+from app.services.ai_service import (
+    AIService,
+    # AIServiceException,  # 已移除未使用的導入
+    TokenLimitExceededException,
+    AIAPIException,
+    AITimeoutException,
+    AnalysisOptions,
+    AnalysisResult,
+)
+```
+
+### 🛠️ 預防措施與最佳實務 (2025年)
+
+#### **1. 專案結構規範**
+```
+backend/
+├── app/
+│   ├── __init__.py          # ✅ 確保有此檔案
+│   ├── services/
+│   │   ├── __init__.py      # ✅ 確保有此檔案
+│   │   └── ai_service.py
+│   └── config.py
+├── tests/
+│   ├── conftest.py          # ✅ 全域 pytest 配置
+│   ├── __init__.py          # ✅ 讓 tests 成為包
+│   └── unit/
+│       ├── __init__.py      # ✅ 讓 unit 成為子包
+│       └── test_ai_service.py
+└── pyproject.toml           # ✅ 現代Python專案配置
+```
+
+#### **2. pytest.ini / pyproject.toml 配置**
+```toml
+# pyproject.toml
+[tool.pytest.ini_options]
+pythonpath = ["."]           # ✅ 設定Python路徑
+testpaths = ["tests"]        # ✅ 指定測試目錄
+python_files = ["test_*.py"] # ✅ 測試檔案命名規則
+addopts = [
+    "--strict-markers",      # ✅ 嚴格標記模式
+    "--disable-warnings",    # ✅ 禁用過多警告
+    "-ra",                   # ✅ 顯示所有測試結果
+]
+```
+
+#### **3. IDE 配置 (VS Code)**
+```json
+// .vscode/settings.json
+{
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["tests"],
+    "python.analysis.extraPaths": ["."],
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+        "--disable=C0111,R0903,C0413"  // 禁用特定警告
+    ]
+}
+```
+
+#### **4. 測試檔案模板 (2025年標準)**
+```python
+"""
+AI 服務單元測試。
+
+測試 Azure OpenAI GPT-4o 整合功能，包括 SEO 分析報告生成、
+Token 管理、錯誤處理和內容品質驗證。
+"""
+
+import asyncio
+import pytest
+import time
+from unittest.mock import Mock, AsyncMock, patch
+
+# ✅ 使用回退機制的導入
+try:
+    from app.services.ai_service import (
+        AIService,
+        TokenLimitExceededException,
+        AIAPIException,
+        AITimeoutException,
+        AnalysisOptions,
+        AnalysisResult,
+    )
+    from app.services.serp_service import SerpResult, OrganicResult
+    from app.services.scraper_service import ScrapingResult, PageContent
+except ImportError:
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from app.services.ai_service import (
+        AIService,
+        TokenLimitExceededException,
+        AIAPIException,
+        AITimeoutException,
+        AnalysisOptions,
+        AnalysisResult,
+    )
+    from app.services.serp_service import SerpResult, OrganicResult
+    from app.services.scraper_service import ScrapingResult, PageContent
+
+
+class TestAIService:
+    """AI 分析服務測試類別。"""
+    
+    @pytest.fixture
+    def mock_config_object(self):
+        """建立 Mock Config 物件。"""
+        config_mock = Mock()
+        config_mock.get_openai_api_key.return_value = "test_openai_key"
+        config_mock.get_openai_endpoint.return_value = "https://test.openai.azure.com/"
+        # ... 其他配置
+        return config_mock
+    
+    @pytest.fixture
+    def ai_service(self, mock_config_object):
+        """AIService 實例 fixture。"""
+        with (
+            patch("app.services.ai_service.get_config", return_value=mock_config_object),
+            patch("openai.AsyncAzureOpenAI"),
+        ):
+            return AIService()
+    
+    @pytest.mark.asyncio
+    async def test_analyze_success(self, ai_service):
+        """測試分析成功案例。"""
+        # 測試邏輯...
+        pass
+```
+
+#### **5. CI/CD 環境設定**
+```yaml
+# .github/workflows/backend-tests.yml
+name: Backend Tests
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13.5'
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install uv
+        uv sync --dev
+    - name: Run tests with proper PYTHONPATH
+      run: |
+        cd backend
+        PYTHONPATH=. uv run pytest tests/ -v --cov=app
+```
+
+### 🎯 檢查清單 (Checklist)
+
+#### **測試開發前準備**:
+- [ ] 確認所有目錄都有 `__init__.py` 檔案
+- [ ] 設定 `conftest.py` 路徑配置
+- [ ] 配置 `pyproject.toml` 的 pytest 選項
+- [ ] 使用回退機制的導入模式
+
+#### **測試編寫時注意**:
+- [ ] 移除未使用的導入和變數
+- [ ] 為 Mock 類別添加 docstring
+- [ ] 使用 pytest.fixture 進行資源管理
+- [ ] 添加適當的 pylint 禁用註解
+
+#### **測試執行前檢查**:
+- [ ] `python -m py_compile` 語法檢查通過
+- [ ] `pytest --collect-only` 收集測試無錯誤
+- [ ] 所有測試檔案能正確導入
+- [ ] Mock 配置正確對應實際類別介面
+
 ---
 **最後更新**: Session 04  
-**狀態**: 已更新至 2025年最新穩定版本，包含 Context7 MCP 整合文檔與使用指南
+**狀態**: 已更新至 2025年最新穩定版本，包含 Context7 MCP 整合文檔與 Python 錯誤解決方案指南

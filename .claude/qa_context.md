@@ -1299,6 +1299,114 @@ locust_使用指南:
 
 ## 🐛 Python 測試常見錯誤及解決方案 (2025年最新)
 
+### ❌ BaseException 存取 status_code 錯誤 (AsyncIO Gather Exception Handling)
+
+#### **錯誤症狀**:
+```python
+# test_error_scenarios.py 中的錯誤
+responses = await asyncio.gather(*tasks, return_exceptions=True)
+for i, response in enumerate(responses):
+    if isinstance(response, Exception):
+        pytest.fail(f"請求 {i+1} 拋出異常: {response}")
+    else:
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY  # ❌ 無法存取類別 "BaseException" 的屬性 "status_code"
+```
+
+#### **根本原因**:
+1. **asyncio.gather 型別推斷問題**: 當使用 `return_exceptions=True` 時，結果可能是 `Exception` 或正常回應物件
+2. **型別檢查器限制**: 雖然邏輯上 `else` 分支確保不是 Exception，但型別檢查器仍認為可能是 BaseException
+3. **union 型別處理**: `Union[Response, Exception]` 型別讓檢查器無法確定 `else` 分支的具體型別
+
+#### **錯誤觸發情境**:
+- 使用 `asyncio.gather(*tasks, return_exceptions=True)` 進行並發請求
+- 在處理結果時需要存取 HTTP 回應屬性
+- 型別檢查器 (Pylance/mypy) 無法推斷正確型別
+
+#### **解決方案** (2025年最佳實務):
+
+```python
+# ✅ 方案一：使用 typing.cast 明確型別轉換 (推薦)
+import asyncio
+from typing import cast
+from httpx import Response, AsyncClient
+
+responses = await asyncio.gather(*tasks, return_exceptions=True)
+for i, response in enumerate(responses):
+    if isinstance(response, Exception):
+        pytest.fail(f"請求 {i+1} 拋出異常: {response}")
+    else:
+        # 明確告訴型別檢查器這是 Response 而不是 Exception
+        http_response = cast(Response, response)
+        assert http_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+```
+
+```python
+# ✅ 方案二：使用 hasattr 檢查 (防禦性程式設計)
+responses = await asyncio.gather(*tasks, return_exceptions=True)
+for i, response in enumerate(responses):
+    if isinstance(response, Exception):
+        pytest.fail(f"請求 {i+1} 拋出異常: {response}")
+    else:
+        # 確保回應物件有 status_code 屬性
+        assert hasattr(response, 'status_code'), f"請求 {i+1} 回應缺少 status_code 屬性"
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+```
+
+```python
+# ✅ 方案三：分離例外處理 (最安全)
+responses = await asyncio.gather(*tasks, return_exceptions=True)
+success_responses = []
+failed_responses = []
+
+for i, response in enumerate(responses):
+    if isinstance(response, Exception):
+        failed_responses.append((i+1, response))
+    else:
+        success_responses.append(response)
+
+# 處理失敗的請求
+for request_num, error in failed_responses:
+    pytest.fail(f"請求 {request_num} 失敗，異常：{error}")
+
+# 處理成功的請求
+for response in success_responses:
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+```
+
+#### **必要的導入**:
+```python
+import asyncio
+from typing import cast  # 👈 必須導入 cast
+import pytest
+from httpx import AsyncClient, Response  # 👈 必須導入 Response
+from fastapi import status
+```
+
+#### **預防措施**:
+1. **使用型別註解**: 明確標註函數參數和回傳值型別
+2. **lint 配置**: 在 pylint/mypy 配置中適當處理 union 型別
+3. **測試模板**: 建立標準的並發測試模板避免重複錯誤
+4. **IDE 配置**: 確保 IDE 型別檢查設定正確
+
+```python
+# 標準並發測試模板
+async def concurrent_requests_test(async_client: AsyncClient, requests_data: list):
+    """標準並發請求測試模板。"""
+    tasks = [
+        async_client.post("/api/analyze", json=data)
+        for data in requests_data
+    ]
+    
+    responses = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    for i, response in enumerate(responses):
+        if isinstance(response, Exception):
+            pytest.fail(f"請求 {i+1} 失敗，異常：{response}")
+        else:
+            http_response = cast(Response, response)  # 型別轉換
+            yield http_response  # 或進行相關驗證
+```
+
 ### ❌ 導入路徑錯誤 (Import Path Issues)
 
 #### **錯誤症狀**:
@@ -1451,11 +1559,20 @@ from app.services.ai_service import (
     TokenLimitExceededException,
     # ...
 )
+
+from unittest.mock import patch, mock_open  # ❌ 未存取 "patch" (Pylance)
+import os, sys, json  # ❌ 未存取某些模組
 ```
+
+#### **常見未使用導入案例**:
+1. **錯誤複製貼上**: 從其他測試文件複製導入但沒有實際使用
+2. **重構遺留**: 重構代碼後移除了相關功能但忘記移除導入
+3. **開發準備**: 為了準備寫測試而預先導入但尚未使用
+4. **IDE 自動導入**: IDE 自動建議導入但實際沒用到
 
 #### **解決方案**:
 ```python
-# ✅ 移除未使用的導入
+# ✅ 方案一：移除未使用的導入 (推薦)
 from app.services.ai_service import (
     AIService,
     # AIServiceException,  # 已移除未使用的導入
@@ -1465,6 +1582,27 @@ from app.services.ai_service import (
     AnalysisOptions,
     AnalysisResult,
 )
+
+# ✅ 方案二：移除未使用的 mock 導入
+from unittest.mock import mock_open  # 只保留實際使用的
+# from unittest.mock import patch  # 移除未使用的 patch
+
+# ✅ 方案三：分行導入避免部分未使用警告
+import os
+import sys
+# import json  # 暫時註解未使用的導入
+```
+
+#### **預防措施**:
+```python
+# 使用 IDE 功能自動清理未使用導入
+# VS Code: Ctrl+Shift+P -> "Python: Remove Unused Imports"
+# PyCharm: Ctrl+Alt+O -> "Optimize Imports"
+
+# 或在 settings.json 中設定自動清理
+"python.linting.pylintArgs": [
+    "--disable=unused-import"  // 如果確實需要保留某些導入
+]
 ```
 
 ### 🛠️ 預防措施與最佳實務 (2025年)

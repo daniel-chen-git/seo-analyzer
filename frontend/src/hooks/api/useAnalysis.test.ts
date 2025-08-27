@@ -1,3 +1,10 @@
+/**
+ * useAnalysis Hook 增強版單元測試
+ * 
+ * 測試 API 呼叫成功流程、網路錯誤處理、重試機制、
+ * 進度狀態管理和三階段切換邏輯的完整功能。
+ */
+
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useAnalysis } from './useAnalysis'
@@ -8,6 +15,29 @@ import type {
   JobStatusResponse 
 } from '@/types/api'
 import type { ProgressUpdate } from '@/types/progress'
+// Mock 測試資料
+const mockAnalyzeRequest = {
+  keyword: "SEO 優化指南",
+  target_audience: "網站經營者、數位行銷人員，希望提升網站搜尋排名和流量"
+}
+
+const mockAnalyzeResponse = {
+  status: "completed",
+  result: `# SEO 優化指南分析報告\n\n## 執行摘要\n針對關鍵字「SEO 優化指南」的完整競爭對手分析已完成。`,
+  stages: {
+    serp: { status: "completed", duration: 8.2 },
+    scraping: { status: "completed", duration: 18.5 },
+    analysis: { status: "completed", duration: 22.1 }
+  },
+  total_duration: 48.8,
+  timestamp: "2025-08-27T11:30:00Z"
+}
+
+const mockStageUpdates = {
+  serp: { status: "in_progress", message: "正在搜尋關鍵字相關結果...", progress: 30 },
+  scraping: { status: "in_progress", message: "正在爬取競爭對手網站內容 (5/10)...", progress: 50 },
+  analysis: { status: "in_progress", message: "正在進行 AI 分析並生成報告...", progress: 80 }
+}
 
 // Mock ApiClient
 const mockApiClient = {
@@ -751,6 +781,146 @@ describe('useAnalysis', () => {
       // 重置後狀態應該被清理
       expect(result.current.status).toBe('idle')
       expect(result.current.websocketStatus).toBe('disconnected')
+    })
+  })
+
+  describe('進階功能測試', () => {
+    it('應該正確處理三階段狀態切換', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
+      
+      const { result } = renderHook(() => useAnalysis())
+
+      await act(async () => {
+        await result.current.controls.start(mockRequest)
+      })
+
+      // Wait for WebSocket connection
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      })
+
+      // 模擬 SERP 階段更新
+      act(() => {
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateMessage(JSON.stringify({
+            type: 'stage_update',
+            job_id: 'test-job-123',
+            data: { stage: 'serp', ...mockStageUpdates.serp }
+          }))
+        }
+      })
+
+      expect(result.current.progress?.currentStage).toBe(1)
+
+      // 模擬進入爬蟲階段
+      act(() => {
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateMessage(JSON.stringify({
+            type: 'stage_update', 
+            job_id: 'test-job-123',
+            data: { stage: 'scraping', ...mockStageUpdates.scraping }
+          }))
+        }
+      })
+
+      expect(result.current.progress?.currentStage).toBe(2)
+
+      // 模擬進入 AI 分析階段
+      act(() => {
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateMessage(JSON.stringify({
+            type: 'stage_update',
+            job_id: 'test-job-123', 
+            data: { stage: 'analysis', ...mockStageUpdates.analysis }
+          }))
+        }
+      })
+
+      expect(result.current.progress?.currentStage).toBe(3)
+    })
+
+    it('應該正確計算總處理時間', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
+      
+      const { result } = renderHook(() => useAnalysis())
+
+      const startTime = Date.now()
+
+      await act(async () => {
+        await result.current.controls.start(mockRequest)
+      })
+
+      // Wait for WebSocket connection
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      })
+
+      // 模擬完成並檢查時間
+      act(() => {
+        const wsInstance = MockWebSocket.getLatestInstance()
+        if (wsInstance) {
+          wsInstance.simulateMessage(JSON.stringify({
+            type: 'completed',
+            job_id: 'test-job-123',
+            data: mockResult
+          }))
+        }
+      })
+
+      const endTime = Date.now()
+      const expectedDuration = endTime - startTime
+
+      expect(result.current.statistics.totalDuration).toBeGreaterThan(50) // 至少50ms
+      expect(result.current.statistics.totalDuration).toBeLessThanOrEqual(expectedDuration + 10) // 允許10ms誤差
+    })
+
+    it('應該支援重試機制與指數退避', async () => {
+      // 模擬前2次失敗，第3次成功
+      mockApiClient.post
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockRejectedValueOnce(new Error('Server error'))
+        .mockResolvedValueOnce({ data: mockJobResponse })
+      
+      const { result } = renderHook(() => useAnalysis({
+        autoRetry: true,
+        retryConfig: { maxAttempts: 3, baseDelay: 100 }
+      }))
+
+      await act(async () => {
+        await result.current.controls.start(mockRequest)
+      })
+
+      // 等待重試完成
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      })
+
+      expect(result.current.status).toBe('running')
+      expect(result.current.statistics.retryAttempts).toBe(2)
+    })
+
+    it('應該處理網路錯誤並提供使用者友善訊息', async () => {
+      const networkError = new Error('Network request failed')
+      networkError.name = 'NetworkError'
+      
+      mockApiClient.post.mockRejectedValueOnce(networkError)
+      
+      const { result } = renderHook(() => useAnalysis())
+
+      await act(async () => {
+        try {
+          await result.current.controls.start(mockRequest)
+        } catch (error) {
+          // 預期會拋出錯誤
+        }
+      })
+
+      expect(result.current.status).toBe('error')
+      expect(result.current.error).toContain('網路連線')
+      expect(result.current.canRetry).toBe(true)
     })
   })
 })

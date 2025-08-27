@@ -7,6 +7,7 @@
 import asyncio
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Generator, AsyncGenerator
 from unittest.mock import Mock, AsyncMock
@@ -251,13 +252,18 @@ def mock_job_manager():
     
     class MockJobStatus:
         def __init__(self, job_id: str):
+            from app.models.status import JobProgress
             self.job_id = job_id
             self.status = "pending"
-            self.progress = {"percentage": 0, "current_stage": "initialized"}
+            self.progress = JobProgress(
+                current_step=1,
+                message="任務已建立，等待處理...",
+                percentage=0.0
+            )
             self.result = None
             self.error = None
-            self.created_at = time.time()
-            self.updated_at = time.time()
+            self.created_at = datetime.utcnow()
+            self.updated_at = datetime.utcnow()
     
     def mock_create_job():
         job_id = f"test-job-{int(time.time())}"
@@ -306,3 +312,108 @@ def performance_monitor():
             }
     
     return PerformanceMonitor()
+
+
+@pytest.fixture
+def test_app():
+    """提供測試用的 FastAPI 應用程式實例。"""
+    from app.main import app
+    return app
+
+
+@pytest.fixture
+def websocket_manager():
+    """提供 WebSocket 管理器的 mock 實例。"""
+    from unittest.mock import AsyncMock
+    
+    class MockWebSocketManager:
+        def __init__(self):
+            self.connections = {}
+            self.analysis_connections = {}
+        
+        async def send_progress(self, analysis_id: str, progress_message):
+            # 模擬發送進度訊息
+            pass
+        
+        async def add_connection(self, connection_id: str, websocket):
+            self.connections[connection_id] = websocket
+        
+        async def remove_connection(self, connection_id: str):
+            self.connections.pop(connection_id, None)
+        
+        async def subscribe_to_analysis(self, connection_id: str, analysis_id: str):
+            # 模擬訂閱分析
+            if analysis_id not in self.analysis_connections:
+                self.analysis_connections[analysis_id] = set()
+            self.analysis_connections[analysis_id].add(connection_id)
+        
+        async def unsubscribe_from_analysis(self, connection_id: str, analysis_id: str):
+            # 模擬取消訂閱
+            if analysis_id in self.analysis_connections:
+                self.analysis_connections[analysis_id].discard(connection_id)
+                if not self.analysis_connections[analysis_id]:
+                    del self.analysis_connections[analysis_id]
+        
+        async def send_error(self, connection_id: str, error_code: str, error_message: str, details=None):
+            # 模擬發送錯誤訊息
+            pass
+        
+        def get_connection_count(self) -> int:
+            # 模擬取得連線數量
+            return len(self.connections)
+        
+        def get_analysis_subscriber_count(self, analysis_id: str) -> int:
+            # 模擬取得分析訂閱者數量
+            return len(self.analysis_connections.get(analysis_id, set()))
+        
+        async def broadcast_message(self, message):
+            # 模擬廣播訊息
+            pass
+    
+    return MockWebSocketManager()
+
+
+@pytest.fixture
+def mock_progress_data():
+    """提供測試用的進度資料。"""
+    return {
+        "phases": [
+            {
+                "name": "serp_search",
+                "display_name": "SERP 搜尋",
+                "progress_range": (0, 25),
+                "messages": [
+                    "開始搜尋競爭對手網站...",
+                    "分析搜尋結果...",
+                    "完成 SERP 分析"
+                ]
+            },
+            {
+                "name": "content_scraping",
+                "display_name": "內容爬取",
+                "progress_range": (25, 70),
+                "messages": [
+                    "爬取競爭對手網站內容...",
+                    "分析頁面結構...",
+                    "提取關鍵內容"
+                ]
+            },
+            {
+                "name": "ai_analysis",
+                "display_name": "AI 分析",
+                "progress_range": (70, 100),
+                "messages": [
+                    "生成競爭分析報告...",
+                    "優化內容建議...",
+                    "完成分析報告"
+                ]
+            }
+        ],
+        "sample_details": {
+            "total_urls": 10,
+            "processed_urls": 0,
+            "current_url": "",
+            "tokens_used": 0,
+            "max_tokens": 8000
+        }
+    }

@@ -1,8 +1,8 @@
 # QA 測試上下文
 
-## 最後更新：2024-01-20 17:00
+## 最後更新：2025-08-27 11:30
 ## 負責人：QA Engineer  
-## 當前 Session：#2
+## 當前 Session：#4
 
 ## 🎯 測試目標與策略
 - **總體目標**: 確保 SEO Analyzer 在 60 秒內穩定產出高質量報告
@@ -11,43 +11,75 @@
 
 ## 📂 測試架構
 ```
+# 後端測試
+backend/tests/                     # Python 3.13.5 + pytest
+├── conftest.py                    # pytest 配置 ⏳
+├── unit/
+│   ├── test_serp_service.py      # SerpAPI 服務測試 ⏳
+│   ├── test_scraper.py           # 網頁爬蟲測試 ⏳
+│   ├── test_ai_service.py        # GPT-4o 分析測試 ⏳
+│   └── test_config.py            # config.ini 讀取測試 ⏳
+└── integration/
+    ├── test_api_endpoints.py     # API 端點整合測試 ⏳
+    └── test_service_integration.py # 服務間整合測試 ⏳
+
+# 前端測試  
+frontend/tests/                    # Vitest + React Testing Library
+├── setup.ts                      # 測試配置 ⏳
+├── components/
+│   ├── form/
+│   │   └── InputForm.test.tsx    # 表單驗證測試 ⏳
+│   ├── progress/
+│   │   └── ProgressIndicator.test.tsx # 進度顯示測試 ⏳
+│   └── ui/
+│       └── MarkdownViewer.test.tsx # 結果渲染測試 ⏳
+├── hooks/
+│   ├── api/
+│   │   └── useAnalysis.test.ts   # API 呼叫 Hook 測試 (✅ 已存在)
+│   └── progress/
+│       └── useProgress.test.ts   # 進度管理 Hook 測試 ⏳
+└── utils/
+    ├── api.test.ts               # API 工具測試 ⏳
+    └── validation.test.ts        # 驗證邏輯測試 ⏳
+
+# QA 測試套件
 qa/
-├── unit_tests/
-│   ├── backend/                    # Python 3.13.5 + pytest
-│   │   ├── test_serp_service.py   # SerpAPI 服務測試 ⏳
-│   │   ├── test_scraper.py        # 網頁爬蟲測試 ⏳
-│   │   ├── test_ai_service.py     # GPT-4o 分析測試 ⏳
-│   │   └── test_config.py         # config.ini 讀取測試 ⏳
-│   └── frontend/                   # Vitest + React Testing Library
-│       ├── components/
-│       │   ├── InputForm.test.tsx          # 表單驗證測試 ⏳
-│       │   ├── ProgressIndicator.test.tsx  # 進度顯示測試 ⏳
-│       │   └── MarkdownViewer.test.tsx     # 結果渲染測試 ⏳
-│       ├── hooks/
-│       │   ├── useAnalysis.test.ts         # API 呼叫 Hook 測試 ⏳
-│       │   └── useProgress.test.ts         # 進度管理 Hook 測試 ⏳
-│       └── utils/
-│           ├── api.test.ts                 # API 工具測試 ⏳
-│           └── validation.test.ts          # 驗證邏輯測試 ⏳
-├── integration_tests/
-│   ├── test_api_endpoints.py      # API 端點整合測試 ⏳
-│   ├── test_service_integration.py # 服務間整合測試 ⏳
-│   └── test_performance.py        # 效能基準測試 ⏳
-├── e2e_tests/                     # Playwright
-│   ├── test_happy_path.py         # 完整成功流程 ⏳
-│   ├── test_error_scenarios.py    # 錯誤處理流程 ⏳
+├── conftest.py                   # 全域 pytest 配置 ⏳
+├── utils/                        # 測試工具 ⏳
+│   ├── __init__.py
+│   ├── fixtures.py              # 共用 fixtures
+│   ├── helpers.py               # 測試輔助函數
+│   └── mock_data.py             # Mock 資料生成器
+├── e2e_tests/                    # Playwright
+│   ├── conftest.py              # E2E 測試配置 ⏳
+│   ├── test_happy_path.py       # 完整成功流程 ⏳
+│   ├── test_error_scenarios.py  # 錯誤處理流程 ⏳
 │   └── test_performance_limits.py # 60秒限制測試 ⏳
-├── test_data/
-│   ├── mock_serp_responses.json   # SERP API 模擬回應 ✅
-│   ├── mock_scrape_data.json      # 爬蟲模擬數據 ✅
-│   ├── mock_ai_responses.json     # GPT-4o 模擬回應 ✅
-│   └── test_keywords.json         # 測試關鍵字集合 ✅
-├── performance/
-│   ├── load_testing.py           # 負載測試 ⏳
-│   └── stress_testing.py         # 壓力測試 ⏳
-└── ci_cd/
-    ├── github_actions.yml        # CI/CD 配置 ⏳
-    └── test_reports/             # 測試報告輸出 ⏳
+├── performance/                  # 效能測試
+│   ├── conftest.py              # 效能測試配置 ⏳
+│   ├── test_performance.py      # 效能基準測試 ⏳
+│   ├── load_testing.py          # 負載測試 ⏳
+│   └── stress_testing.py        # 壓力測試 ⏳
+├── test_data/                    # 測試資料
+│   ├── mock_serp_responses.json # SERP API 模擬回應 ✅
+│   ├── mock_scrape_data.json    # 爬蟲模擬數據 ✅
+│   ├── mock_ai_responses.json   # GPT-4o 模擬回應 ✅
+│   ├── test_keywords.json       # 測試關鍵字集合 ✅
+│   └── fixtures/                # 測試 fixtures ⏳
+│       ├── api_responses/       # API 回應範例
+│       └── test_cases/          # 測試案例資料
+└── reports/                     # 測試報告 ⏳
+    ├── coverage/                # 覆蓋率報告
+    ├── performance/             # 效能測試報告
+    └── artifacts/               # 測試產出物
+
+# CI/CD 配置
+.github/
+└── workflows/
+    ├── backend-tests.yml        # 後端測試 CI ⏳
+    ├── frontend-tests.yml       # 前端測試 CI ⏳
+    ├── e2e-tests.yml           # E2E 測試 CI ⏳
+    └── performance-tests.yml    # 效能測試 CI ⏳
 ```
 
 ## 🧪 測試策略
@@ -371,46 +403,97 @@ class AnalysisUser(HttpUser):
 
 ## 🔧 測試環境配置 (2025年最新版本)
 
-### 後端測試環境
+### 🖥️ 機器環境狀況
+```yaml
+system_info:
+  os: "macOS (Darwin 24.5.0)"
+  python_version: "3.13.5"           # ✅ 已安裝
+  package_manager: "uv"              # ✅ 已安裝 (Python 包管理)
+  node_version: "v22.18.0"           # ✅ 已安裝
+  npm_version: "11.5.1"              # ✅ 已安裝
+
+compatibility_notes:
+  - "Python 3.13.5 與測試工具完全相容"
+  - "Node v22.18.0 支援最新 ES2024 功能"
+  - "uv 提供快速的依賴管理"
+  - "npm 11.5.1 支援最新的 package.json 功能"
+```
+
+### 後端測試環境 (2025年最新穩定版本)
 ```yaml
 python_environment:
-  python_version: "3.13.5"
-  pytest: "^8.3.3"
-  pytest_asyncio: "^1.1.0"
-  pytest_cov: "^6.0.0"
-  httpx: "^0.27.2"  # 用於 API 測試
+  python_version: "3.13.5"          # ✅ 系統已安裝
+  package_manager: "uv"             # ✅ 系統已安裝
+  pytest: "^8.4.1"                  # 🆕 2025年最新穩定版
+  pytest_asyncio: "^1.1.0"          # 🆕 2025年7月16日最新穩定版
+  pytest_cov: "^6.2.1"              # 🆕 2025年6月12日最新穩定版
+  httpx: "^0.28.1"                  # 🆕 2024年12月6日最新穩定版 (用於 API 測試)
   
 api_testing:
   fastapi_testclient: "included_in_fastapi"
   mock_libraries: ["pytest-mock", "responses"]
   
 performance_testing:
-  locust: "^2.33.1"
-  pytest_benchmark: "^4.0.0"
+  locust: "^2.39.0"                 # 🆕 2025年最新穩定版 (PyPI 確認)
+  pytest_benchmark: "^5.1.0"        # 🆕 2024年10月30日最新穩定版
+
+key_features:
+  pytest_8_4_1:
+    - "支援 Python 3.13"
+    - "包含 PYTEST_VERSION 環境變數"
+    - "GitHub Artifact Attestation 驗證"
+    - "修復 fixture 實例化問題"
+  locust_2_39_0:
+    - "支援 Python 3.10-3.13"
+    - "2025年最新穩定版"
+    - "現代化負載測試功能"
+    - "分散式負載測試支援"
+
+install_commands:
+  - "uv add --dev pytest==8.4.1 pytest-asyncio==1.1.0 pytest-cov==6.2.1"
+  - "uv add --dev pytest-mock responses"
+  - "uv add --dev httpx==0.28.1 locust==2.39.0 pytest-benchmark==5.1.0"
 ```
 
-### 前端測試環境  
+### 前端測試環境 (2025年最新穩定版本)
 ```yaml
 javascript_environment:
-  node_version: "20 LTS"
-  vitest: "^3.0.5"       # 取代 Jest，與 Vite 整合更好
+  node_version: "v22.18.0"          # ✅ 系統已安裝 (超過建議的 20 LTS)
+  npm_version: "11.5.1"             # ✅ 系統已安裝
+  vitest: "^3.2.4"                  # 🆕 2025年最新穩定版 (支援 Vite 7.0)
   testing_library_react: "^16.1.0"
   testing_library_jest_dom: "^6.6.3"
   testing_library_user_event: "^14.5.2"
   
 ui_testing:
-  jsdom: "^25.0.1"       # DOM 模擬環境
-  happy_dom: "^15.11.6"  # 更快的 DOM 模擬 (可選)
+  jsdom: "^25.0.1"                  # DOM 模擬環境
+  happy_dom: "^15.11.6"             # 更快的 DOM 模擬 (可選)
   
 component_testing:
   react_test_renderer: "^18.3.1"
-  storybook: "^8.4.7"    # 元件展示與測試
+  storybook: "^8.4.7"               # 元件展示與測試
+  vitest_browser_react: "^3.2.4"    # 🆕 瀏覽器環境測試
+
+key_features:
+  vitest_3_2_4:
+    - "支援 Vite 7.0"
+    - "視覺回歸測試功能"
+    - "更穩定的測試報告輸出"
+    - "瀏覽器環境測試支援"
+    - "多專案配置支援"
+
+install_commands:
+  - "cd frontend && npm install --save-dev vitest@3.2.4"
+  - "npm install --save-dev @testing-library/react @testing-library/jest-dom"
+  - "npm install --save-dev @testing-library/user-event jsdom"
+  - "npm install --save-dev react-test-renderer vitest-browser-react"
 ```
 
-### E2E 測試環境
+### E2E 測試環境 (2025年最新穩定版本)
 ```yaml
 e2e_framework:
-  playwright: "^1.49.1"
+  playwright_nodejs: "^1.55.0"      # 🆕 Node.js 最新版 (6天前發佈)
+  playwright_python: "^1.54.0"      # 🆕 Python 最新版 (2025年7月22日)
   browsers: ["chromium", "firefox", "webkit"]
   
 mobile_testing:
@@ -420,15 +503,32 @@ mobile_testing:
   
 visual_testing:
   screenshot_comparison: true
-  pdf_testing: false     # SEO 報告不需要 PDF 測試
+  pdf_testing: false                # SEO 報告不需要 PDF 測試
+
+api_testing:
+  api_request_context: true         # 🆕 API 測試支援
+  github_api_integration: true      # 示範 API 整合測試
+
+key_features:
+  playwright_1_55_0:
+    - "持續更新，活躍維護"
+    - "跨瀏覽器測試支援"
+    - "API 測試功能強化"
+    - "pytest-playwright 整合"
+    - "視覺回歸測試"
+
+install_commands:
+  - "cd qa && uv add --dev playwright==1.54.0"  # Python 版本
+  - "uv add --dev pytest-playwright"
+  - "playwright install --with-deps"           # 安裝瀏覽器與系統依賴
 ```
 
 ### CI/CD 測試環境
 ```yaml
 github_actions:
-  os_matrix: ["ubuntu-latest", "windows-latest", "macos-latest"]
-  python_matrix: ["3.13.5"]
-  node_matrix: ["20"]
+  os_matrix: ["ubuntu-latest", "macos-latest"]  # 開發機為 macOS
+  python_matrix: ["3.13.5"]        # ✅ 與系統版本一致
+  node_matrix: ["22"]               # ✅ 與系統版本一致
   
 parallel_testing:
   backend_jobs: 4
@@ -438,35 +538,53 @@ parallel_testing:
 test_reporting:
   coverage_format: ["html", "xml", "json"]
   artifact_retention: "30 days"
+
+system_compatibility:
+  - "macOS Darwin 24.5.0 完全支援所有測試框架"
+  - "Node v22.18.0 向下相容所有測試工具"
+  - "Python 3.13.5 為最新穩定版本"
+  - "uv 包管理器提供比 pip 更快的安裝速度"
 ```
 
 ## 🚀 測試執行指令
 
 ### 後端測試指令
 ```bash
-# 基本單元測試
+# 環境準備 (使用 uv 安裝最新穩定版本)
 cd backend
-uv run pytest unit_tests/
+uv add --dev pytest==8.4.1 pytest-asyncio==1.1.0 pytest-cov==6.2.1
+uv add --dev pytest-mock responses httpx==0.28.1
+uv add --dev locust==2.39.0 pytest-benchmark==5.1.0
+
+# 基本單元測試
+uv run pytest tests/unit/ -v
 
 # 整合測試 (需要測試 API keys)
-uv run pytest integration_tests/ --env=test
+uv run pytest tests/integration/ --env=test
 
 # 覆蓋率報告
 uv run pytest --cov=app --cov-report=html --cov-report=term
 
 # 效能測試
-uv run pytest performance/ --benchmark-only
+cd ../qa
+uv run pytest performance/test_performance.py --benchmark-only
 
 # 特定服務測試
-uv run pytest unit_tests/test_serp_service.py -v
-uv run pytest unit_tests/test_scraper.py -v
-uv run pytest unit_tests/test_ai_service.py -v
+cd ../backend
+uv run pytest tests/unit/test_serp_service.py -v
+uv run pytest tests/unit/test_scraper.py -v
+uv run pytest tests/unit/test_ai_service.py -v
 ```
 
 ### 前端測試指令
 ```bash
+# 環境準備 (使用系統 npm 11.5.1，安裝最新穩定版本)
+cd frontend
+npm install --save-dev vitest@3.2.4 @testing-library/react
+npm install --save-dev @testing-library/jest-dom @testing-library/user-event
+npm install --save-dev jsdom react-test-renderer vitest-browser-react
+
 # 基本單元測試 (Vitest)
-cd frontend  
 npm run test
 
 # 監聽模式
@@ -479,27 +597,31 @@ npm run test:coverage
 npm run test:ui
 
 # 特定元件測試
-npm run test -- InputForm.test.tsx
-npm run test -- ProgressIndicator.test.tsx
+npm run test -- tests/components/form/InputForm.test.tsx
+npm run test -- tests/components/progress/ProgressIndicator.test.tsx
 ```
 
 ### E2E 測試指令
 ```bash
-# 完整 E2E 測試套件
+# 環境準備 (E2E 測試依賴，最新穩定版本)
 cd qa
-python -m pytest e2e_tests/ --browser=chromium
+uv add --dev playwright==1.54.0 pytest-playwright
+playwright install --with-deps  # 安裝瀏覽器與系統依賴
+
+# 完整 E2E 測試套件
+uv run pytest e2e_tests/ --browser=chromium
 
 # 多瀏覽器測試
-python -m pytest e2e_tests/ --browser=all
+uv run pytest e2e_tests/ --browser=all
 
 # 特定測試案例
-python -m pytest e2e_tests/test_happy_path.py -v
+uv run pytest e2e_tests/test_happy_path.py -v
 
 # 視覺測試 (截圖對比)
-python -m pytest e2e_tests/ --screenshot=on-failure
+uv run pytest e2e_tests/ --screenshot=on-failure
 
 # 效能測試 (60秒限制)
-python -m pytest e2e_tests/test_performance_limits.py
+uv run pytest e2e_tests/test_performance_limits.py
 ```
 
 ### CI/CD 自動化指令
@@ -516,15 +638,18 @@ python -m pytest e2e_tests/test_performance_limits.py
 
 ### 效能與負載測試
 ```bash
-# 負載測試 (Locust)
-cd qa/performance
-locust -f load_testing.py --host=http://localhost:8000
+# 負載測試 (Locust 2.39.0)
+cd qa
+uv run locust -f performance/load_testing.py --host=http://localhost:8000 --headless --users=10 --spawn-rate=1
 
 # 壓力測試
-python stress_testing.py --users=10 --duration=300s
+uv run python performance/stress_testing.py --users=10 --duration=300s
 
 # API 回應時間測試
-python -m pytest performance/test_response_time.py
+uv run pytest performance/test_performance.py -v
+
+# 效能基準測試
+uv run pytest performance/ --benchmark-only
 ```
 
 ## 🎯 下一步行動計劃
@@ -567,6 +692,154 @@ python -m pytest performance/test_response_time.py
 2. **安全性測試**
 3. **使用者接受度測試**
 
+## 📊 完整測試項目規劃
+
+### **大項目 A：後端測試 (Python 3.13.5 + pytest)**
+
+#### A1. 單元測試 (Unit Tests)
+- **A1.1 SerpAPI 服務測試** (`test_serp_service.py`)
+  - 正常回應測試：驗證 10 個搜尋結果，處理時間 < 10 秒
+  - API 錯誤處理：401/429/500 狀態碼，graceful degradation
+  - 逾時處理：> 10 秒逾時機制，資源清理
+  - 中文關鍵字編碼測試：繁體/簡體中文正確處理
+
+- **A1.2 網頁爬蟲測試** (`test_scraper.py`)
+  - 並行爬蟲成功案例：10 個 URL 並行，成功率 ≥ 80%，< 20 秒
+  - 中文內容爬取：編碼正確性，內容完整性
+  - 爬蟲失敗處理：網路錯誤、逾時、無效 URL
+  - 資源使用限制：記憶體用量監控
+
+- **A1.3 AI 服務測試** (`test_ai_service.py`)
+  - GPT-4o API 呼叫：成功回應，Markdown 格式驗證
+  - Token 使用量控制：< 8000 tokens/request
+  - API 錯誤處理：429/500/503 狀態碼
+  - 內容品質驗證：SEO 報告結構完整性
+
+- **A1.4 配置管理測試** (`test_config.py`)
+  - config.ini 讀取：API keys 載入，環境變數覆蓋
+  - 配置驗證：必要參數檢查，預設值設定
+  - 敏感資料處理：避免 API key 洩漏
+
+### **大項目 B：前端測試 (Vitest + React Testing Library)**
+
+#### B1. 元件測試 (Component Tests)
+- **B1.1 輸入表單測試** (`InputForm.test.tsx`)
+  - 關鍵字驗證：1-50 字元邊界值，特殊字元處理
+  - 受眾描述驗證：1-200 字元邊界值，換行符號處理
+  - 表單提交：AnalyzeRequest 格式，snake_case 欄位
+  - 即時錯誤提示：使用者友善訊息顯示
+
+- **B1.2 進度指示器測試** (`ProgressIndicator.test.tsx`)
+  - 三階段狀態更新：SERP → 爬蟲 → AI 分析
+  - 時間計數器：即時更新，視覺回饋
+  - 進度動畫：載入狀態，完成狀態
+  - 錯誤狀態顯示：網路錯誤，逾時處理
+
+- **B1.3 結果顯示測試** (`MarkdownViewer.test.tsx`)
+  - Markdown 渲染：格式正確性，樣式套用
+  - 內容顯示：完整報告，滾動功能
+  - 響應式設計：手機/平板/桌面適應
+
+#### B2. Hook 測試 (Custom Hooks)
+- **B2.1 分析 Hook 測試** (`useAnalysis.test.ts`)
+  - API 呼叫成功流程：狀態更新，結果解析
+  - 網路錯誤處理：重試機制，錯誤訊息
+  - 進度狀態管理：三階段切換，時間計算
+
+- **B2.2 進度管理 Hook 測試** (`useProgress.test.ts`)
+  - 進度狀態同步：即時更新機制
+  - 時間計算：準確計時，格式化顯示
+
+#### B3. 工具函數測試 (Utility Tests)
+- **B3.1 API 工具測試** (`api.test.ts`)
+  - HTTP 請求處理：POST 請求，錯誤處理
+  - 資料格式轉換：snake_case ↔ camelCase
+
+- **B3.2 驗證邏輯測試** (`validation.test.ts`)
+  - 輸入驗證函數：長度限制，格式檢查
+  - 錯誤訊息生成：多語言支援
+
+### **大項目 C：整合測試 (Integration Tests)**
+
+#### C1. API 端點測試 (`test_api_endpoints.py`)
+- /api/analyze 端點完整流程：60 秒總時間限制
+- 輸入驗證：關鍵字/受眾描述長度檢查
+- 回應格式驗證：AnalyzeResponse 介面符合性
+- 錯誤處理：各種錯誤碼回應
+
+#### C2. 服務整合測試 (`test_service_integration.py`)
+- SERP → 爬蟲服務整合：資料流通驗證
+- 爬蟲 → AI 服務整合：內容傳遞正確性
+- 端對端資料流：完整 pipeline 測試
+
+#### C3. 效能基準測試 (`test_performance.py`)
+- 60 秒時間限制：各階段時間分配
+- 爬蟲成功率：≥ 80% 成功率驗證
+- 記憶體使用監控：< 1GB peak 限制
+
+### **大項目 D：E2E 測試 (Playwright)**
+
+#### D1. 成功路徑測試 (`test_happy_path.py`)
+- 完整分析流程：輸入 → 處理 → 結果顯示
+- 進度監控：三階段視覺回饋
+- 時間限制驗證：< 60 秒完成
+
+#### D2. 錯誤情境測試 (`test_error_scenarios.py`)
+- 網路錯誤處理：連線中斷，重試機制
+- API 逾時處理：70 秒逾時情境
+- 使用者體驗：友善錯誤訊息
+
+#### D3. 效能極限測試 (`test_performance_limits.py`)
+- 複雜關鍵字處理：長字串，特殊字元
+- 瀏覽器相容性：Chrome/Firefox/Safari/Edge
+- 響應式設計：手機/平板/桌面裝置
+
+### **大項目 E：效能測試 (Performance Tests)**
+
+#### E1. 負載測試 (`load_testing.py`)
+- 同時多使用者：10 個並發請求
+- 連續請求測試：100 次連續呼叫
+- 資源監控：CPU、記憶體使用量
+
+#### E2. 壓力測試 (`stress_testing.py`)
+- 極限負載：最大併發數測試
+- 記憶體洩漏檢測：長時間運行穩定性
+- 恢復能力測試：超載後恢復
+
+#### E3. 效能監控 (`performance_monitoring.py`)
+- API 回應時間：各端點效能基準
+- 資源使用分析：瓶頸識別
+- 效能趨勢追蹤：版本間效能對比
+
+### **大項目 F：測試環境配置**
+
+#### F1. 測試資料管理
+- Mock 資料準備：SERP 回應、AI 回應範本
+- 測試關鍵字集合：中英文、長短尾關鍵字
+- 邊界測試資料：極值測試案例
+
+#### F2. CI/CD 配置
+- GitHub Actions：自動化測試流程
+- 測試報告：覆蓋率、效能報告
+- 品質門檻：發佈前檢查項目
+
+## 🎯 測試執行優先順序
+
+### **Phase 1 (立即執行) - 核心功能驗證**
+1. **後端單元測試** (A1.1-A1.4)
+2. **前端單元測試** (B1.1-B1.2, B2.1)
+3. **API 端點測試** (C1)
+
+### **Phase 2 (中期執行) - 穩定性確保**
+1. **整合測試** (C2-C3)
+2. **E2E 成功路徑** (D1)
+3. **錯誤情境測試** (D2)
+
+### **Phase 3 (後期執行) - 品質提升**
+1. **效能測試** (E1-E3)
+2. **E2E 完整測試** (D3)
+3. **CI/CD 配置** (F2)
+
 ## ⚠️ 重要注意事項
 
 ### 測試最佳實務
@@ -594,6 +867,64 @@ performance_focus:
   - 並行處理效率測試
 ```
 
+## 📊 2025年最新穩定版本總覽
+
+### **測試框架版本更新摘要**
+```yaml
+更新項目:
+  pytest: "8.3.3 → 8.4.1"           # 🆕 最新穩定版，支援 Python 3.13
+  vitest: "3.0.5 → 3.2.4"           # 🆕 支援 Vite 7.0，視覺回歸測試
+  playwright_python: "1.49.1 → 1.54.0"  # 🆕 API 測試功能強化
+  playwright_nodejs: "→ 1.55.0"     # 🆕 Node.js 最新版 (6天前發佈)
+  locust: "2.33.1 → 2.39.0"         # 🆕 2025年最新穩定版
+  pytest_cov: "6.0.0 → 6.2.1"       # 🆕 2025年6月12日最新穩定版
+  httpx: "0.27.2 → 0.28.1"          # 🆕 2024年12月6日最新穩定版
+  pytest_benchmark: "4.0.0 → 5.1.0" # 🆕 2024年10月30日最新穩定版
+
+新功能特色:
+  - pytest 8.4.1: GitHub Artifact Attestation 驗證
+  - Vitest 3.2.4: 瀏覽器環境測試、視覺回歸測試
+  - Playwright 1.54.0/1.55.0: APIRequestContext 強化
+  - Locust 2.39.0: Python 3.10-3.13 完整支援、分散式測試
+  - pytest-cov 6.2.1: 覆蓋率報告強化、子進程支援改善
+  - httpx 0.28.1: HTTP/2 支援強化、async 效能最佳化
+  - pytest-benchmark 5.1.0: Python 3.9+ 支援、效能測試精準度提升
+
+相容性確認:
+  - 所有工具與 Python 3.13.5 完全相容 ✅
+  - 所有工具與 Node v22.18.0 完全相容 ✅  
+  - 支援 uv 包管理器快速安裝 ✅
+  - macOS Darwin 24.5.0 環境完全支援 ✅
+```
+
+### **Context7 MCP 整合文檔**
+```yaml
+pytest_使用指南:
+  安裝: "uv add --dev pytest==8.4.1 pytest-asyncio==1.1.0 pytest-cov==6.2.1"
+  fixture_模式: "@pytest.fixture 進行測試設置"
+  異步支援: "@pytest.mark.asyncio 標記異步測試"
+  覆蓋率: "pytest-cov 生成詳細覆蓋率報告"
+
+vitest_使用指南:
+  安裝: "npm install --save-dev vitest@3.2.4"
+  配置: "vitest.config.ts 配置測試環境"
+  瀏覽器測試: "vitest-browser-react 框架整合"
+  多專案: "支援不同測試策略配置"
+
+playwright_使用指南:
+  安裝: "pip install pytest-playwright && playwright install --with-deps"
+  API_測試: "APIRequestContext 進行 API 測試"
+  多瀏覽器: "Chromium、Firefox、WebKit 支援"
+  Python_整合: "pytest-playwright 無縫整合"
+
+locust_使用指南:
+  安裝: "pip install locust==2.39.0"
+  基本用法: "繼承 HttpUser，使用 @task 裝飾器"
+  分散式: "master-worker 架構支援"
+  無頭模式: "locust --headless --users 10 --spawn-rate 1"
+  pytest_asyncio: "1.1.0 (2025年7月16日發佈)"
+```
+
 ---
-**最後更新**: Session 02  
-**狀態**: 詳細測試策略完成，準備實作測試案例
+**最後更新**: Session 04  
+**狀態**: 已更新至 2025年最新穩定版本，包含 Context7 MCP 整合文檔與使用指南

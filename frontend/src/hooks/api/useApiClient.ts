@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
+import axios from 'axios'
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import type { ApiError } from '@/types/api'
 
 // 擴展 AxiosRequestConfig 以支援 metadata
@@ -110,6 +111,9 @@ const DEFAULT_CONFIG: ApiClientConfig = {
  */
 export const useApiClient = (config: ApiClientConfig = {}) => {
   const mergedConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config])
+  
+  // 稳定化interceptors引用，避免无限循环
+  const stableInterceptors = useMemo(() => mergedConfig.interceptors, [mergedConfig.interceptors?.requestInterceptors, mergedConfig.interceptors?.responseInterceptors])
   
   // 狀態管理
   const [state, setState] = useState<ApiClientState>({
@@ -277,15 +281,15 @@ export const useApiClient = (config: ApiClientConfig = {}) => {
     )
 
     // 用戶自定義請求攔截器
-    if (mergedConfig.interceptors?.requestInterceptors) {
-      mergedConfig.interceptors.requestInterceptors.forEach(interceptor => {
+    if (stableInterceptors?.requestInterceptors) {
+      stableInterceptors.requestInterceptors.forEach(interceptor => {
         client.interceptors.request.use(
           interceptor.onFulfilled,
           interceptor.onRejected
         )
       })
     }
-  }, [mergedConfig.interceptors])
+  }, [stableInterceptors])
 
   // 設置響應攔截器
   const setupResponseInterceptors = useCallback((client: AxiosInstance) => {
@@ -318,15 +322,15 @@ export const useApiClient = (config: ApiClientConfig = {}) => {
     )
 
     // 用戶自定義響應攔截器
-    if (mergedConfig.interceptors?.responseInterceptors) {
-      mergedConfig.interceptors.responseInterceptors.forEach(interceptor => {
+    if (stableInterceptors?.responseInterceptors) {
+      stableInterceptors.responseInterceptors.forEach(interceptor => {
         client.interceptors.response.use(
           interceptor.onFulfilled,
           interceptor.onRejected
         )
       })
     }
-  }, [mergedConfig.interceptors])
+  }, [stableInterceptors])
 
   // 初始化 Axios 客戶端
   const initializeClient = useCallback(() => {
@@ -348,12 +352,20 @@ export const useApiClient = (config: ApiClientConfig = {}) => {
     setState(prev => ({ ...prev, isConfigured: true }))
 
     return client
-  }, [mergedConfig, setupRequestInterceptors, setupResponseInterceptors])
+  }, [
+    mergedConfig.baseURL, 
+    mergedConfig.timeout, 
+    mergedConfig.enableInterceptors,
+    setupRequestInterceptors, 
+    setupResponseInterceptors
+  ])
 
-  // 初始化客戶端
+  // 初始化客戶端（只在未配置時執行）
   useEffect(() => {
-    initializeClient()
-  }, [initializeClient])
+    if (!state.isConfigured) {
+      initializeClient()
+    }
+  }, [initializeClient, state.isConfigured])
 
   // 獲取客戶端實例
   const getClient = useCallback((): AxiosInstance => {

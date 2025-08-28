@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 // 對話框類型
 export type DialogType = 'info' | 'warning' | 'error' | 'success' | 'question';
@@ -239,5 +239,106 @@ export function ConfirmDialog({
   );
 }
 
+// 對話框預設配置
+export const DIALOG_PRESETS = {
+  cancel: {
+    type: 'warning' as DialogType,
+    title: '確認取消',
+    message: '您確定要取消當前操作嗎？這將停止正在進行的分析。',
+    confirmText: '確定取消',
+    cancelText: '繼續分析',
+    confirmVariant: 'warning' as const
+  },
+  pause: {
+    type: 'question' as DialogType,
+    title: '暫停分析',
+    message: '您確定要暫停當前分析嗎？您可以隨時恢復。',
+    confirmText: '暫停',
+    cancelText: '繼續',
+    confirmVariant: 'warning' as const
+  },
+  reset: {
+    type: 'warning' as DialogType,
+    title: '重置分析',
+    message: '這將清除所有當前進度並重新開始分析。您確定要繼續嗎？',
+    confirmText: '重置',
+    cancelText: '取消',
+    confirmVariant: 'danger' as const
+  },
+  error: {
+    type: 'error' as DialogType,
+    title: '操作失敗',
+    message: '操作執行時發生錯誤，請重試。',
+    confirmText: '確定',
+    showCancel: false,
+    confirmVariant: 'primary' as const
+  }
+};
 
+// useConfirmDialog Hook
+export interface ConfirmDialogState {
+  isOpen: boolean;
+  config: Partial<ConfirmDialogProps>;
+}
 
+export function useConfirmDialog() {
+  const [dialogState, setDialogState] = useState<ConfirmDialogState>({
+    isOpen: false,
+    config: {}
+  });
+
+  const showDialog = useCallback((config: Partial<ConfirmDialogProps>) => {
+    setDialogState({
+      isOpen: true,
+      config
+    });
+  }, []);
+
+  const hideDialog = useCallback(() => {
+    setDialogState(prev => ({
+      ...prev,
+      isOpen: false
+    }));
+  }, []);
+
+  const showPresetDialog = useCallback((
+    preset: keyof typeof DIALOG_PRESETS,
+    overrides?: Partial<ConfirmDialogProps>
+  ) => {
+    const presetConfig = DIALOG_PRESETS[preset];
+    showDialog({
+      ...presetConfig,
+      ...overrides
+    });
+  }, [showDialog]);
+
+  const confirm = useCallback((
+    message: string,
+    options?: Partial<ConfirmDialogProps>
+  ): Promise<boolean> => {
+    return new Promise((resolve) => {
+      showDialog({
+        title: '確認操作',
+        message,
+        onConfirm: () => {
+          hideDialog();
+          resolve(true);
+        },
+        onCancel: () => {
+          hideDialog();
+          resolve(false);
+        },
+        ...options
+      });
+    });
+  }, [showDialog, hideDialog]);
+
+  return {
+    dialogState,
+    showDialog,
+    hideDialog,
+    showPresetDialog,
+    confirm,
+    isOpen: dialogState.isOpen
+  };
+}

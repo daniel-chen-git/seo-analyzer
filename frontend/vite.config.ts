@@ -12,6 +12,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '.ngrok-free.app',  // 允許所有 ngrok-free.app 子域名
+      '.ngrok.io',        // 支援舊版 ngrok 域名
+    ],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

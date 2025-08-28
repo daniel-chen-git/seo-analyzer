@@ -20,7 +20,8 @@ interface AppState {
 
 interface HealthStatus {
   status: string;
-  backend_connected: boolean;
+  timestamp: string;
+  services: Record<string, string>;
 }
 
 function App() {
@@ -58,7 +59,7 @@ function App() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const response = await fetch('/api/health');
+        const response = await fetch(`${config.api.baseUrl}/api/health`);
         const data = await response.json();
         setHealthStatus(data);
         if (isDebugMode()) {
@@ -66,7 +67,7 @@ function App() {
         }
       } catch (error) {
         console.error('Health check failed:', error);
-        setHealthStatus({ status: 'error', backend_connected: false });
+        setHealthStatus({ status: 'error', timestamp: new Date().toISOString(), services: {} });
       } finally {
         setHealthLoading(false);
       }
@@ -94,7 +95,7 @@ function App() {
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
 
-    // 模擬初始載入
+    // 快速初始載入
     const loadingTimer = setTimeout(() => {
       setAppState(prev => ({ ...prev, isLoading: false }))
       
@@ -105,7 +106,7 @@ function App() {
           online: navigator.onLine
         })
       }
-    }, 1000)
+    }, 100)
 
     return () => {
       window.removeEventListener('online', handleOnline)
@@ -263,7 +264,7 @@ function App() {
                           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2"></div>
                           <span>檢查中...</span>
                         </div>
-                      ) : healthStatus?.backend_connected ? (
+                      ) : healthStatus?.status === 'healthy' ? (
                         <div className="flex items-center text-success">
                           <span className="w-3 h-3 bg-success rounded-full mr-2"></span>
                           <span>Backend 連線正常</span>
@@ -273,6 +274,9 @@ function App() {
                         <div className="flex items-center text-warning">
                           <span className="w-3 h-3 bg-warning rounded-full mr-2"></span>
                           <span>Backend 未連線 (開發模式)</span>
+                          {healthStatus && (
+                            <span className="ml-2 text-xs text-gray-500">({healthStatus.status})</span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -335,7 +339,10 @@ function App() {
 
               {/* 功能預覽卡片 */}
               <div className="grid md:grid-cols-3 gap-6 mb-12">
-                <div className="card group hover:shadow-lg transition-shadow">
+                <div 
+                  className="card group hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => setShowForm(true)}
+                >
                   <div className="text-3xl mb-4">🎯</div>
                   <h3 className="text-lg font-semibold mb-2">關鍵字分析</h3>
                   <p className="text-gray-600 text-sm">深度分析關鍵字競爭度和搜尋意圖</p>
@@ -396,7 +403,6 @@ function App() {
                         showProgressBar: true,
                         showStageIndicator: true,
                         showTimeEstimator: true,
-                        showCancelButton: analysisHook.canCancel,
                         showSubtasks: progressState.status === 'completed',
                         timeEstimatorVariant: analysisHook.isRunning ? 'detailed' : 'compact'
                       }}

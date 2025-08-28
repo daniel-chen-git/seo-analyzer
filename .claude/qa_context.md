@@ -12,9 +12,28 @@
 
 ## 📋 正確的測試開發流程 (2025年最佳實務)
 
-### 🚨 **重要原則：先檢查，後測試**
+### 🚨 **重要原則：先檢查，後測試** 
 
-#### ❌ **錯誤流程** (避免使用)
+#### ⚠️ **流程違反的嚴重後果**:
+- **浪費開發時間**: 在測試中發現本應該靜態檢查發現的錯誤
+- **降低程式品質**: 跳過檢查導致低品質程式碼進入版本控制
+- **破壞專業形象**: 提交包含基本錯誤的代碼給人不專業印象
+- **增加維護成本**: 後續修正錯誤需要額外的 commit 和 push
+- **影響團隊效率**: 其他開發者需要處理你的錯誤代碼
+
+#### 🔒 **絕對禁止的行為**:
+```bash
+# ❌ 絕對不允許：直接跳到測試
+python -m pytest tests/unit/test_something.py  # 沒有先檢查
+
+# ❌ 絕對不允許：有錯誤就直接提交
+git add . && git commit -m "fix"  # 沒有驗證代碼品質
+
+# ❌ 絕對不允許：執行失敗就修改再測試
+pytest -> 失敗 -> 修改 -> pytest  # 沒有靜態檢查
+```
+
+#### ❌ **錯誤流程** (嚴格避免使用)
 ```mermaid
 graph TD
     A[寫測試程式] --> B[直接執行測試]
@@ -104,15 +123,39 @@ mypy tests/integration/test_api_endpoints.py
 # 5. Missing docstring - 添加說明文字
 ```
 
-#### **第5步：確認檢查清單**
-- [ ] `python -m py_compile` 通過
-- [ ] `python -c "import module_name"` 通過
-- [ ] `pytest --collect-only` 通過
-- [ ] Pylint 分數 > 8.0 (或無錯誤)
-- [ ] IDE 無紅色錯誤提示
-- [ ] 所有警告已處理或標註忽略原因
+#### **第5步：強制檢查清單** ⚠️ **必須 100% 完成才能繼續**
+```bash
+# 🔍 第5.1步：語法檢查 (強制必須通過)
+python -m py_compile tests/integration/test_api_endpoints.py
+echo "✅ 語法檢查通過" || exit 1
 
-#### **第6步：執行測試**
+# 🔍 第5.2步：匯入檢查 (強制必須通過)  
+PYTHONPATH=. python -c "import tests.integration.test_api_endpoints"
+echo "✅ 匯入檢查通過" || exit 1
+
+# 🔍 第5.3步：測試收集檢查 (強制必須通過)
+PYTHONPATH=. python -m pytest tests/integration/test_api_endpoints.py --collect-only
+echo "✅ 測試收集檢查通過" || exit 1
+
+# 🔍 第5.4步：靜態分析檢查 (強制必須通過或標註忽略原因)
+pylint tests/integration/test_api_endpoints.py
+echo "✅ Pylint 檢查完成" || echo "⚠️ 有 Pylint 警告，必須處理"
+```
+
+#### **🚨 檢查清單確認** (全部打勾才能執行測試):
+- [ ] **語法檢查**: `python -m py_compile` 通過 ✅
+- [ ] **匯入檢查**: `python -c "import module_name"` 通過 ✅  
+- [ ] **收集檢查**: `pytest --collect-only` 通過 ✅
+- [ ] **靜態分析**: Pylint 分數 > 8.0 (或無錯誤) ✅
+- [ ] **IDE 診斷**: VS Code Problems 面板無紅色錯誤 ✅
+- [ ] **警告處理**: 所有警告已處理或標註忽略原因 ✅
+
+#### ⛔ **檢查清單未完成禁止事項**:
+- **禁止執行測試**: 任一項檢查未通過就禁止 `pytest` 
+- **禁止提交代碼**: 靜態檢查未通過就禁止 `git commit`
+- **禁止推送更改**: 所有問題未解決就禁止 `git push`
+
+#### **第6步：執行測試** (僅在檢查清單 100% 完成後)
 ```bash
 # 🚀 現在才執行測試
 python -m pytest tests/integration/test_api_endpoints.py -v
@@ -2025,5 +2068,69 @@ endpoint = https://test.endpoint.com
 這些措施可以有效避免類似的錯誤，提高代碼質量和維護性。
 
 ---
-**最後更新**: Session 04  
-**狀態**: 已更新至 2025年最新穩定版本，包含 Context7 MCP 整合文檔與 Python 錯誤解決方案指南 + 測試檔案錯誤修復與預防指南
+
+## 🚨 **重要提醒：開發者必讀**
+
+### **如果你違反了上述流程...**
+
+#### **情況1：你直接執行了測試而沒有靜態檢查**
+```bash
+# 你做了這個：
+pytest tests/unit/test_something.py  # ❌ 錯誤！
+
+# 你應該做的：
+python -m py_compile tests/unit/test_something.py  # ✅ 先檢查
+PYTHONPATH=. python -c "import tests.unit.test_something"  # ✅ 再檢查
+pytest --collect-only tests/unit/test_something.py  # ✅ 再檢查
+pylint tests/unit/test_something.py  # ✅ 最後檢查
+# 全部通過後才能：
+pytest tests/unit/test_something.py  # ✅ 現在可以測試了
+```
+
+#### **情況2：你發現了靜態檢查錯誤但想跳過**
+```bash
+# ❌ 絕對不允許的想法：
+# "只是小錯誤，我直接測試吧"
+# "Pylint 太嚴格了，我跳過"
+# "反正測試能過就好"
+
+# ✅ 正確的做法：
+# 1. 修正所有錯誤
+# 2. 或者添加合理的 pylint 忽略註解並說明原因
+# 3. 確保代碼品質後再繼續
+```
+
+#### **情況3：你想要快速修復並提交**
+```bash
+# ❌ 危險的快速修復：
+git add . && git commit -m "quick fix" && git push
+
+# ✅ 正確的修復流程：
+# 1. 修正代碼
+# 2. 執行完整靜態檢查
+# 3. 執行相關測試
+# 4. 檢查所有修改
+# 5. 寫有意義的 commit 訊息
+# 6. 提交和推送
+```
+
+### **⚠️ 為什麼這個流程這麼重要？**
+
+1. **專業品質**: 靜態檢查是專業開發的基本要求
+2. **團隊協作**: 乾淨的代碼讓其他開發者更容易理解和維護
+3. **維護成本**: 早期發現問題比後期修復便宜 10 倍
+4. **個人成長**: 養成良好習慣讓你成為更好的開發者
+5. **項目穩定**: 避免因為基本錯誤導致的系統問題
+
+### **📝 記住這個口訣：**
+```
+寫代碼先思考，
+語法匯入要檢查，
+靜態分析不能少，  
+清單完成才測試，
+品質第一是王道！
+```
+
+---
+**最後更新**: Session 04+ (流程強化版)  
+**狀態**: 已更新至 2025年最新穩定版本，包含 Context7 MCP 整合文檔與 Python 錯誤解決方案指南 + 測試檔案錯誤修復與預防指南 + 強化開發流程規範

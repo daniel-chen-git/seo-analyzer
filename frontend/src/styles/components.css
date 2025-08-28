@@ -99,10 +99,25 @@
   border: 1px solid rgb(232, 234, 237);
   box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
   overflow: hidden;
+  padding: 1rem;
+  transition: all 0.2s ease-in-out;
 }
 
 .card-body {
   padding: 1.5rem;
+}
+
+/* 響應式卡片內距 */
+@media (min-width: 640px) {
+  .card {
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card {
+    padding: 1.5rem;
+  }
 }
 
 .card-title {

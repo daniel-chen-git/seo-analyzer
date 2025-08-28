@@ -203,8 +203,8 @@ function App() {
         
         <Layout>
           {/* 主要內容區域 */}
-          <main className="container mx-auto px-4 py-8">
-            <div className="max-w-4xl mx-auto">
+          <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="w-full">
               {/* 歡迎區塊 */}
               <div className="text-center mb-12">
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -227,7 +227,7 @@ function App() {
 
               {/* Phase 1.6 環境設定驗證 */}
               {isDevelopment() && (
-                <div className="card max-w-4xl mx-auto mb-12">
+                <div className="card w-full max-w-6xl mx-auto mb-12">
                   <div className="text-center mb-6">
                     <h2 className="text-2xl font-semibold mb-4">🔍 Phase 1.6 環境設定驗證</h2>
                   </div>
@@ -235,7 +235,7 @@ function App() {
                   {/* 技術棧資訊 */}
                   <div className="mb-6">
                     <h3 className="text-lg font-medium mb-3">🚀 技術棧版本</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                       <div className="flex justify-between p-2 bg-gray-50 rounded">
                         <span>React:</span>
                         <span className="font-mono text-success">19.1.1</span>
@@ -338,7 +338,7 @@ function App() {
               )}
 
               {/* 功能預覽卡片 */}
-              <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12">
                 <div 
                   className="card group hover:shadow-lg transition-shadow cursor-pointer"
                   onClick={() => setShowForm(true)}

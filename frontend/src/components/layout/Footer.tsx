@@ -75,8 +75,8 @@ function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-200">
       {/* 主要 Footer 內容 */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+      <div className="w-full max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 lg:gap-8">
           {/* 品牌區域 */}
           <div className="lg:col-span-2">
             <div className="flex items-center mb-4">
@@ -128,7 +128,7 @@ function Footer() {
 
       {/* Footer 底部 */}
       <div className="border-t border-gray-200 bg-gray-100">
-        <div className="container mx-auto px-4 py-6">
+        <div className="w-full max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             {/* 版權聲明 */}
             <div className="text-sm text-gray-600 mb-4 md:mb-0">

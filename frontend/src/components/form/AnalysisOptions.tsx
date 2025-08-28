@@ -152,7 +152,7 @@ export const AnalysisOptions: React.FC<AnalysisOptionsProps> = ({
 
                   {/* Tooltip */}
                   {showTooltip === config.key && (
-                    <div className="absolute right-0 top-8 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-md shadow-lg">
+                    <div className="absolute right-0 top-8 z-10 max-w-xs w-64 p-2 bg-gray-800 text-white text-xs rounded-md shadow-lg whitespace-normal">
                       <div className="absolute -top-1 right-2 w-2 h-2 bg-gray-800 transform rotate-45"></div>
                       {config.description}
                     </div>

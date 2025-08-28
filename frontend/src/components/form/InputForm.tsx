@@ -137,7 +137,7 @@ export const InputForm: React.FC<InputFormProps> = ({
 
   // 容器樣式
   const containerClasses = [
-    'w-full max-w-2xl mx-auto',
+    'w-full max-w-2xl',
     'bg-white rounded-xl shadow-lg border border-gray-200',
     'p-6 space-y-6',
     className

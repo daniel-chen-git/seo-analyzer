@@ -53,7 +53,7 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
 
   // 動態樣式類名
   const inputClasses = [
-    'w-full px-4 py-3 border rounded-lg transition-all duration-200 text-base',
+    'w-full px-4 py-3 pr-20 border rounded-lg transition-all duration-200 text-base',
     'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
     'placeholder:text-gray-400',
     
@@ -90,7 +90,7 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
       </div>
 
       {/* 輸入欄位 */}
-      <div className="relative">
+      <div className="space-y-1">
         <input
           type="text"
           value={value}
@@ -106,9 +106,9 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
           aria-describedby={hasError ? 'keyword-error' : undefined}
         />
         
-        {/* 字元計數器 */}
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-          <span className={`text-sm ${characterCount > maxLength * 0.9 ? 'text-orange-500' : 'text-gray-400'}`}>
+        {/* 字元計數器 - 移到輸入框下方 */}
+        <div className="flex justify-end">
+          <span className={`text-xs ${characterCount > maxLength * 0.9 ? 'text-orange-500' : 'text-gray-400'}`}>
             {characterCount}/{maxLength}
           </span>
         </div>

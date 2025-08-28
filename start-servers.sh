@@ -36,6 +36,13 @@ sleep 2
 
 echo "啟動後端服務器..."
 cd backend
+
+echo "檢查並安裝後端依賴..."
+uv sync
+
+echo "確保關鍵依賴已安裝..."
+uv add aiohttp jinja2 --no-sync 2>/dev/null || true
+
 uv run python -m app.main &
 BACKEND_PID=$!
 

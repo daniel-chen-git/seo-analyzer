@@ -14,6 +14,12 @@ fi
 # 切換到後端目錄並啟動服務
 cd backend
 
+echo "檢查並安裝依賴..."
+uv sync
+
+echo "確保關鍵依賴已安裝..."
+uv add aiohttp jinja2 --no-sync 2>/dev/null || true
+
 echo "使用 uv 啟動後端服務器..."
 uv run python -m app.main
 

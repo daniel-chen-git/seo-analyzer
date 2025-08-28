@@ -340,7 +340,7 @@ function App() {
               {/* 功能預覽卡片 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12">
                 <div 
-                  className="card group hover:shadow-lg transition-shadow cursor-pointer"
+                  className="card group hover:shadow-lg transition-shadow cursor-pointer text-center"
                   onClick={() => setShowForm(true)}
                 >
                   <div className="text-3xl mb-4">🎯</div>
@@ -348,13 +348,13 @@ function App() {
                   <p className="text-gray-600 text-sm">深度分析關鍵字競爭度和搜尋意圖</p>
                 </div>
                 
-                <div className="card group hover:shadow-lg transition-shadow">
+                <div className="card group hover:shadow-lg transition-shadow text-center">
                   <div className="text-3xl mb-4">📊</div>
                   <h3 className="text-lg font-semibold mb-2">SERP 分析</h3>
                   <p className="text-gray-600 text-sm">全面分析搜尋結果頁面競爭情況</p>
                 </div>
                 
-                <div className="card group hover:shadow-lg transition-shadow">
+                <div className="card group hover:shadow-lg transition-shadow text-center">
                   <div className="text-3xl mb-4">✍️</div>
                   <h3 className="text-lg font-semibold mb-2">內容生成</h3>
                   <p className="text-gray-600 text-sm">AI 驅動的 SEO 優化內容建議</p>
@@ -382,7 +382,7 @@ function App() {
                 </div>
                 
                 {showForm && !progressState && (
-                  <div className="transition-all duration-500 ease-in-out mb-8">
+                  <div className="transition-all duration-500 ease-in-out mb-8 flex justify-center">
                     <InputForm
                       onSubmit={handleAnalysisSubmit}
                       onReset={handleFormReset}

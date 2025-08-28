@@ -305,7 +305,9 @@ async def health_check() -> HealthCheckResponse:
         # 執行實際的外部服務連線測試
         services_status = {
             "serp_api": await _test_serp_connection(),
-            "azure_openai": await _test_azure_openai_connection(),
+            # 暫時註解 Azure OpenAI 檢查，避免配置問題影響健康檢查
+            # "azure_openai": await _test_azure_openai_connection(),
+            "azure_openai": "disabled",  # 暫時停用
             "redis": "disabled" if not config.get_cache_enabled() else "not_implemented"
         }
 
@@ -323,7 +325,7 @@ async def health_check() -> HealthCheckResponse:
             services={
                 "config": f"error: {str(e)}",
                 "serp_api": "unknown",
-                "azure_openai": "unknown",
+                "azure_openai": "disabled",  # 暫時停用
                 "redis": "unknown"
             }
         )
@@ -666,8 +668,14 @@ def create_error_response(error_code: str, message: str, details: Optional[dict]
     if details:
         error_detail = ErrorDetail(
             field=details.get("field"),
+            provided_length=details.get("provided_length"),
+            max_length=details.get("max_length"),
+            min_length=details.get("min_length"),
             provided_value=details.get("provided_value"),
-            expected_format=details.get("expected_format")
+            expected_format=details.get("expected_format"),
+            job_id=details.get("job_id"),
+            processing_time=details.get("processing_time"),
+            retry_after=details.get("retry_after")
         )
 
     error_info = ErrorInfo(

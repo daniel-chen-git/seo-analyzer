@@ -145,7 +145,7 @@ describe('useAnalysis', () => {
     status: 'pending',
     job_id: 'test-job-123',
     message: 'Analysis started',
-    status_url: '/api/analysis/test-job-123/status'
+    status_url: '/api/status/test-job-123'
   }
 
   const mockResult: AnalyzeResponse = {
@@ -217,7 +217,7 @@ describe('useAnalysis', () => {
         await result.current.controls.start(mockRequest)
       })
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/api/analysis/async', mockRequest)
+      expect(mockApiClient.post).toHaveBeenCalledWith('/api/analyze-async', mockRequest)
       expect(result.current.status).toBe('running')
       expect(result.current.jobId).toBe('test-job-123')
       expect(result.current.request).toEqual(mockRequest)
@@ -424,7 +424,7 @@ describe('useAnalysis', () => {
         await new Promise(resolve => setTimeout(resolve, 150))
       })
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/api/analysis/test-job-123/status')
+      expect(mockApiClient.get).toHaveBeenCalledWith('/api/status/test-job-123')
       expect(result.current.status).toBe('running')
     })
   })

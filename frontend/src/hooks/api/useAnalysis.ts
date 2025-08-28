@@ -508,7 +508,7 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
         pollCountRef.current++
         updateStatistics({ pollCount: pollCountRef.current })
         
-        const response = await apiClient.get<JobStatusResponse>(`/api/analysis/${jobId}/status`)
+        const response = await apiClient.get<JobStatusResponse>(`/api/status/${jobId}`)
         const data = response.data
         
         if (data.status === 'completed' && data.result) {
@@ -567,7 +567,7 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
       }))
       
       // 創建非同步分析任務
-      const jobResponse = await apiClient.post<JobCreateResponse>('/api/analysis/async', request)
+      const jobResponse = await apiClient.post<JobCreateResponse>('/api/analyze-async', request)
       const jobId = jobResponse.data.job_id
       
       // 更新狀態
@@ -606,7 +606,9 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
     if (!state.jobId || !state.canCancel) return
     
     try {
-      await apiClient.post(`/api/analysis/${state.jobId}/cancel`)
+      // TODO: 實作取消端點
+      // await apiClient.post(`/api/cancel/${state.jobId}`)
+      console.warn('取消功能尚未實作')
       
       setState(prev => ({
         ...prev,
@@ -637,7 +639,9 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
     if (!state.jobId || !state.canPause) return
     
     try {
-      await apiClient.post(`/api/analysis/${state.jobId}/pause`)
+      // TODO: 實作暫停端點
+      // await apiClient.post(`/api/pause/${state.jobId}`)
+      console.warn('暫停功能尚未實作')
       
       setState(prev => ({
         ...prev,
@@ -660,7 +664,9 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
     if (!state.jobId || !state.canResume) return
     
     try {
-      await apiClient.post(`/api/analysis/${state.jobId}/resume`)
+      // TODO: 實作恢復端點
+      // await apiClient.post(`/api/resume/${state.jobId}`)
+      console.warn('恢復功能尚未實作')
       
       setState(prev => ({
         ...prev,

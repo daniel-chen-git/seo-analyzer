@@ -495,13 +495,25 @@ class AIService:
         )
         
         # 轉換為字典格式以便處理
-        return {
-            'choices': [{'message': {'content': response.choices[0].message.content}}],
-            'usage': {
-                'total_tokens': response.usage.total_tokens,
-                'prompt_tokens': response.usage.prompt_tokens,
-                'completion_tokens': response.usage.completion_tokens
+        # 安全地存取可能為 None 的屬性
+        content = response.choices[0].message.content if response.choices[0].message.content else ""
+        
+        usage_data = {
+            'total_tokens': 0,
+            'prompt_tokens': 0,
+            'completion_tokens': 0
+        }
+        
+        if response.usage is not None:
+            usage_data = {
+                'total_tokens': response.usage.total_tokens or 0,
+                'prompt_tokens': response.usage.prompt_tokens or 0,
+                'completion_tokens': response.usage.completion_tokens or 0
             }
+        
+        return {
+            'choices': [{'message': {'content': content}}],
+            'usage': usage_data
         }
     
     def _parse_openai_response(self, response: Dict[str, Any]) -> str:

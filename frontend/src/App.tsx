@@ -38,7 +38,7 @@ function App() {
 
   // 企業級 Hooks 整合
   const analysisHook = useAnalysis({
-    enableWebSocket: true,
+    enableWebSocket: false,
     pollingConfig: {
       enabled: true,
       interval: 2000,
@@ -52,7 +52,49 @@ function App() {
   const progressState = analysisHook.progress ? {
     ...analysisHook.progress,
     canCancel: analysisHook.canCancel
-  } : null
+  } : (analysisHook.status !== 'idle' ? {
+    currentStage: 1 as 1 | 2 | 3,
+    overallProgress: 0,
+    stageProgress: 0,
+    status: analysisHook.status,
+    stages: {
+      serp: { 
+        status: 'pending' as const, 
+        progress: 0, 
+        startTime: undefined,
+        completedTime: undefined,
+        subtasks: [],
+        currentSubtask: '準備開始 SERP 分析',
+        statusMessage: '準備分析搜尋結果'
+      },
+      crawler: { 
+        status: 'pending' as const, 
+        progress: 0, 
+        startTime: undefined,
+        completedTime: undefined,
+        subtasks: [],
+        currentSubtask: '準備開始網頁爬取',
+        statusMessage: '準備爬取網頁內容'
+      },
+      ai: { 
+        status: 'pending' as const, 
+        progress: 0, 
+        startTime: undefined,
+        completedTime: undefined,
+        subtasks: [],
+        currentSubtask: '準備開始 AI 分析',
+        statusMessage: '準備 AI 分析'
+      }
+    },
+    timing: {
+      startTime: new Date(),
+      currentStageStartTime: new Date(),
+      estimatedTotalTime: 60,
+      estimatedRemainingTime: 60
+    },
+    jobId: 'default-job-id',
+    canCancel: analysisHook.canCancel
+  } : null)
   const hasError = analysisHook.error || appState.error
 
   // 健康檢查測試

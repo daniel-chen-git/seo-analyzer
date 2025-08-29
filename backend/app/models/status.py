@@ -111,6 +111,8 @@ class JobStatus(BaseModel):
             message: 狀態描述訊息
             percentage: 完成百分比
         """
+        print(f"📈 JobStatus.update_progress: step={step}, message='{message}', percentage={percentage}%")
+        
         self.status = "processing"
         self.progress = JobProgress(
             current_step=step,
@@ -118,6 +120,8 @@ class JobStatus(BaseModel):
             percentage=percentage
         )
         self.updated_at = datetime.now(timezone.utc)
+        
+        print(f"✅ JobStatus 狀態已更新: status={self.status}, progress={self.progress.percentage}%")
 
     def complete_job(self, result: AnalyzeResponse) -> None:
         """標記任務完成。

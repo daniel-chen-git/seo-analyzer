@@ -77,10 +77,14 @@ class JobManager:
         Returns:
             更新成功回傳 True，任務不存在回傳 False
         """
+        print(f"📊 JobManager.update_progress: job_id={job_id}, step={step}, message='{message}', percentage={percentage}%")
+        
         job_status = self._jobs.get(job_id)
         if job_status is None:
+            print(f"❌ 任務不存在: job_id={job_id}, 現有任務: {list(self._jobs.keys())}")
             return False
         
+        print(f"✅ 更新任務進度成功: {job_id}")
         job_status.update_progress(step, message, percentage)
         return True
     

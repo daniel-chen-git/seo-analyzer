@@ -117,7 +117,7 @@ interface WebSocketMessage {
  * 預設配置
  */
 const DEFAULT_CONFIG: Required<AnalysisConfig> = {
-  enableWebSocket: true,
+  enableWebSocket: false, // 暫時禁用 WebSocket，強制使用輪詢
   websocketConfig: {
     maxRetries: 3,
     retryDelay: 1000,
@@ -500,29 +500,53 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
    * 輪詢狀態更新
    */
   const startPolling = useCallback((jobId: string) => {
-    if (!finalConfig.pollingConfig.enabled) return
-    if (pollCountRef.current >= finalConfig.pollingConfig.maxPolls!) return
+    console.log('🔄 開始輪詢任務狀態:', jobId)
+    if (!finalConfig.pollingConfig.enabled) {
+      console.log('❌ 輪詢已禁用')
+      return
+    }
+    if (pollCountRef.current >= finalConfig.pollingConfig.maxPolls!) {
+      console.log('❌ 達到最大輪詢次數限制')
+      return
+    }
     
     const poll = async () => {
       try {
         pollCountRef.current++
         updateStatistics({ pollCount: pollCountRef.current })
         
+        console.log(`📡 輪詢第 ${pollCountRef.current} 次，查詢任務: ${jobId}`)
         const response = await apiClient.get<JobStatusResponse>(`/api/status/${jobId}`)
         const data = response.data
+        
+        console.log('📊 輪詢回應:', { status: data.status, progress: data.progress })
         
         if (data.status === 'completed' && data.result) {
           handleAnalysisComplete(data.result)
         } else if (data.status === 'failed' && data.error) {
           handleAnalysisError(data.error)
         } else if (data.status === 'processing' && data.progress) {
-          // 轉換 JobProgress 到 ProgressUpdate
+          // 轉換 JobProgress 到 ProgressUpdate - 修復格式匹配問題
+          // 計算當前階段的進度：將整體進度映射到當前階段的進度
+          const stageProgress = Math.min(100, Math.max(0, 
+            ((data.progress.percentage - (data.progress.current_step - 1) * 33.33) / 33.33) * 100
+          ))
+          
           const progressUpdate: ProgressUpdate = {
-            current_stage: Math.ceil(data.progress.current_step / data.progress.total_steps * 3) as 1 | 2 | 3,
-            overall_progress: data.progress.percentage,
-            stage_progress: ((data.progress.current_step % (data.progress.total_steps / 3)) / (data.progress.total_steps / 3)) * 100,
+            current_stage: data.progress.current_step as 1 | 2 | 3, // 直接使用後端的階段數
+            overall_progress: data.progress.percentage, // 直接使用後端的整體進度
+            stage_progress: stageProgress, // 計算當前階段的進度百分比
             estimated_remaining: 0 // API 未提供此數據
           }
+          
+          // 輸出進度資訊以供調試
+          console.log('Progress Update:', {
+            stage: data.progress.current_step,
+            message: data.progress.message,
+            overall: data.progress.percentage,
+            stage_progress: stageProgress
+          })
+          
           handleProgressUpdate(progressUpdate)
           
           // 繼續輪詢
@@ -543,9 +567,14 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
    * 開始分析
    */
   const start = useCallback(async (request: AnalyzeRequest) => {
+    console.log('🎯 開始分析:', { request, currentStatus: state.status })
+    
     if (state.status === 'running' || state.status === 'starting') {
+      console.log('❌ 分析已在進行中:', state.status)
       throw new Error('Analysis is already running')
     }
+    
+    console.log('⚙️ 使用配置:', finalConfig)
     
     try {
       const startTime = new Date()
@@ -582,10 +611,20 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
       }))
       
       // 啟動進度監控
+      console.log('🚀 啟動進度監控:', { 
+        enableWebSocket: finalConfig.enableWebSocket, 
+        pollingEnabled: finalConfig.pollingConfig.enabled,
+        jobId 
+      })
+      
       if (finalConfig.enableWebSocket) {
+        console.log('📡 使用 WebSocket 監控')
         connectWebSocket(jobId)
       } else if (finalConfig.pollingConfig.enabled) {
+        console.log('🔄 使用輪詢監控')
         startPolling(jobId)
+      } else {
+        console.log('❌ 沒有啟用任何進度監控方式')
       }
       
     } catch (error) {

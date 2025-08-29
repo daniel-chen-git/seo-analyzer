@@ -75,6 +75,15 @@ class IntegrationService:
             print(f"✅ SERP 擷取完成，取得 {len(serp_data.organic_results)} 個結果 "
                   f"({timer.get_phase_duration('serp'):.2f}s)")
             
+            # 印出 SERP 資料內容
+            print("📋 SERP 擷取資料內容：")
+            for i, result in enumerate(serp_data.organic_results, 1):
+                print(f"  {i}. {result.title[:100]}{'...' if len(result.title) > 100 else ''}")
+                print(f"     URL: {result.link}")
+                if result.snippet:
+                    print(f"     摘要: {result.snippet[:200]}{'...' if len(result.snippet) > 200 else ''}")
+                print()
+            
             # 階段 2: 網頁內容爬取
             print("🕷️ 開始網頁內容爬取")
             timer.start_phase("scraping")
@@ -285,6 +294,15 @@ class IntegrationService:
             )
             print(f"✅ SERP 擷取完成，取得 {len(serp_data.organic_results)} 個結果 "
                   f"({timer.get_phase_duration('serp'):.2f}s)")
+            
+            # 印出 SERP 資料內容
+            print("📋 SERP 擷取資料內容：")
+            for i, result in enumerate(serp_data.organic_results, 1):
+                print(f"  {i}. {result.title[:100]}{'...' if len(result.title) > 100 else ''}")
+                print(f"     URL: {result.link}")
+                if result.snippet:
+                    print(f"     摘要: {result.snippet[:200]}{'...' if len(result.snippet) > 200 else ''}")
+                print()
 
             # 階段 2: 網頁內容爬取
             job_manager.update_progress(
@@ -313,12 +331,48 @@ class IntegrationService:
             timer.start_phase("ai")
 
             ai_options = self._convert_to_ai_options(request.options)
-            analysis_result = await self.ai_service.analyze_seo_content(
-                serp_data=serp_data,
-                scraping_data=scraping_data,
-                keyword=request.keyword,
-                audience=request.audience,
-                options=ai_options
+            
+            # 暫時註解 AI 分析以便測試進度顯示功能
+            # analysis_result = await self.ai_service.analyze_seo_content(
+            #     serp_data=serp_data,
+            #     scraping_data=scraping_data,
+            #     keyword=request.keyword,
+            #     audience=request.audience,
+            #     options=ai_options
+            # )
+            
+            # 使用模擬的 AI 分析結果進行測試
+            from ..services.ai_service import AnalysisResult
+            import asyncio
+            
+            # 模擬 AI 處理時間（5秒）
+            print("🤖 模擬 AI 分析處理中...")
+            await asyncio.sleep(5)
+            
+            analysis_result = AnalysisResult(
+                analysis_report=f"""# SEO 分析報告
+
+## 關鍵字分析：{request.keyword}
+目標受眾：{request.audience}
+
+### SERP 分析結果
+- 共找到 {len(serp_data.organic_results)} 個搜尋結果
+- 網頁爬取成功 {scraping_data.successful_scrapes} 個頁面
+
+### 模擬分析建議
+1. **內容優化建議**
+   - 針對關鍵字 "{request.keyword}" 優化標題和內容
+   - 提升內容相關性和權威性
+
+2. **技術優化建議**  
+   - 改善頁面載入速度
+   - 優化行動裝置體驗
+
+*（此為測試模式的模擬報告）*
+""",
+                token_usage=1500,  # 模擬 token 使用量
+                processing_time=5.0,  # 模擬處理時間
+                success=True
             )
 
             timer.end_phase("ai")

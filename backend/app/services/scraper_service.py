@@ -193,6 +193,29 @@ class ScraperService:
         
         print(f"爬蟲完成：{successful_scrapes}/{total_results} 成功，耗時 {processing_time:.2f} 秒")
         
+        # 印出每筆URL資料的前100字元
+        print("📄 網頁爬取內容預覽：")
+        for i, page in enumerate([p for p in pages if isinstance(p, PageContent)], 1):
+            if page.success:
+                # 組合可用內容作為預覽（PageContent 沒有 content 屬性，使用 title, h1, meta_description）
+                content_parts = []
+                if page.title:
+                    content_parts.append(f"標題: {page.title}")
+                if page.h1:
+                    content_parts.append(f"H1: {page.h1}")
+                if page.meta_description:
+                    content_parts.append(f"描述: {page.meta_description}")
+                
+                content_preview = " | ".join(content_parts)[:100]
+                print(f"  {i}. URL: {page.url}")
+                print(f"     內容: {content_preview}{'...' if len(content_preview) > 100 else ''}")
+                print(f"     字數: {page.word_count}, 段落: {page.paragraph_count}")
+                print(f"     H2標籤: {len(page.h2_list)} 個")
+            else:
+                print(f"  {i}. URL: {page.url}")
+                print(f"     狀態: 爬取失敗 - {page.error if page.error else '未知錯誤'}")
+            print()
+        
         return ScrapingResult(
             total_results=total_results,
             successful_scrapes=successful_scrapes,

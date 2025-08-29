@@ -142,6 +142,13 @@ class AIService:
                 options=options
             )
             
+            # 印出送給AI的內容（限制長度避免過長）
+            prompt_preview = prompt[:500] + '...' if len(prompt) > 500 else prompt
+            print("🤖 送給AI的提示內容：")
+            print(f"   長度: {len(prompt)} 字元")
+            print(f"   內容預覽: {prompt_preview}")
+            print()
+            
             # 驗證 Token 使用量
             if not self._validate_token_usage(prompt):
                 # 截斷內容後重新建立提示
@@ -165,6 +172,14 @@ class AIService:
             # 解析回應
             analysis_report = self._parse_openai_response(api_response)
             token_usage = api_response.get('usage', {}).get('total_tokens', 0)
+            
+            # 印出AI回覆結果
+            report_preview = analysis_report[:500] + '...' if len(analysis_report) > 500 else analysis_report
+            print("🤖 AI 回覆結果：")
+            print(f"   長度: {len(analysis_report)} 字元")
+            print(f"   Token使用: {token_usage}")
+            print(f"   內容預覽: {report_preview}")
+            print()
             
             processing_time = time.time() - start_time
             

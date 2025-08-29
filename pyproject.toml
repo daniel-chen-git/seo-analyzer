@@ -11,6 +11,7 @@ dependencies = [
     "google-search-results>=2.4.2",
     "httpx>=0.28.1",
     "jinja2>=3.1.6",
+    "lxml==6.0.1",
     "openai>=1.101.0",
     "pydantic>=2.11.7",
     "selenium>=4.35.0",

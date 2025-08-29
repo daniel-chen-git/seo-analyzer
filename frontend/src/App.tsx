@@ -6,6 +6,7 @@ import DevPanel from '@/components/ui/DevPanel'
 import { InputForm } from '@/components/form'
 import { ProgressIndicator } from '@/components/progress'
 import { useAnalysis, useErrorHandling } from '@/hooks/api'
+import ReactMarkdown from 'react-markdown'
 // 移除不需要的狀態映射導入
 import type { AnalyzeFormData } from '@/types/form'
 import type { AnalyzeRequest } from '@/types/api'
@@ -22,6 +23,28 @@ interface HealthStatus {
   status: string;
   timestamp: string;
   services: Record<string, string>;
+}
+
+// 型別輔助函數，避免 any
+const getResultData = (result: any) => result as {
+  processing_time?: number;
+  data?: {
+    serp_summary?: {
+      total_results: number;
+      successful_scrapes: number;
+      avg_word_count: number;
+      avg_paragraphs: number;
+    };
+    analysis_report?: string;
+    metadata?: {
+      token_usage?: number;
+      phase_timings?: {
+        serp_duration?: number;
+        scraping_duration?: number;
+        ai_duration?: number;
+      };
+    };
+  };
 }
 
 function App() {
@@ -449,6 +472,140 @@ function App() {
                         timeEstimatorVariant: analysisHook.isRunning ? 'detailed' : 'compact'
                       }}
                     />
+                  </div>
+                )}
+
+                {/* 分析結果顯示 */}
+                {analysisHook.result && analysisHook.status === 'completed' && (
+                  <div className="mt-8 transition-all duration-500 ease-in-out">
+                    <div className="card max-w-6xl mx-auto">
+                      <div className="text-center mb-6">
+                        <h2 className="text-2xl font-bold text-success mb-2">✅ 分析完成</h2>
+                        <p className="text-gray-600">以下是您的 SEO 分析報告</p>
+                      </div>
+
+                      {/* 分析結果內容 */}
+                      <div className="space-y-6">
+                        {/* 基本信息 */}
+                        <div className="border-b pb-4">
+                          <h3 className="text-lg font-semibold mb-3">📋 分析概要</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="bg-gray-50 p-3 rounded">
+                              <span className="font-medium">關鍵字：</span>
+                              <span className="ml-2">{analysisHook.request?.keyword || 'N/A'}</span>
+                            </div>
+                            <div className="bg-gray-50 p-3 rounded">
+                              <span className="font-medium">目標受眾：</span>
+                              <span className="ml-2">{analysisHook.request?.audience || 'N/A'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* SERP 競爭分析 */}
+                        {getResultData(analysisHook.result)?.data?.serp_summary && (
+                          <div className="border-b pb-4">
+                            <h3 className="text-lg font-semibold mb-3">🔍 SERP 競爭分析</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              <div className="bg-blue-50 p-4 rounded-lg text-center">
+                                <div className="text-2xl font-bold text-blue-600">
+                                  {getResultData(analysisHook.result).data?.serp_summary?.total_results}
+                                </div>
+                                <div className="text-sm text-gray-600">總搜尋結果</div>
+                              </div>
+                              <div className="bg-green-50 p-4 rounded-lg text-center">
+                                <div className="text-2xl font-bold text-green-600">
+                                  {getResultData(analysisHook.result).data?.serp_summary?.successful_scrapes}
+                                </div>
+                                <div className="text-sm text-gray-600">成功爬取</div>
+                              </div>
+                              <div className="bg-purple-50 p-4 rounded-lg text-center">
+                                <div className="text-2xl font-bold text-purple-600">
+                                  {getResultData(analysisHook.result).data?.serp_summary?.avg_word_count}
+                                </div>
+                                <div className="text-sm text-gray-600">平均字數</div>
+                              </div>
+                              <div className="bg-orange-50 p-4 rounded-lg text-center">
+                                <div className="text-2xl font-bold text-orange-600">
+                                  {getResultData(analysisHook.result).data?.serp_summary?.avg_paragraphs}
+                                </div>
+                                <div className="text-sm text-gray-600">平均段落</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 分析報告 */}
+                        {getResultData(analysisHook.result)?.data?.analysis_report && (
+                          <div className="border-b pb-4">
+                            <h3 className="text-lg font-semibold mb-3">✍️ 分析報告</h3>
+                            <div className="bg-white p-6 rounded-lg border prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
+                              <ReactMarkdown>
+                                {getResultData(analysisHook.result).data?.analysis_report}
+                              </ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 處理統計 */}
+                        {getResultData(analysisHook.result)?.data?.metadata && (
+                          <div>
+                            <h3 className="text-lg font-semibold mb-3">⏱️ 處理統計</h3>
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">總處理時間：</span>
+                                  <span className="ml-2">{getResultData(analysisHook.result)?.processing_time?.toFixed(2) || 'N/A'} 秒</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Token 使用量：</span>
+                                  <span className="ml-2">{getResultData(analysisHook.result)?.data?.metadata?.token_usage || 'N/A'}</span>
+                                </div>
+                                {getResultData(analysisHook.result)?.data?.metadata?.phase_timings && (
+                                  <>
+                                    <div>
+                                      <span className="font-medium">SERP 擷取：</span>
+                                      <span className="ml-2">{getResultData(analysisHook.result).data?.metadata?.phase_timings?.serp_duration?.toFixed(2) || 'N/A'} 秒</span>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">網頁爬取：</span>
+                                      <span className="ml-2">{getResultData(analysisHook.result).data?.metadata?.phase_timings?.scraping_duration?.toFixed(2) || 'N/A'} 秒</span>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">AI 分析：</span>
+                                      <span className="ml-2">{getResultData(analysisHook.result).data?.metadata?.phase_timings?.ai_duration?.toFixed(2) || 'N/A'} 秒</span>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 操作按鈕 */}
+                        <div className="flex justify-center gap-4 pt-4 border-t">
+                          <button
+                            onClick={() => {
+                              const dataStr = JSON.stringify(analysisHook.result, null, 2);
+                              const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                              const exportFileDefaultName = `seo-analysis-${analysisHook.request?.keyword || 'report'}-${new Date().toISOString().slice(0,10)}.json`;
+                              const linkElement = document.createElement('a');
+                              linkElement.setAttribute('href', dataUri);
+                              linkElement.setAttribute('download', exportFileDefaultName);
+                              linkElement.click();
+                            }}
+                            className="btn-primary"
+                          >
+                            📥 下載報告
+                          </button>
+                          <button
+                            onClick={handleFormReset}
+                            className="btn bg-secondary text-white hover:bg-secondary/90"
+                          >
+                            🔄 開始新分析
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 

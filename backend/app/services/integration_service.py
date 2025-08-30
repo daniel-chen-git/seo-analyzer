@@ -5,6 +5,9 @@
 """
 
 import time
+import os
+import json
+import hashlib
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
@@ -43,6 +46,89 @@ class IntegrationService:
             "ai_duration": 35.0,        # AI 階段警告閾值
             "total_duration": 55.0      # 總時間警告閾值
         }
+        
+        # 快取設定
+        self.cache_dir = "/Users/danielchen/test/seo-analyzer/backend/app/services"
+    
+    def _get_cache_file_path(self, keyword: str) -> str:
+        """生成基於關鍵字 hash 的快取檔案路徑。
+        
+        Args:
+            keyword: 搜尋關鍵字
+            
+        Returns:
+            str: 快取檔案的完整路徑
+        """
+        # 生成關鍵字的 hash 值
+        keyword_hash = hashlib.md5(keyword.encode('utf-8')).hexdigest()[:8]
+        filename = f"analysis_result_{keyword_hash}.json"
+        return os.path.join(self.cache_dir, filename)
+    
+    def _load_cached_result(self, keyword: str) -> Optional[AnalysisResult]:
+        """從快取檔案載入分析結果。
+        
+        Args:
+            keyword: 搜尋關鍵字
+            
+        Returns:
+            Optional[AnalysisResult]: 快取的分析結果，如果不存在則返回 None
+        """
+        cache_file = self._get_cache_file_path(keyword)
+        
+        if not os.path.exists(cache_file):
+            print(f"📂 快取檔案不存在: {cache_file}")
+            return None
+        
+        try:
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                cache_data = json.load(f)
+            
+            print(f"📂 從快取載入分析結果: {cache_file}")
+            
+            # 重建 AnalysisResult 物件
+            return AnalysisResult(
+                analysis_report=cache_data['analysis_report'],
+                token_usage=cache_data['token_usage'],
+                processing_time=cache_data['processing_time'],
+                success=cache_data['success']
+            )
+            
+        except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
+            print(f"❌ 快取檔案讀取失敗: {e}")
+            return None
+    
+    def _save_result_to_cache(self, keyword: str, analysis_result: AnalysisResult) -> None:
+        """將分析結果儲存到快取檔案。
+        
+        Args:
+            keyword: 搜尋關鍵字
+            analysis_result: 要儲存的分析結果
+        """
+        cache_file = self._get_cache_file_path(keyword)
+        
+        try:
+            # 準備要儲存的資料
+            cache_data = {
+                'analysis_report': analysis_result.analysis_report,
+                'token_usage': analysis_result.token_usage,
+                'processing_time': analysis_result.processing_time,
+                'success': analysis_result.success,
+                'cached_at': datetime.now(timezone.utc).isoformat(),
+                'keyword': keyword
+            }
+            
+            # 確保目錄存在
+            os.makedirs(self.cache_dir, exist_ok=True)
+            
+            # 寫入檔案
+            with open(cache_file, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f, ensure_ascii=False, indent=2)
+            
+            print(f"💾 分析結果已儲存到快取: {cache_file}")
+            
+        except Exception as e:
+            print(f"❌ 快取檔案寫入失敗: {e}")
+            # 不拋出例外，讓主流程繼續
     
     async def execute_full_analysis(self, request: AnalyzeRequest) -> AnalyzeResponse:
         """執行完整的 SEO 分析流程。
@@ -332,48 +418,25 @@ class IntegrationService:
 
             ai_options = self._convert_to_ai_options(request.options)
             
-            # 暫時註解 AI 分析以便測試進度顯示功能
-            # analysis_result = await self.ai_service.analyze_seo_content(
-            #     serp_data=serp_data,
-            #     scraping_data=scraping_data,
-            #     keyword=request.keyword,
-            #     audience=request.audience,
-            #     options=ai_options
-            # )
+            # 嘗試從快取載入分析結果
+            analysis_result = self._load_cached_result(request.keyword)
             
-            # 使用模擬的 AI 分析結果進行測試
-            from ..services.ai_service import AnalysisResult
-            import asyncio
-            
-            # 模擬 AI 處理時間（5秒）
-            print("🤖 模擬 AI 分析處理中...")
-            await asyncio.sleep(5)
-            
-            analysis_result = AnalysisResult(
-                analysis_report=f"""# SEO 分析報告
-
-## 關鍵字分析：{request.keyword}
-目標受眾：{request.audience}
-
-### SERP 分析結果
-- 共找到 {len(serp_data.organic_results)} 個搜尋結果
-- 網頁爬取成功 {scraping_data.successful_scrapes} 個頁面
-
-### 模擬分析建議
-1. **內容優化建議**
-   - 針對關鍵字 "{request.keyword}" 優化標題和內容
-   - 提升內容相關性和權威性
-
-2. **技術優化建議**  
-   - 改善頁面載入速度
-   - 優化行動裝置體驗
-
-*（此為測試模式的模擬報告）*
-""",
-                token_usage=1500,  # 模擬 token 使用量
-                processing_time=5.0,  # 模擬處理時間
-                success=True
-            )
+            if analysis_result is None:
+                # 快取不存在，執行實際的 AI 分析
+                print("🤖 執行 AI 分析（未找到快取）")
+                analysis_result = await self.ai_service.analyze_seo_content(
+                    keyword=request.keyword,
+                    audience=request.audience,
+                    serp_data=serp_data,
+                    scraping_data=scraping_data,
+                    options=ai_options
+                )
+                
+                # 將結果儲存到快取
+                self._save_result_to_cache(request.keyword, analysis_result)
+            else:
+                # 使用快取的結果
+                print("📂 使用快取的 AI 分析結果")
 
             timer.end_phase("ai")
             job_manager.update_progress(

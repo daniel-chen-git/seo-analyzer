@@ -537,6 +537,9 @@ class AIService:
             # 清理回應內容
             content = content.strip()
             
+            # 修正 Markdown 表格格式
+            content = self._fix_markdown_table_formatting(content)
+            
             # 驗證是否包含必要的報告結構
             required_sections = ['# SEO 分析報告', '## 1. 分析概述', '## 2. SERP 分析結果']
             for section in required_sections:
@@ -547,6 +550,52 @@ class AIService:
             
         except (KeyError, IndexError, TypeError) as e:
             raise AIServiceException(f"OpenAI API 回應解析失敗: {str(e)}")
+    
+    def _fix_markdown_table_formatting(self, content: str) -> str:
+        """修正 Markdown 表格格式，確保正確的換行。
+        
+        Args:
+            content: 原始 Markdown 內容
+            
+        Returns:
+            str: 修正後的 Markdown 內容
+        """
+        import re
+        
+        # 第一步：在 ### 標題後確保有兩個換行
+        content = re.sub(r'(###[^\n]*)\n([|])', r'\1\n\n\2', content)
+        
+        # 第二步：處理表格行間的換行 - 確保表格內每一行後都有 \n\n
+        # 找到所有表格行（以 | 開頭和結尾的行）
+        lines = content.split('\n')
+        fixed_lines = []
+        
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            fixed_lines.append(line)
+            
+            # 如果這是表格行
+            if line.strip().startswith('|') and line.strip().endswith('|'):
+                # 檢查下一行
+                if i + 1 < len(lines):
+                    next_line = lines[i + 1] if i + 1 < len(lines) else ""
+                    
+                    # 如果下一行是表格行，確保行間有 \n\n
+                    if next_line.strip().startswith('|') and next_line.strip().endswith('|'):
+                        fixed_lines.append('')  # 添加空行，形成 \n\n
+                    # 如果下一行不是表格行但有內容，也要確保有 \n\n
+                    elif next_line.strip() and not next_line.startswith('#'):
+                        fixed_lines.append('')  # 添加空行
+            
+            i += 1
+        
+        fixed_content = '\n'.join(fixed_lines)
+        
+        # 第三步：移除過多的連續空行（超過2個）
+        fixed_content = re.sub(r'\n{3,}', '\n\n', fixed_content)
+        
+        return fixed_content
 
     async def _test_connection(self) -> bool:
         """測試 Azure OpenAI 連線狀態

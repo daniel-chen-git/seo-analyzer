@@ -100,37 +100,6 @@ const TwoColumnLayout: React.FC<TwoColumnLayoutProps> = ({
           }
         }}
       >
-        {/* 桌面版側邊欄切換按鈕 */}
-        {sidebarState !== 'hidden' && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation() // 防止觸發 main 的點擊事件
-              handleSidebarToggle()
-            }}
-            className="sidebar-toggle hidden md:flex items-center gap-2 fixed top-20 z-40 px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-            tabIndex={-1}
-            style={{
-              left: sidebarState === 'expanded' ? 'calc(25% - 0.5rem)' : '1rem'
-            }}
-            aria-label={sidebarState === 'expanded' ? '收合側邊欄' : '展開側邊欄'}
-          >
-            <svg 
-              className="w-4 h-4" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              {sidebarState === 'expanded' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              )}
-            </svg>
-            <span className="text-sm font-medium text-neutral-700">
-              {sidebarState === 'expanded' ? '收合' : '展開'}
-            </span>
-          </button>
-        )}
         
         {/* 主內容 */}
         <div 

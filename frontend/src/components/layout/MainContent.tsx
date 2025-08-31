@@ -173,7 +173,7 @@ const MainContent: React.FC<MainContentProps> = ({
 
               {/* SERP 競爭分析 */}
               {getResultData(analysisResult)?.data?.serp_summary && (
-                <div className="border-b pb-4">
+                <div id="competitive-analysis" className="border-b pb-4">
                   <h3 className="text-lg font-semibold mb-3">🔍 SERP 競爭分析</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 p-4 rounded-lg text-center">
@@ -206,7 +206,7 @@ const MainContent: React.FC<MainContentProps> = ({
 
               {/* 分析報告 */}
               {getResultData(analysisResult)?.data?.analysis_report && (
-                <div className="border-b pb-4">
+                <div id="content-suggestions" className="border-b pb-4">
                   <h3 className="text-lg font-semibold mb-3">✍️ 分析報告</h3>
                   <div className="bg-white p-6 rounded-lg border prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
                     <ReactMarkdown>
@@ -218,7 +218,7 @@ const MainContent: React.FC<MainContentProps> = ({
 
               {/* 處理統計 */}
               {getResultData(analysisResult)?.data?.metadata && (
-                <div className="border-b pb-4">
+                <div id="serp-insights" className="border-b pb-4">
                   <h3 className="text-lg font-semibold mb-3">⏱️ 處理統計</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

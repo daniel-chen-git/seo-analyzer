@@ -259,13 +259,20 @@ export function StageIndicator({
   };
 
   return (
-    <div className={`
-      ${mode === 'horizontal' 
-        ? 'grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 relative' 
-        : 'flex flex-col space-y-4'}
-      ${className}
-      ${enableEnhancedAnimations ? 'gpu-accelerated' : ''}
-    `}>
+    <div 
+      className={`
+        ${mode === 'horizontal' 
+          ? 'relative' 
+          : 'flex flex-col space-y-4'}
+        ${className}
+        ${enableEnhancedAnimations ? 'gpu-accelerated' : ''}
+      `}
+      style={mode === 'horizontal' ? {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '1.5rem'
+      } : {}}
+    >
       {stages.map((stage) => renderStage(stage))}
     </div>
   );

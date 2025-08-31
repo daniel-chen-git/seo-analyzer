@@ -12,6 +12,9 @@ interface LayoutProps {
   sidebarState?: SidebarState
   onSidebarToggle?: () => void
   sidebarContent?: ReactNode
+  // 新增分析狀態支援
+  analysisResult?: any
+  isAnalysisCompleted?: boolean
 }
 
 function Layout({ 
@@ -20,7 +23,9 @@ function Layout({
   mode = 'single',
   sidebarState = 'expanded',
   onSidebarToggle,
-  sidebarContent
+  sidebarContent,
+  analysisResult,
+  isAnalysisCompleted = false
 }: LayoutProps) {
   return (
     <div className={`min-h-screen flex flex-col ${className}`}>
@@ -31,7 +36,13 @@ function Layout({
       <div className="flex-1">
         {mode === 'two-column' ? (
           <TwoColumnLayout
-            sidebar={sidebarContent || <Sidebar isExpanded={sidebarState === 'expanded'} />}
+            sidebar={sidebarContent || (
+              <Sidebar 
+                isExpanded={sidebarState === 'expanded'}
+                analysisResult={analysisResult}
+                isAnalysisCompleted={isAnalysisCompleted}
+              />
+            )}
             sidebarState={sidebarState}
             onSidebarToggle={onSidebarToggle}
           >

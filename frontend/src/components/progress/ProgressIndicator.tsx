@@ -106,7 +106,7 @@ export function ProgressIndicator({
           ...options,
           showSubtasks: true,
           timeEstimatorVariant: 'detailed' as const,
-          stageIndicatorMode: 'vertical' as const,
+          stageIndicatorMode: 'horizontal' as const, // 改為 horizontal 以支持三欄佈局
           controlPanelLayout: 'expanded' as const
         };
       default:

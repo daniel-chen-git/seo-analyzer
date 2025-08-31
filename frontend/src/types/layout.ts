@@ -21,6 +21,9 @@ export interface SidebarProps {
   onToggle?: () => void
   className?: string
   children?: ReactNode
+  // 新增分析狀態支援
+  analysisResult?: any // TODO: 更具體的類型
+  isAnalysisCompleted?: boolean
 }
 
 // 側邊欄區塊屬性

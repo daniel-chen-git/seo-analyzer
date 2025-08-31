@@ -289,6 +289,8 @@ function App() {
           mode={layoutMode}
           sidebarState={sidebarState}
           onSidebarToggle={handleSidebarToggle}
+          analysisResult={analysisHook.result}
+          isAnalysisCompleted={analysisHook.isCompleted}
         >
           {/* 使用新的 MainContent 組件 */}
           {layoutMode === 'two-column' ? (

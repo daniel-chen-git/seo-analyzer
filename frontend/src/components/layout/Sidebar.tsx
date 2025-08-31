@@ -1,5 +1,4 @@
 import React from 'react'
-import { useAnalysis } from '@/hooks/api/useAnalysis'
 import type { SidebarProps } from '@/types/layout'
 
 /**
@@ -35,29 +34,29 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
 const Sidebar: React.FC<SidebarProps> = ({ 
   isExpanded = true, 
   className = '',
-  children 
+  children,
+  analysisResult,
+  isAnalysisCompleted = false
 }) => {
-  // 使用分析狀態 hook
-  const { result, isCompleted } = useAnalysis()
 
   // 動態導航項目
   const navigationItems = [
     { 
       name: '競爭分析', 
-      href: isCompleted && result ? '#competitive-analysis' : '#',
-      disabled: !isCompleted,
+      href: isAnalysisCompleted && analysisResult ? '#competitive-analysis' : '#',
+      disabled: !isAnalysisCompleted,
       icon: '📊'
     },
     { 
       name: '內容建議', 
-      href: isCompleted && result ? '#content-suggestions' : '#',
-      disabled: !isCompleted,
+      href: isAnalysisCompleted && analysisResult ? '#content-suggestions' : '#',
+      disabled: !isAnalysisCompleted,
       icon: '✍️'
     },
     { 
       name: 'SERP 洞察', 
-      href: isCompleted && result ? '#serp-insights' : '#',
-      disabled: !isCompleted,
+      href: isAnalysisCompleted && analysisResult ? '#serp-insights' : '#',
+      disabled: !isAnalysisCompleted,
       icon: '🔍'
     },
     { 

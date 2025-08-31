@@ -43,7 +43,7 @@ export function CancelButton({
   // 按鈕變體樣式
   const getVariantClasses = (variant: string, disabled: boolean) => {
     if (disabled) {
-      return 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed';
+      return 'bg-neutral-100 text-neutral-400 border-neutral-200 cursor-not-allowed';
     }
 
     switch (variant) {
@@ -155,13 +155,13 @@ export function CancelButton({
                   />
                 </svg>
               </div>
-              <h3 className="ml-4 text-lg font-semibold text-gray-900">
+              <h3 className="ml-4 text-lg font-semibold text-neutral-900">
                 確認取消
               </h3>
             </div>
 
             {/* 訊息內容 */}
-            <p className="text-gray-700 mb-6">
+            <p className="text-neutral-700 mb-6">
               {confirmMessage}
             </p>
 
@@ -169,7 +169,7 @@ export function CancelButton({
             <div className="flex space-x-3 justify-end">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="px-4 py-2 text-sm font-medium text-neutral-700 bg-neutral-100 border border-neutral-300 rounded-lg hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500"
                 disabled={isCancelling}
               >
                 繼續分析

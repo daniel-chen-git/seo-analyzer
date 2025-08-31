@@ -1,0 +1,433 @@
+/* ===== 雙欄佈局樣式 ===== */
+
+/* 主要佈局容器 */
+.two-column-layout {
+  display: grid;
+  min-height: 100vh;
+  grid-template-areas: "sidebar main";
+  transition: grid-template-columns 0.3s ease-in-out;
+}
+
+/* 展開狀態 (桌面版) */
+.two-column-layout--expanded {
+  grid-template-columns: 1fr 3fr; /* 1/4 + 3/4 */
+}
+
+/* 收合狀態 (桌面版) */
+.two-column-layout--collapsed {
+  grid-template-columns: 4rem 1fr; /* 收合寬度 + 剩餘空間 */
+}
+
+/* 隱藏狀態 */
+.two-column-layout--hidden {
+  grid-template-columns: 1fr; /* 全寬度 */
+  grid-template-areas: "main";
+}
+
+/* 側邊欄區域 */
+.two-column-layout__sidebar {
+  grid-area: sidebar;
+  background-color: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  overflow-y: hidden; /* 改為hidden，讓內部的sidebar控制滾動 */
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 側邊欄內容容器 */
+.sidebar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 主內容區域 */
+.two-column-layout__main {
+  grid-area: main;
+  background-color: #ffffff;
+  position: relative;
+  overflow-y: auto;
+}
+
+.main-content {
+  padding: 2rem;
+  max-width: 100%;
+}
+
+/* 側邊欄切換按鈕 */
+.sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  padding: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-toggle:hover {
+  background-color: #f9fafb;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.5);
+}
+
+/* 手機版遮罩 */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* ===== 側邊欄內部樣式 ===== */
+
+/* 側邊欄容器 */
+.sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+}
+
+.sidebar--expanded {
+  width: 100%;
+}
+
+.sidebar--collapsed {
+  width: 4rem;
+}
+
+/* 側邊欄標題 */
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #ffffff;
+}
+
+.sidebar-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-title__text {
+  margin-left: 0.5rem;
+}
+
+/* 側邊欄主體 */
+.sidebar-body {
+  flex: 1;
+  min-height: 0; /* 允許flex容器縮小 */
+  padding: 1rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 側邊欄區塊 */
+.sidebar-section {
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-section__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-section__icon {
+  margin-right: 0.5rem;
+}
+
+.sidebar-section__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* 導航樣式 */
+.sidebar-nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-nav__item {
+  list-style: none;
+}
+
+.sidebar-nav__link {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+}
+
+.sidebar-nav__link:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.sidebar-nav__link:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.5);
+}
+
+.sidebar-nav__icon {
+  margin-right: 0.75rem;
+  font-size: 1rem;
+}
+
+.sidebar-nav__text {
+  flex: 1;
+}
+
+/* 快速操作按鈕 */
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.quick-action-button {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.quick-action-button:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.quick-action-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.5);
+}
+
+.quick-action-button__icon {
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+
+.quick-action-button__text {
+  flex: 1;
+  text-align: left;
+}
+
+/* 系統狀態樣式 */
+.sidebar-section--status {
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.system-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+}
+
+.status-indicator {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+}
+
+.status-indicator--online {
+  background-color: #10b981;
+}
+
+.status-indicator--fast {
+  background-color: #3b82f6;
+}
+
+.status-indicator--synced {
+  background-color: #6366f1;
+}
+
+.status-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.status-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* 側邊欄底部 */
+.sidebar-footer {
+  flex-shrink: 0; /* 防止被壓縮 */
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  margin-top: auto; /* 推到底部 */
+}
+
+.sidebar-version {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-version__label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.sidebar-version__number {
+  font-size: 0.75rem;
+  font-family: 'Fira Code', monospace;
+  color: #4b5563;
+}
+
+/* ===== 響應式設計 ===== */
+
+/* 平板版本 (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .two-column-layout--expanded {
+    grid-template-columns: 2fr 5fr; /* 調整比例為 2:5 */
+  }
+  
+  .main-content {
+    padding: 1.5rem;
+  }
+}
+
+/* 手機版本 (<768px) */
+@media (max-width: 767px) {
+  .two-column-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas: "main";
+  }
+
+  .two-column-layout__sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 80%;
+    max-width: 320px;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .two-column-layout--expanded .two-column-layout__sidebar {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+
+  /* 調整側邊欄內容在手機版的顯示 */
+  .sidebar-nav__link {
+    padding: 0.75rem;
+  }
+  
+  .quick-action-button {
+    padding: 0.75rem;
+  }
+}
+
+/* 收合狀態下隱藏文字 */
+.sidebar--collapsed .sidebar-title__text,
+.sidebar--collapsed .sidebar-nav__text,
+.sidebar--collapsed .quick-action-button__text,
+.sidebar--collapsed .status-content,
+.sidebar--collapsed .sidebar-version {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar-section__title {
+  justify-content: center;
+}
+
+.sidebar--collapsed .sidebar-nav__link,
+.sidebar--collapsed .quick-action-button {
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+/* 深色模式支援 (可選) */
+@media (prefers-color-scheme: dark) {
+  .sidebar {
+    background-color: #1f2937;
+    border-right-color: #374151;
+  }
+  
+  .sidebar-header {
+    background-color: #111827;
+    border-bottom-color: #374151;
+  }
+  
+  .sidebar-title {
+    color: #ffffff;
+  }
+  
+  .sidebar-section__title {
+    color: #d1d5db;
+  }
+  
+  .sidebar-nav__link {
+    color: #d1d5db;
+  }
+  
+  .sidebar-nav__link:hover {
+    background-color: #374151;
+    color: #ffffff;
+  }
+  
+  .quick-action-button {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+  
+  .quick-action-button:hover {
+    background-color: #4b5563;
+  }
+}

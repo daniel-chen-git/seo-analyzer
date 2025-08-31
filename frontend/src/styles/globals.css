@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 匯入佈局相關樣式 */
+@import './two-column-layout.css';
+@import './main-content.css';
+
 /* CSS 自定義屬性 - 支援深色模式 */
 :root {
   /* 色彩變數 */

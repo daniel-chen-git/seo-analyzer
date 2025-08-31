@@ -1,0 +1,141 @@
+/* ===== 主內容區域樣式 ===== */
+
+.main-content-container {
+  width: 100%;
+  max-width: none;
+  padding: 2rem 1.5rem;
+  margin: 0 auto;
+}
+
+/* 表單區域 */
+.form-section {
+  transition: all 0.5s ease-in-out;
+}
+
+.form-section .card {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 1rem;
+}
+
+/* 進度區域 */
+.progress-section {
+  transition: all 0.5s ease-in-out;
+}
+
+.progress-section .card {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #dbeafe;
+  background: linear-gradient(to bottom right, #eff6ff, #eef2ff);
+}
+
+/* 結果區域 */
+.results-section {
+  transition: all 0.5s ease-in-out;
+}
+
+.results-section .card {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #dcfce7;
+  background: linear-gradient(to bottom right, #f0fdf4, #ecfdf5);
+}
+
+/* 開發控制面板 */
+.development-controls {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 2px dashed #d1d5db;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+  .main-content-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .form-section .card,
+  .progress-section .card,
+  .results-section .card {
+    margin: 0 0.5rem;
+  }
+}
+
+/* 在雙欄模式下的調整 */
+.two-column-layout .main-content-container {
+  padding: 1.5rem 1rem;
+}
+
+.two-column-layout .main-content-container h1 {
+  font-size: 1.875rem; /* text-3xl equivalent */
+}
+
+@media (min-width: 768px) {
+  .two-column-layout .main-content-container h1 {
+    font-size: 2.25rem; /* text-4xl equivalent */
+  }
+}
+
+/* 卡片在雙欄模式下的優化 */
+.two-column-layout .form-section .card,
+.two-column-layout .progress-section .card,
+.two-column-layout .results-section .card {
+  max-width: none; /* 移除最大寬度限制 */
+}
+
+/* 表格在雙欄模式下的優化 */
+.two-column-layout .prose table {
+  font-size: 0.875rem; /* 縮小表格字體 */
+}
+
+.two-column-layout .prose th,
+.two-column-layout .prose td {
+  padding: 0.25rem 0.5rem; /* 縮小表格間距 */
+}
+
+/* SERP 統計卡片在雙欄模式下的優化 */
+.two-column-layout .grid.grid-cols-2.md\:grid-cols-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 強制為 2 欄 */
+}
+
+/* Footer 4欄佈局修復 - 覆蓋上面的規則 */
+footer .grid.grid-cols-1.sm\:grid-cols-2.md\:grid-cols-4 {
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important; /* 手機版 1欄 */
+}
+
+@media (min-width: 640px) {
+  footer .grid.grid-cols-1.sm\:grid-cols-2.md\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important; /* 平板版 2欄 */
+  }
+}
+
+@media (min-width: 768px) {
+  footer .grid.grid-cols-1.sm\:grid-cols-2.md\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important; /* 桌面版 4欄 */
+  }
+}
+
+/* 動畫效果 */
+.form-section.animate-in,
+.progress-section.animate-in,
+.results-section.animate-in {
+  animation: fade-in-up 0.5s ease-out;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out;
+}

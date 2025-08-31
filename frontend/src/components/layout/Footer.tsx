@@ -73,40 +73,40 @@ function Footer() {
   ]
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
+    <footer className="bg-neutral-50 border-t border-neutral-200">
       {/* 主要 Footer 內容 */}
       <div className="w-full max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 lg:gap-8">
-          {/* 品牌區域 */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center mb-4">
-              <span className="text-xl font-bold text-primary">
-                🔍 {config.app.title}
-              </span>
-            </div>
-            <p className="text-gray-600 text-sm mb-6 max-w-sm">
-              {config.app.description}，助您提升網站搜尋引擎排名，獲得更多自然流量。
-            </p>
-            
-            {/* 社群連結 */}
-            <div className="flex space-x-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                  aria-label={social.name}
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
+        {/* 品牌區域 */}
+        <div className="mb-8 lg:mb-12">
+          <div className="flex items-center mb-4">
+            <span className="text-xl font-bold text-primary">
+              🔍 {config.app.title}
+            </span>
           </div>
-
-          {/* Footer 導航 */}
+          <p className="text-neutral-600 text-sm mb-6 max-w-sm">
+            {config.app.description}，助您提升網站搜尋引擎排名，獲得更多自然流量。
+          </p>
+          
+          {/* 社群連結 */}
+          <div className="flex space-x-4">
+            {socialLinks.map((social) => (
+              <a
+                key={social.name}
+                href={social.href}
+                className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                aria-label={social.name}
+              >
+                {social.icon}
+              </a>
+            ))}
+          </div>
+        </div>
+        
+        {/* Footer 導航 - 4列佈局 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-6">
           {footerSections.map((section) => (
-            <div key={section.title} className="lg:col-span-1">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+            <div key={section.title}>
+              <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4">
                 {section.title}
               </h3>
               <ul className="space-y-3">
@@ -114,7 +114,7 @@ function Footer() {
                   <li key={link.name}>
                     <a
                       href={link.href}
-                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
                     >
                       {link.name}
                     </a>
@@ -127,16 +127,16 @@ function Footer() {
       </div>
 
       {/* Footer 底部 */}
-      <div className="border-t border-gray-200 bg-gray-100">
+      <div className="border-t border-neutral-200 bg-neutral-100">
         <div className="w-full max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             {/* 版權聲明 */}
-            <div className="text-sm text-gray-600 mb-4 md:mb-0">
+            <div className="text-sm text-neutral-600 mb-4 md:mb-0">
               © {currentYear} {config.app.title}. 版權所有。
             </div>
 
             {/* 技術資訊 */}
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
+            <div className="flex items-center space-x-4 text-xs text-neutral-500">
               <div>版本 {config.app.version}</div>
               {isDevelopment() && (
                 <>

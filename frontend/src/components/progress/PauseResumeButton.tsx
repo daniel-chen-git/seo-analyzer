@@ -59,7 +59,7 @@ export function PauseResumeButton({
   // 按鈕變體樣式
   const getVariantClasses = (isActive: boolean, disabled: boolean) => {
     if (disabled) {
-      return 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed';
+      return 'bg-neutral-100 text-neutral-400 border-neutral-200 cursor-not-allowed';
     }
 
     const baseClasses = animated ? 'transition-all duration-200 hover:scale-105 active:scale-95' : 'transition-colors duration-200';
@@ -222,7 +222,7 @@ export function PauseResumeButton({
           w-2 h-2 rounded-full transition-all duration-300
           ${isPaused ? 'bg-yellow-400' : 
             isRunning ? 'bg-green-400 animate-pulse' : 
-            'bg-gray-300'}
+            'bg-neutral-300'}
         `} />
       </button>
 
@@ -262,7 +262,7 @@ export function PauseResumeButton({
                   setShowConfirm(false);
                   setPendingAction(null);
                 }}
-                className={`px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 ${
+                className={`px-4 py-2 text-sm font-medium text-neutral-700 bg-neutral-100 border border-neutral-300 rounded-lg hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 ${
                   animated ? 'transition-all duration-200 hover:scale-105' : ''
                 }`}
                 disabled={isProcessing}
@@ -292,12 +292,12 @@ export function PauseResumeButton({
             </div>
 
             {/* 提示信息 */}
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mt-4 p-3 bg-primary-50 border border-primary-200 rounded-lg">
               <div className="flex items-center">
-                <svg className="w-4 h-4 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-primary-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-primary-700">
                   {pendingAction === 'pause' 
                     ? '暫停後可以隨時恢復，不會影響已收集的數據。'
                     : '恢復後將從上次停止的位置繼續分析。'}

@@ -5,6 +5,7 @@
 /* 匯入佈局相關樣式 */
 @import './two-column-layout.css';
 @import './main-content.css';
+@import './sidebar.css';
 
 /* CSS 自定義屬性 - 支援深色模式 */
 :root {

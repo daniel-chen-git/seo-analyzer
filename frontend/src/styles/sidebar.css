@@ -1,0 +1,81 @@
+/* Sidebar 動態功能樣式 */
+
+/* 禁用連結樣式 */
+.sidebar-nav__link--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: rgb(var(--color-neutral-500));
+  pointer-events: none;
+  
+  &:hover {
+    background: none;
+    transform: none;
+    color: rgb(var(--color-neutral-500));
+  }
+}
+
+/* 需要分析完成的徽章 */
+.sidebar-nav__badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 6px;
+  background: rgb(var(--color-warning) / 0.1);
+  color: rgb(var(--color-warning));
+  border: 1px solid rgb(var(--color-warning) / 0.3);
+  border-radius: 8px;
+  margin-left: 8px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 高亮閃爍動畫 */
+.highlight-flash {
+  animation: highlight 2s ease-out;
+}
+
+@keyframes highlight {
+  0% { 
+    background-color: rgb(var(--color-primary) / 0.1);
+    box-shadow: 0 0 0 2px rgb(var(--color-primary) / 0.2);
+  }
+  50% { 
+    background-color: rgb(var(--color-primary) / 0.2);
+    box-shadow: 0 0 0 4px rgb(var(--color-primary) / 0.1);
+  }
+  100% { 
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+/* 響應式優化 */
+@media (max-width: 768px) {
+  .sidebar-nav__badge {
+    font-size: 8px;
+    padding: 1px 4px;
+    margin-left: 4px;
+  }
+  
+  .sidebar-nav__text {
+    font-size: 14px;
+  }
+}
+
+/* 提升可訪問性 */
+.sidebar-nav__link[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sidebar-nav__link:focus-visible {
+  outline: 2px solid rgb(var(--color-primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 狀態指示 */
+.sidebar-nav__link--disabled::before {
+  content: "🔒";
+  margin-right: 4px;
+  opacity: 0.7;
+}

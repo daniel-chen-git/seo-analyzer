@@ -108,7 +108,7 @@ export function StageIndicator({
   };
 
   // 渲染單個階段
-  const renderStage = (stageKey: StageType, index: number) => {
+  const renderStage = (stageKey: StageType) => {
     const stageConfig = STAGE_CONFIGS[stageKey];
     const stageInfo = progressState.stages[stageKey];
     const stageNumber = stageNumbers[stageKey];
@@ -126,7 +126,7 @@ export function StageIndicator({
         className={`
           relative rounded-lg border-2 p-4
           ${styles.container}
-          ${mode === 'horizontal' ? 'flex-1' : 'w-full mb-4'}
+          ${mode === 'horizontal' ? 'w-full' : 'w-full mb-4'}
         `}
       >
         {/* 階段圖示與編號 */}
@@ -225,10 +225,7 @@ export function StageIndicator({
           </div>
         )}
 
-        {/* 連接線 (水平模式) */}
-        {mode === 'horizontal' && index < stages.length - 1 && (
-          <div className="absolute top-1/2 -right-4 w-8 h-0.5 bg-gray-300 transform -translate-y-1/2 z-10" />
-        )}
+        {/* 連接線已移除 - Grid佈局不需要連接線 */}
 
         {/* 暫停狀態訊息 */}
         {progressState.status === 'paused' && stageInfo.status === 'running' && isActive && (
@@ -264,12 +261,12 @@ export function StageIndicator({
   return (
     <div className={`
       ${mode === 'horizontal' 
-        ? 'flex items-start space-x-8 relative' 
+        ? 'grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 relative' 
         : 'flex flex-col space-y-4'}
       ${className}
       ${enableEnhancedAnimations ? 'gpu-accelerated' : ''}
     `}>
-      {stages.map((stage, index) => renderStage(stage, index))}
+      {stages.map((stage) => renderStage(stage))}
     </div>
   );
 }

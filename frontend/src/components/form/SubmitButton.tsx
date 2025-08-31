@@ -101,14 +101,14 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
     
     canSubmit 
       ? `${config.bgColor} ${config.textColor} ${config.borderColor} border-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5`
-      : 'bg-gray-300 text-gray-500 border-2 border-gray-300 cursor-not-allowed',
+      : 'bg-neutral-300 text-neutral-500 border-2 border-neutral-300 cursor-not-allowed',
       
     isLoading && 'cursor-wait'
   ].filter(Boolean).join(' ');
 
   const resetButtonClasses = [
-    'px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700',
-    'hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
+    'px-4 py-2 border border-neutral-300 rounded-md text-sm font-medium text-neutral-700',
+    'hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
     !canReset && 'opacity-50 cursor-not-allowed'
   ].filter(Boolean).join(' ');
 
@@ -161,7 +161,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
         </button>
 
         {/* 時間資訊 */}
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-neutral-500">
           {status === 'loading' ? (
             <div className="flex items-center gap-1">
               <span>⏱️</span>

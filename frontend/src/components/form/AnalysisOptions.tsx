@@ -69,7 +69,7 @@ export const AnalysisOptions: React.FC<AnalysisOptionsProps> = ({
   const selectedCount = Object.values(options).filter(value => value).length;
 
   const containerClasses = [
-    'w-full p-4 border border-gray-200 rounded-lg bg-white',
+    'w-full p-4 border border-neutral-200 rounded-lg bg-white',
     disabled && 'opacity-60 pointer-events-none',
     className
   ].filter(Boolean).join(' ');
@@ -80,15 +80,15 @@ export const AnalysisOptions: React.FC<AnalysisOptionsProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-lg">⚙️</span>
-          <h3 className="text-sm font-medium text-gray-700">分析選項</h3>
-          <span className="text-xs text-gray-500">({selectedCount}/3 已選擇)</span>
+          <h3 className="text-sm font-medium text-neutral-700">分析選項</h3>
+          <span className="text-xs text-neutral-500">({selectedCount}/3 已選擇)</span>
         </div>
         
         <button
           type="button"
           onClick={handleSelectAll}
           disabled={disabled}
-          className="flex items-center gap-1 px-3 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+          className="flex items-center gap-1 px-3 py-1 text-xs border border-neutral-300 rounded-md hover:bg-neutral-50 transition-colors disabled:opacity-50"
         >
           <span>{isAllSelected ? '☑️' : '☐'}</span>
           {isAllSelected ? '取消全選' : '全選'}
@@ -106,7 +106,7 @@ export const AnalysisOptions: React.FC<AnalysisOptionsProps> = ({
               <label
                 className={`
                   flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200
-                  ${isHovered ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'}
+                  ${isHovered ? 'bg-blue-50 border border-blue-200' : 'hover:bg-neutral-50'}
                   ${isChecked ? 'bg-blue-50 border border-blue-200' : 'border border-transparent'}
                   ${disabled ? 'cursor-not-allowed' : ''}
                 `}
@@ -120,7 +120,7 @@ export const AnalysisOptions: React.FC<AnalysisOptionsProps> = ({
                     checked={isChecked}
                     onChange={(e) => handleOptionChange(config.key, e.target.checked)}
                     disabled={disabled}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    className="w-4 h-4 text-blue-600 border-neutral-300 rounded focus:ring-blue-500 focus:ring-2"
                   />
                 </div>
 
@@ -128,12 +128,12 @@ export const AnalysisOptions: React.FC<AnalysisOptionsProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{config.icon}</span>
-                    <span className={`text-sm font-medium ${isChecked ? 'text-blue-900' : 'text-gray-900'}`}>
+                    <span className={`text-sm font-medium ${isChecked ? 'text-blue-900' : 'text-neutral-900'}`}>
                       {config.label}
                     </span>
                   </div>
                   
-                  <p className={`text-xs mt-1 ${isChecked ? 'text-blue-700' : 'text-gray-600'}`}>
+                  <p className={`text-xs mt-1 ${isChecked ? 'text-blue-700' : 'text-neutral-600'}`}>
                     {config.description}
                   </p>
                 </div>
@@ -144,7 +144,7 @@ export const AnalysisOptions: React.FC<AnalysisOptionsProps> = ({
                     type="button"
                     onMouseEnter={() => setShowTooltip(config.key)}
                     onMouseLeave={() => setShowTooltip(null)}
-                    className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                    className="p-1 text-neutral-400 hover:text-blue-500 transition-colors"
                     tabIndex={-1}
                   >
                     <span className="text-sm">ℹ️</span>
@@ -152,8 +152,8 @@ export const AnalysisOptions: React.FC<AnalysisOptionsProps> = ({
 
                   {/* Tooltip */}
                   {showTooltip === config.key && (
-                    <div className="absolute right-0 top-8 z-10 max-w-xs w-64 p-2 bg-gray-800 text-white text-xs rounded-md shadow-lg whitespace-normal">
-                      <div className="absolute -top-1 right-2 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                    <div className="absolute right-0 top-8 z-10 max-w-xs w-64 p-2 bg-neutral-800 text-white text-xs rounded-md shadow-lg whitespace-normal">
+                      <div className="absolute -top-1 right-2 w-2 h-2 bg-neutral-800 transform rotate-45"></div>
                       {config.description}
                     </div>
                   )}

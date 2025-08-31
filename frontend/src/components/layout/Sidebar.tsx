@@ -1,4 +1,5 @@
 import React from 'react'
+import { useAnalysis } from '@/hooks/api/useAnalysis'
 import type { SidebarProps } from '@/types/layout'
 
 /**
@@ -36,12 +37,35 @@ const Sidebar: React.FC<SidebarProps> = ({
   className = '',
   children 
 }) => {
-  // 導航項目
+  // 使用分析狀態 hook
+  const { result, isCompleted } = useAnalysis()
+
+  // 動態導航項目
   const navigationItems = [
-    { name: '競爭分析', href: '#analyze', icon: '📊' },
-    { name: '內容建議', href: '#content', icon: '✍️' },
-    { name: 'SERP 洞察', href: '#serp', icon: '🔍' },
-    { name: '趨勢追蹤', href: '#trends', icon: '📈' },
+    { 
+      name: '競爭分析', 
+      href: isCompleted && result ? '#competitive-analysis' : '#',
+      disabled: !isCompleted,
+      icon: '📊'
+    },
+    { 
+      name: '內容建議', 
+      href: isCompleted && result ? '#content-suggestions' : '#',
+      disabled: !isCompleted,
+      icon: '✍️'
+    },
+    { 
+      name: 'SERP 洞察', 
+      href: isCompleted && result ? '#serp-insights' : '#',
+      disabled: !isCompleted,
+      icon: '🔍'
+    },
+    { 
+      name: '趨勢追蹤', 
+      href: '#trends',
+      disabled: false, // 保持可用
+      icon: '📈'
+    },
   ]
 
   // 快速操作項目
@@ -55,6 +79,28 @@ const Sidebar: React.FC<SidebarProps> = ({
   const handleActionClick = (action: string) => {
     console.log(`側邊欄操作: ${action}`)
     // TODO: 實作具體操作邏輯
+  }
+
+  // 處理導航連結點擊
+  const handleNavClick = (href: string, disabled: boolean) => {
+    if (disabled) {
+      return false // 禁用連結
+    }
+    // 平滑滾動到目標區域
+    const targetElement = document.querySelector(href)
+    if (targetElement) {
+      targetElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      })
+      
+      // 添加高亮效果
+      targetElement.classList.add('highlight-flash')
+      setTimeout(() => {
+        targetElement.classList.remove('highlight-flash')
+      }, 2000)
+    }
   }
 
   return (
@@ -80,10 +126,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <li key={item.name} className="sidebar-nav__item">
                   <a
                     href={item.href}
-                    className="sidebar-nav__link"
+                    className={`sidebar-nav__link ${
+                      item.disabled ? 'sidebar-nav__link--disabled' : ''
+                    }`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleNavClick(item.href, item.disabled)
+                    }}
+                    title={item.disabled ? '請先完成SEO分析' : `跳轉到${item.name}`}
                   >
                     <span className="sidebar-nav__icon">{item.icon}</span>
                     <span className="sidebar-nav__text">{item.name}</span>
+                    {item.disabled && (
+                      <span className="sidebar-nav__badge">需完成分析</span>
+                    )}
                   </a>
                 </li>
               ))}

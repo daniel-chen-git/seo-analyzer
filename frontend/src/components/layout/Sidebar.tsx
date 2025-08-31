@@ -42,19 +42,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   // 動態導航項目
   const navigationItems = [
     { 
-      name: '競爭分析', 
+      name: '關鍵字分析', 
       href: isAnalysisCompleted && analysisResult ? '#competitive-analysis' : '#',
       disabled: !isAnalysisCompleted,
       icon: '📊'
     },
     { 
-      name: '內容建議', 
+      name: '內容生成', 
       href: isAnalysisCompleted && analysisResult ? '#content-suggestions' : '#',
       disabled: !isAnalysisCompleted,
       icon: '✍️'
     },
     { 
-      name: 'SERP 洞察', 
+      name: 'SERP分析', 
       href: isAnalysisCompleted && analysisResult ? '#serp-insights' : '#',
       disabled: !isAnalysisCompleted,
       icon: '🔍'

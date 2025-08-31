@@ -2,14 +2,39 @@ import { config, isDevelopment } from '@/config'
 
 function Footer() {
   const currentYear = new Date().getFullYear()
+
+  // 處理導航連結點擊 (與 Sidebar 相同邏輯)
+  const handleNavClick = (href: string) => {
+    // 只處理錨點連結
+    if (!href.startsWith('#')) return true
+    
+    // 平滑滾動到目標區域
+    const targetElement = document.querySelector(href)
+    if (targetElement) {
+      targetElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      })
+      
+      // 添加高亮效果
+      targetElement.classList.add('highlight-flash')
+      setTimeout(() => {
+        targetElement.classList.remove('highlight-flash')
+      }, 2000)
+      
+      return false // 阻止默認連結行為
+    }
+    return true
+  }
   
   const footerSections = [
     {
       title: '產品',
       links: [
-        { name: '關鍵字分析', href: '#analyze' },
-        { name: 'SERP 分析', href: '#serp' },
-        { name: '內容生成', href: '#content' },
+        { name: '關鍵字分析', href: '#competitive-analysis' },
+        { name: 'SERP 分析', href: '#serp-insights' },
+        { name: '內容生成', href: '#content-suggestions' },
         { name: 'API 文件', href: '#api' },
       ]
     },
@@ -115,6 +140,12 @@ function Footer() {
                     <a
                       href={link.href}
                       className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        if (!handleNavClick(link.href)) {
+                          // 成功處理錨點導航，不需要進一步處理
+                        }
+                      }}
                     >
                       {link.name}
                     </a>

@@ -68,49 +68,31 @@ interface AnalyzeRequest {
 
 ### 回應格式
 
+> **⚠️ 重要變更說明**: 
+> 實際實現採用扁平化回應結構，與初期規格的巢狀 `data` 物件不同。
+> 此設計簡化前端處理邏輯，避免深層巢狀存取。
+
 #### 成功回應 (200 OK)
 ```typescript
 interface AnalyzeResponse {
-  status: "success";
-  processing_time: number;   // 處理時間 (秒)
-  data: {
-    serp_summary: {
-      total_results: number;        // SERP 總結果數
-      successful_scrapes: number;   // 成功爬取數量
-      avg_word_count: number;       // 平均字數
-      avg_paragraphs: number;       // 平均段落數
-    };
-    analysis_report: string;        // Markdown 格式報告
-    metadata: {
-      keyword: string;              // 原始關鍵字
-      audience: string;             // 原始受眾
-      generated_at: string;         // ISO 8601 時間戳
-      token_usage: number;          // AI Token 使用量
-    };
-  };
+  analysis_report: string;      // Markdown 格式的 SEO 分析報告
+  token_usage: number;          // AI Token 使用量
+  processing_time: number;      // 處理時間 (秒)
+  success: boolean;             // 處理成功標誌
+  cached_at: string;            // 快取時間戳 (ISO 8601)
+  keyword: string;              // 原始關鍵字
 }
 ```
 
 #### 範例成功回應
 ```json
 {
-  "status": "success",
-  "processing_time": 45.8,
-  "data": {
-    "serp_summary": {
-      "total_results": 10,
-      "successful_scrapes": 8,
-      "avg_word_count": 1850,
-      "avg_paragraphs": 15
-    },
-    "analysis_report": "# SEO 分析報告\\n\\n## 1. 標題分析\\n基於 SERP 前 10 名結果...",
-    "metadata": {
-      "keyword": "SEO 工具推薦",
-      "audience": "中小企業行銷人員",
-      "generated_at": "2025-01-20T10:30:00Z",
-      "token_usage": 7500
-    }
-  }
+  "analysis_report": "# SEO 分析報告\\n\\n## 1. 分析概述\\n\\n### 關鍵字搜尋意圖分析\\n目標關鍵字「跑步鞋」的搜尋意圖主要包含以下幾個層面...",
+  "token_usage": 5484,
+  "processing_time": 22.46,
+  "success": true,
+  "cached_at": "2025-08-31T12:29:07.924683+00:00",
+  "keyword": "跑步鞋"
 }
 ```
 
@@ -191,8 +173,9 @@ interface ErrorResponse {
 
 ### 品質要求
 - **爬蟲成功率**: ≥ 80% (10個URL至少成功8個)
-- **Token 使用量**: < 8000 tokens/請求
+- **Token 使用量**: < 6000 tokens/請求
 - **API 可用性**: ≥ 99%
+- **回應結構**: 扁平化設計，便於前端處理
 
 ## 🧪 測試範例
 
@@ -289,6 +272,7 @@ app.add_middleware(
 ```
 
 ---
-**最後更新**: Session 02  
-**狀態**: API 規格完整定義完成 (UTF-8 編碼)  
-**檔案位置**: `/docs/specs/api_spec.md`
+**最後更新**: 2025-09-01  
+**狀態**: API 規格已更新至與實際實現一致  
+**檔案位置**: `/docs/specs/api_spec.md`  
+**重要變更**: 更新回應結構為扁平化設計，移除巢狀 data 物件

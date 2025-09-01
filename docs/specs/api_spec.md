@@ -11,6 +11,23 @@
 - **回應格式**: JSON
 - **編碼**: UTF-8
 
+### 🔧 雙欄位設計架構
+本 API 採用 **status + success 雙欄位設計**，提供更精確的狀態管理：
+
+- **`status`**: API 契約欄位 (`"success"` / `"error"`)
+  - 維護前端相容性，支援現有 `response.status === "success"` 判斷邏輯
+  - 區分 API 調用層級的成功與錯誤
+
+- **`success`**: 業務狀態欄位 (`true` / `false`)
+  - 反映實際業務處理結果
+  - 支援 API 成功但業務部分失敗的細粒度場景
+  - 與快取系統格式天然一致
+
+**使用場景**：
+- `status: "success", success: true` → 完全成功
+- `status: "success", success: false` → API 成功但業務處理失敗
+- `status: "error", success: false` → API 調用失敗
+
 ## 🚀 API 端點總覽
 
 | 端點 | 方法 | 功能 | 狀態 |
@@ -72,21 +89,27 @@ interface AnalyzeRequest {
 > 實際實現採用扁平化回應結構，與初期規格的巢狀 `data` 物件不同。
 > 此設計簡化前端處理邏輯，避免深層巢狀存取。
 
-#### 成功回應 (200 OK)
+#### 成功回應 (200 OK) - 雙欄位設計
 ```typescript
 interface AnalyzeResponse {
+  status: "success";            // API 契約欄位，維護前端相容性
   analysis_report: string;      // Markdown 格式的 SEO 分析報告
   token_usage: number;          // AI Token 使用量
   processing_time: number;      // 處理時間 (秒)
-  success: boolean;             // 處理成功標誌
+  success: boolean;             // 業務處理成功標誌，反映實際處理結果
   cached_at: string;            // 快取時間戳 (ISO 8601)
   keyword: string;              // 原始關鍵字
 }
 ```
 
+**雙欄位說明**：
+- `status`: API 契約欄位，固定為 "success"，用於前端 `response.status === "success"` 判斷
+- `success`: 業務狀態欄位，反映實際處理結果，支援 API 成功但業務部分失敗的場景
+
 #### 範例成功回應
 ```json
 {
+  "status": "success",
   "analysis_report": "# SEO 分析報告\\n\\n## 1. 分析概述\\n\\n### 關鍵字搜尋意圖分析\\n目標關鍵字「跑步鞋」的搜尋意圖主要包含以下幾個層面...",
   "token_usage": 5484,
   "processing_time": 22.46,
@@ -98,18 +121,19 @@ interface AnalyzeResponse {
 
 ## ⚠️ 錯誤處理
 
-### 錯誤回應格式
+### 錯誤回應格式 - 雙欄位設計
 ```typescript
 interface ErrorResponse {
-  status: "error";
-  error: {
-    code: string;           // 錯誤碼
-    message: string;        // 錯誤訊息 (繁體中文)
-    details?: any;          // 詳細錯誤資訊
-    timestamp: string;      // 錯誤時間戳
-  };
+  status: "error";          // API 契約欄位，固定為 "error"
+  success: false;           // 業務狀態欄位，固定為 false，保持欄位一致性
+  error_message: string;    // 錯誤描述訊息 (繁體中文)
+  error_code?: string;      // 錯誤代碼，用於程式化處理
 }
 ```
+
+**雙欄位一致性**：
+- `status`: API 契約欄位，用於前端 `response.status === "error"` 判斷
+- `success`: 業務狀態欄位，與成功回應保持欄位一致性，便於統一處理
 
 ### 主要錯誤碼
 
@@ -127,16 +151,9 @@ interface ErrorResponse {
 ```json
 {
   "status": "error",
-  "error": {
-    "code": "INVALID_INPUT",
-    "message": "關鍵字長度必須在 1-50 字元之間",
-    "details": {
-      "field": "keyword",
-      "provided_length": 55,
-      "max_length": 50
-    },
-    "timestamp": "2025-01-20T10:30:00Z"
-  }
+  "success": false,
+  "error_message": "關鍵字長度必須在 1-50 字元之間",
+  "error_code": "INVALID_INPUT"
 }
 ```
 

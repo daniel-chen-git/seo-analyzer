@@ -4,6 +4,7 @@ import { InputForm } from '@/components/form'
 import { ProgressIndicator } from '@/components/progress'
 import ReactMarkdown from 'react-markdown'
 import type { AnalyzeRequest, AnalyzeResponse } from '@/types/api'
+import { adaptAnalyzeResponse } from '@/types/api'
 import type { ProgressState } from '@/types/progress'
 
 interface MainContentProps {
@@ -46,26 +47,26 @@ const MainContent: React.FC<MainContentProps> = ({
   onShowForm,
   developmentControls
 }) => {
-  // 型別輔助函數
-  const getResultData = (result: AnalyzeResponse | null) => result as {
-    processing_time?: number;
-    data?: {
-      serp_summary?: {
-        total_results: number;
-        successful_scrapes: number;
-        avg_word_count: number;
-        avg_paragraphs: number;
-      };
-      analysis_report?: string;
-      metadata?: {
-        token_usage?: number;
-        phase_timings?: {
-          serp_duration?: number;
-          scraping_duration?: number;
-          ai_duration?: number;
-        };
-      };
-    };
+  /**
+   * 資料存取適配器：處理新舊格式並提供統一的扁平資料存取
+   * 
+   * 功能作用：
+   * - 自動適配新舊 API 回應格式，確保向後相容性
+   * - 提供統一的扁平資料存取介面，無需區分巢狀或扁平結構
+   * - 使用 adaptAnalyzeResponse 將舊格式轉換為新格式
+   * 
+   * 遷移說明：
+   * - 舊版存取：result.data.analysis_report 
+   * - 新版存取：result.analysis_report
+   * 
+   * @param result 原始的分析結果（可能是新舊任一格式）
+   * @returns 統一的扁平結構資料，保證可存取新版欄位
+   */
+  const getResultData = (result: AnalyzeResponse | null): AnalyzeResponse | null => {
+    if (!result) return null
+    
+    // 使用適配器確保所有資料都轉換為新的扁平格式
+    return adaptAnalyzeResponse(result)
   }
 
   // 文件下載處理
@@ -171,81 +172,70 @@ const MainContent: React.FC<MainContentProps> = ({
                 </div>
               </div>
 
-              {/* SERP 競爭分析 */}
-              {getResultData(analysisResult)?.data?.serp_summary && (
-                <div id="competitive-analysis" className="border-b pb-4">
-                  <h3 className="text-lg font-semibold mb-3">🔍 SERP 競爭分析</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {getResultData(analysisResult).data?.serp_summary?.total_results}
-                      </div>
-                      <div className="text-sm text-gray-600">總搜尋結果</div>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {getResultData(analysisResult).data?.serp_summary?.successful_scrapes}
-                      </div>
-                      <div className="text-sm text-gray-600">成功爬取</div>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-purple-600">
-                        {getResultData(analysisResult).data?.serp_summary?.avg_word_count}
-                      </div>
-                      <div className="text-sm text-gray-600">平均字數</div>
-                    </div>
-                    <div className="bg-orange-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-orange-600">
-                        {getResultData(analysisResult).data?.serp_summary?.avg_paragraphs}
-                      </div>
-                      <div className="text-sm text-gray-600">平均段落</div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* SERP 競爭分析 - 注意：暫時隱藏，因新的扁平結構不包含 serp_summary */}
+              {/* 
+              TODO: Phase 3 整合測試時，根據後端實際回應決定是否恢復此區塊
+              新的扁平結構專注於核心分析結果，SERP 統計資料可能需要額外的 API 端點
+              */}
 
-              {/* 分析報告 */}
-              {getResultData(analysisResult)?.data?.analysis_report && (
+              {/* 分析報告 - 已遷移到扁平結構存取 */}
+              {getResultData(analysisResult)?.analysis_report && (
                 <div id="content-suggestions" className="border-b pb-4">
                   <h3 className="text-lg font-semibold mb-3">✍️ 分析報告</h3>
                   <div className="bg-white p-6 rounded-lg border prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
                     <ReactMarkdown>
-                      {getResultData(analysisResult).data?.analysis_report}
+                      {/* 扁平存取：直接從頂層獲取 analysis_report，不再需要 data.analysis_report */}
+                      {getResultData(analysisResult)?.analysis_report}
                     </ReactMarkdown>
                   </div>
                 </div>
               )}
 
-              {/* 處理統計 */}
-              {getResultData(analysisResult)?.data?.metadata && (
+              {/* 處理統計 - 已遷移到扁平結構存取 */}
+              {getResultData(analysisResult) && (
                 <div id="serp-insights" className="border-b pb-4">
                   <h3 className="text-lg font-semibold mb-3">⏱️ 處理統計</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="font-medium">總處理時間：</span>
+                        {/* 扁平存取：直接從頂層獲取 processing_time */}
                         <span className="ml-2">{getResultData(analysisResult)?.processing_time?.toFixed(2) || 'N/A'} 秒</span>
                       </div>
                       <div>
                         <span className="font-medium">Token 使用量：</span>
-                        <span className="ml-2">{getResultData(analysisResult)?.data?.metadata?.token_usage || 'N/A'}</span>
+                        {/* 扁平存取：直接從頂層獲取 token_usage，不再需要 data.metadata.token_usage */}
+                        <span className="ml-2">{getResultData(analysisResult)?.token_usage || 'N/A'}</span>
                       </div>
-                      {getResultData(analysisResult)?.data?.metadata?.phase_timings && (
-                        <>
-                          <div>
-                            <span className="font-medium">SERP 擷取：</span>
-                            <span className="ml-2">{getResultData(analysisResult).data?.metadata?.phase_timings?.serp_duration?.toFixed(2) || 'N/A'} 秒</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">網頁爬取：</span>
-                            <span className="ml-2">{getResultData(analysisResult).data?.metadata?.phase_timings?.scraping_duration?.toFixed(2) || 'N/A'} 秒</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">AI 分析：</span>
-                            <span className="ml-2">{getResultData(analysisResult).data?.metadata?.phase_timings?.ai_duration?.toFixed(2) || 'N/A'} 秒</span>
-                          </div>
-                        </>
-                      )}
+                      <div>
+                        <span className="font-medium">業務狀態：</span>
+                        {/* 雙欄位設計：顯示 success 欄位，反映實際處理結果 */}
+                        <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                          getResultData(analysisResult)?.success 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {getResultData(analysisResult)?.success ? '完全成功' : '部分成功'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium">快取時間：</span>
+                        {/* 扁平存取：直接從頂層獲取 cached_at */}
+                        <span className="ml-2">
+                          {getResultData(analysisResult)?.cached_at 
+                            ? new Date(getResultData(analysisResult)!.cached_at).toLocaleString()
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium">分析關鍵字：</span>
+                        {/* 扁平存取：直接從頂層獲取 keyword */}
+                        <span className="ml-2">{getResultData(analysisResult)?.keyword || analysisRequest?.keyword || 'N/A'}</span>
+                      </div>
+                      {/* 
+                      注意：phase_timings 在新的扁平結構中不再提供
+                      如需詳細計時資訊，可考慮在 Phase 3 時向後端請求額外的統計端點
+                      */}
                     </div>
                   </div>
                 </div>

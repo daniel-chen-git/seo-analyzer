@@ -28,13 +28,13 @@ apiClient.interceptors.response.use(
   (error: AxiosError<ErrorResponse>) => {
     let apiError: ApiError
 
-    if (error.response?.data?.status === 'error' && error.response.data.error) {
+    if (error.response?.data?.status === 'error' && error.response.data.error_message) {
       // Backend 標準錯誤格式
-      const backendError = error.response.data.error
+      const backendError = error.response.data
       apiError = {
-        message: backendError.message,
-        code: backendError.code,
-        details: backendError.details,
+        message: backendError.error_message,
+        code: backendError.error_code,
+        details: {},
       }
     } else if (error.response) {
       // HTTP 錯誤

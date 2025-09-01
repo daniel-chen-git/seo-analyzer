@@ -67,6 +67,8 @@ class IntegrationService:
     def _load_cached_result(self, keyword: str) -> Optional[AnalysisResult]:
         """從快取檔案載入分析結果。
         
+        支援向後相容：自動為舊版快取檔案補充缺失的 status 欄位。
+        
         Args:
             keyword: 搜尋關鍵字
             
@@ -83,9 +85,22 @@ class IntegrationService:
             with open(cache_file, 'r', encoding='utf-8') as f:
                 cache_data = json.load(f)
             
-            print(f"📂 從快取載入分析結果: {cache_file}")
+            # 向後相容：為舊版快取檔案自動補充 status 欄位
+            if 'status' not in cache_data:
+                cache_data['status'] = 'success'
+                print(f"🔄 為舊版快取檔案補充 status 欄位: {cache_file}")
+                
+                # 更新快取檔案以包含 status 欄位
+                try:
+                    with open(cache_file, 'w', encoding='utf-8') as f:
+                        json.dump(cache_data, f, ensure_ascii=False, indent=2)
+                    print(f"💾 已更新快取檔案格式: {cache_file}")
+                except Exception as update_error:
+                    print(f"⚠️ 快取檔案格式更新失敗（不影響載入）: {update_error}")
             
-            # 重建 AnalysisResult 物件
+            print(f"📂 從快取載入分析結果（雙欄位格式）: {cache_file}")
+            
+            # 重建 AnalysisResult 物件（只需要業務資料）
             return AnalysisResult(
                 analysis_report=cache_data['analysis_report'],
                 token_usage=cache_data['token_usage'],
@@ -98,7 +113,11 @@ class IntegrationService:
             return None
     
     def _save_result_to_cache(self, keyword: str, analysis_result: AnalysisResult) -> None:
-        """將分析結果儲存到快取檔案。
+        """將分析結果儲存到快取檔案（雙欄位格式）。
+        
+        快取檔案採用與 AnalyzeResponse 一致的扁平結構，包含雙狀態欄位：
+        - status: 固定為 "success"，保持與 API 回應格式一致
+        - success: 來自 analysis_result.success，反映業務處理結果
         
         Args:
             keyword: 搜尋關鍵字
@@ -107,11 +126,16 @@ class IntegrationService:
         cache_file = self._get_cache_file_path(keyword)
         
         try:
-            # 準備要儲存的資料
+            # 準備要儲存的資料（雙欄位格式，與 AnalyzeResponse 一致）
             cache_data = {
+                # API 契約欄位：與回應格式保持一致
+                'status': 'success',
+                
+                # 核心業務資料
                 'analysis_report': analysis_result.analysis_report,
                 'token_usage': analysis_result.token_usage,
                 'processing_time': analysis_result.processing_time,
+                # 業務狀態欄位：反映實際處理結果
                 'success': analysis_result.success,
                 'cached_at': datetime.now(timezone.utc).isoformat(),
                 'keyword': keyword
@@ -124,11 +148,59 @@ class IntegrationService:
             with open(cache_file, 'w', encoding='utf-8') as f:
                 json.dump(cache_data, f, ensure_ascii=False, indent=2)
             
-            print(f"💾 分析結果已儲存到快取: {cache_file}")
+            print(f"💾 分析結果已儲存到快取（雙欄位格式）: {cache_file}")
             
         except Exception as e:
             print(f"❌ 快取檔案寫入失敗: {e}")
             # 不拋出例外，讓主流程繼續
+    
+    def _load_cached_response(self, keyword: str) -> Optional[AnalyzeResponse]:
+        """從快取檔案直接載入並轉換為 AnalyzeResponse。
+        
+        用於快取命中的情況，直接返回完整的回應物件。
+        自動處理向後相容和 status 欄位補充。
+        
+        Args:
+            keyword: 搜尋關鍵字
+            
+        Returns:
+            Optional[AnalyzeResponse]: 完整的快取回應，如果不存在則返回 None
+        """
+        cache_file = self._get_cache_file_path(keyword)
+        
+        if not os.path.exists(cache_file):
+            return None
+        
+        try:
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                cache_data = json.load(f)
+            
+            # 向後相容：為舊版快取檔案自動補充 status 欄位
+            if 'status' not in cache_data:
+                cache_data['status'] = 'success'
+                print(f"🔄 快取回應補充 status 欄位: {cache_file}")
+                
+                # 更新快取檔案
+                try:
+                    with open(cache_file, 'w', encoding='utf-8') as f:
+                        json.dump(cache_data, f, ensure_ascii=False, indent=2)
+                except Exception:
+                    pass  # 靜默處理更新失敗
+            
+            # 直接建構 AnalyzeResponse 物件（雙欄位格式）
+            return AnalyzeResponse(
+                status=cache_data['status'],  # API 契約欄位
+                analysis_report=cache_data['analysis_report'],
+                token_usage=cache_data['token_usage'],
+                processing_time=cache_data['processing_time'],
+                success=cache_data['success'],  # 業務狀態欄位
+                cached_at=cache_data['cached_at'],
+                keyword=cache_data['keyword']
+            )
+            
+        except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
+            print(f"❌ 快取回應載入失敗: {e}")
+            return None
     
     async def execute_full_analysis(self, request: AnalyzeRequest) -> AnalyzeResponse:
         """執行完整的 SEO 分析流程。
@@ -268,55 +340,36 @@ class IntegrationService:
         processing_time: float,
         timer: Optional['PerformanceTimer'] = None
     ) -> AnalyzeResponse:
-        """建立成功回應。
+        """建立成功回應（雙欄位設計）。
+        
+        雙欄位設計說明：
+        - status: 固定為 "success"，維護 API 契約和前端相容性
+        - success: 來自 analysis_result.success，反映業務層實際處理結果
         
         Args:
             request: 原始請求
             serp_data: SERP 資料
-            scraping_data: 爬蟲資料
-            analysis_result: AI 分析結果
+            scraping_data: 爬蟲資料  
+            analysis_result: AI 分析結果（包含業務成功狀態）
             processing_time: 總處理時間
+            timer: 效能計時器（可選）
             
         Returns:
-            AnalyzeResponse: 完整的成功回應
+            AnalyzeResponse: 完整的成功回應（包含雙狀態欄位）
         """
-        # 建立 SERP 摘要
-        serp_summary = SerpSummary(
-            total_results=scraping_data.total_results,
-            successful_scrapes=scraping_data.successful_scrapes,
-            avg_word_count=scraping_data.avg_word_count,
-            avg_paragraphs=scraping_data.avg_paragraphs
-        )
-        
-        # 建立分析元資料 (包含階段計時資訊)
-        metadata_dict = {
-            "keyword": request.keyword,
-            "audience": request.audience,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "token_usage": analysis_result.token_usage
-        }
-        
-        # 添加階段計時資訊 (如果有的話)
-        if timer:
-            phase_timings = timer.get_all_timings()
-            if phase_timings:
-                metadata_dict["phase_timings"] = phase_timings
-                metadata_dict["total_phases_time"] = sum(phase_timings.values())
-        
-        metadata = AnalysisMetadata(**metadata_dict)
-        
-        # 建立分析資料
-        data = AnalysisData(
-            serp_summary=serp_summary,
-            analysis_report=analysis_result.analysis_report,
-            metadata=metadata
-        )
-        
-        # 建立完整回應
+        # 建立扁平結構回應（雙欄位設計）
         return AnalyzeResponse(
+            # API 契約欄位：固定為 "success"，維護前端 response.status === "success" 判斷
             status="success",
+            
+            # 核心業務資料
+            analysis_report=analysis_result.analysis_report,
+            token_usage=analysis_result.token_usage,
             processing_time=processing_time,
-            data=data
+            # 業務狀態欄位：直接反映 AI 服務層的實際處理結果
+            success=analysis_result.success,
+            cached_at=datetime.now(timezone.utc).isoformat(),
+            keyword=request.keyword
         )
     
     

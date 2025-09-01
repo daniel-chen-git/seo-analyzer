@@ -5,8 +5,9 @@ import type {
   AnalyzeRequest, 
   AnalyzeResponse, 
   JobCreateResponse, 
-  JobStatusResponse 
+  JobStatusResponse
 } from '@/types/api'
+import { adaptAnalyzeResponse, isNewAnalyzeResponse } from '@/types/api'
 import type { ProgressState, ProgressUpdate } from '@/types/progress'
 
 /**
@@ -316,14 +317,37 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
   }, [])
 
   /**
-   * 處理分析完成
+   * 處理分析完成 - 雙欄位適配與狀態檢查
+   * 
+   * 功能作用：
+   * - 使用適配器統一處理新舊格式的分析結果
+   * - 檢查雙欄位狀態：status 和 success
+   * - 根據 success 欄位決定最終狀態（完全成功 vs 部分成功）
+   * - 自動清理 WebSocket 和輪詢資源
+   * 
+   * @param rawResult 原始分析結果（可能是新舊任一格式）
    */
-  const handleAnalysisComplete = useCallback((result: AnalyzeResponse) => {
+  const handleAnalysisComplete = useCallback((rawResult: unknown) => {
     const endTime = new Date()
+    
+    // 使用適配器確保結果為新的扁平格式
+    const result = adaptAnalyzeResponse(rawResult)
+    
+    // 雙欄位狀態檢查：根據 success 欄位決定最終狀態
+    const finalStatus: AnalysisStatus = result.success ? 'completed' : 'completed'
+    // 注意：即使 success 為 false，我們仍然標記為 'completed'，因為 API 調用成功了
+    // 前端可以通過 result.success 欄位來區分完全成功和部分成功
+    
+    console.log('🎉 分析完成，雙欄位狀態:', {
+      status: result.status,      // API 契約欄位
+      success: result.success,    // 業務狀態欄位
+      finalStatus,
+      isNewFormat: isNewAnalyzeResponse(rawResult)
+    })
     
     setState(prev => ({
       ...prev,
-      status: 'completed',
+      status: finalStatus,
       result,
       error: null,
       canCancel: false,
@@ -388,8 +412,9 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
         break
         
       case 'completed':
-        if (message.data && 'status' in message.data) {
-          handleAnalysisComplete(message.data as AnalyzeResponse)
+        if (message.data) {
+          // WebSocket 訊息中的完成資料，可能是新舊任一格式
+          handleAnalysisComplete(message.data)
         }
         break
         
@@ -522,6 +547,7 @@ export const useAnalysis = (config: AnalysisConfig = {}) => {
         console.log('📊 輪詢回應:', { status: data.status, progress: data.progress })
         
         if (data.status === 'completed' && data.result) {
+          // 輪詢取得的完成結果，可能是新舊任一格式
           handleAnalysisComplete(data.result)
         } else if (data.status === 'failed' && data.error) {
           handleAnalysisError(data.error)

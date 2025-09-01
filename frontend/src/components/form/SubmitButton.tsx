@@ -1,5 +1,22 @@
 import React, { useCallback } from 'react';
 
+/**
+ * 提交按鈕組件 - 支援雙欄位狀態系統
+ * 
+ * 功能特色：
+ * - 智能狀態管理（idle/loading/success/error）
+ * - 動態進度顯示（百分比 + 進度條）
+ * - 時間估算與剩餘時間計算
+ * - 視覺反饋與無障礙設計
+ * - 相容雙欄位設計：配合 API 回應的 status + success 欄位系統
+ * 
+ * 狀態對應說明：
+ * - idle: 準備開始分析
+ * - loading: 分析進行中（對應後端 status: "success", 進度更新中）
+ * - success: 分析完成（對應後端 status: "success", success: true/false）
+ * - error: 分析失敗（對應後端 status: "error", success: false）
+ */
+
 type SubmitButtonStatus = 'idle' | 'loading' | 'success' | 'error';
 
 interface SubmitButtonProps {
@@ -64,7 +81,25 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
 }) => {
   const config = statusConfigs[status];
   const isLoading = status === 'loading';
+  
+  /**
+   * 提交條件檢查 - 配合雙欄位狀態設計
+   * 
+   * 功能作用：
+   * - idle 狀態：初始狀態，可以提交
+   * - error 狀態：對應後端 status: "error" 或處理失敗，允許重試
+   * - loading 狀態：對應分析進行中，禁用提交
+   * - success 狀態：分析完成，通常不需要重新提交
+   */
   const canSubmit = (status === 'idle' || status === 'error') && isFormValid && !disabled;
+  
+  /**
+   * 重置條件檢查 - 分析進行中時禁用重置
+   * 
+   * 功能作用：
+   * - 防止在分析進行中意外重置表單
+   * - 其他狀態都允許重置以開始新的分析
+   */
   const canReset = status !== 'loading';
 
   const handleSubmit = useCallback(() => {

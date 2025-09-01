@@ -109,29 +109,70 @@ class AnalysisData(BaseModel):
     )
 
 
+# ===== 向後兼容的舊版模型 =====
+class LegacyAnalyzeResponse(BaseModel):
+    """舊版巢狀結構的 AnalyzeResponse（向後兼容用）。
+    
+    @deprecated 請使用新的扁平結構 AnalyzeResponse
+    """
+    status: str = Field(default="success", description="回應狀態")
+    processing_time: float = Field(..., ge=0, description="處理時間（秒）")
+    data: AnalysisData = Field(..., description="分析結果資料")
+
+
+# ===== 新的扁平結構模型（雙欄位設計）=====
 class AnalyzeResponse(BaseModel):
     """SEO 分析成功回應模型。
 
     POST /api/analyze 端點的成功回應資料結構。
+    採用扁平化設計，直接包含分析結果，無需巢狀 data 物件。
+    
+    雙欄位設計說明：
+    - status: API 契約欄位，維護前端相容性（固定為 "success"）
+    - success: 業務狀態欄位，反映實際處理結果（true/false）
 
     Attributes:
-        status: 回應狀態（固定為 "success"）
+        status: API 契約狀態標識（固定為 "success"）
+        analysis_report: Markdown 格式的 SEO 分析報告
+        token_usage: AI Token 使用量
         processing_time: 處理時間（秒）
-        data: 分析結果資料
+        success: 業務處理成功標誌（來自業務層的真實結果）
+        cached_at: 快取時間戳（ISO 8601 格式）
+        keyword: 原始關鍵字
     """
 
+    # API 契約欄位：維護前端相容性
     status: str = Field(
         default="success",
-        description="回應狀態"
+        description="API 契約狀態標識，維護前端 response.status === 'success' 判斷邏輯"
+    )
+    
+    # 核心業務資料（扁平結構）
+    analysis_report: str = Field(
+        ...,
+        description="Markdown 格式的 SEO 分析報告"
+    )
+    token_usage: int = Field(
+        ...,
+        ge=0,
+        description="AI Token 使用量"
     )
     processing_time: float = Field(
         ...,
         ge=0,
         description="處理時間（秒）"
     )
-    data: AnalysisData = Field(
+    success: bool = Field(
         ...,
-        description="分析結果資料"
+        description="業務處理成功標誌，直接反映各服務層的實際處理結果"
+    )
+    cached_at: str = Field(
+        ...,
+        description="快取時間戳（ISO 8601 格式）"
+    )
+    keyword: str = Field(
+        ...,
+        description="原始關鍵字"
     )
 
     class Config:
@@ -139,22 +180,12 @@ class AnalyzeResponse(BaseModel):
         json_schema_extra = {
             "example": {
                 "status": "success",
-                "processing_time": 45.8,
-                "data": {
-                    "serp_summary": {
-                        "total_results": 10,
-                        "successful_scrapes": 8,
-                        "avg_word_count": 1850,
-                        "avg_paragraphs": 15
-                    },
-                    "analysis_report": "# SEO 分析報告\n\n## 1. 標題分析\n基於 SERP 前 10 名結果...",
-                    "metadata": {
-                        "keyword": "SEO 工具推薦",
-                        "audience": "中小企業行銷人員",
-                        "generated_at": "2025-01-22T10:30:00Z",
-                        "token_usage": 7500
-                    }
-                }
+                "analysis_report": "# SEO 分析報告\n\n## 1. 分析概述\n\n### 關鍵字搜尋意圖分析\n目標關鍵字「跑步鞋」的搜尋意圖主要包含以下幾個層面...",
+                "token_usage": 5484,
+                "processing_time": 22.46,
+                "success": True,
+                "cached_at": "2025-08-31T12:29:07.924683+00:00",
+                "keyword": "跑步鞋"
             }
         }
 
@@ -249,19 +280,38 @@ class ErrorResponse(BaseModel):
     """錯誤回應模型。
 
     統一的錯誤回應格式，適用於所有 API 端點。
+    
+    雙欄位設計說明：
+    - status: API 契約欄位，標識錯誤回應（固定為 "error"）
+    - success: 業務狀態欄位，明確標識失敗（固定為 False）
 
     Attributes:
-        status: 回應狀態（固定為 "error"）
-        error: 錯誤資訊
+        status: API 契約狀態標識（固定為 "error"）
+        success: 業務處理失敗標誌（固定為 False）
+        error_message: 錯誤描述訊息
+        error_code: 錯誤代碼（可選）
     """
 
+    # API 契約欄位：標識錯誤回應
     status: str = Field(
         default="error",
-        description="回應狀態"
+        description="API 契約狀態標識，用於前端 response.status === 'error' 判斷"
     )
-    error: Dict[str, Any] = Field(
+    
+    # 業務狀態欄位：明確標識失敗
+    success: bool = Field(
+        default=False,
+        description="業務處理失敗標誌，與 AnalyzeResponse 保持欄位一致性"
+    )
+    
+    # 錯誤資訊
+    error_message: str = Field(
         ...,
-        description="錯誤資訊"
+        description="錯誤描述訊息（繁體中文）"
+    )
+    error_code: Optional[str] = Field(
+        None,
+        description="錯誤代碼，用於程式化處理"
     )
 
     class Config:
@@ -269,16 +319,9 @@ class ErrorResponse(BaseModel):
         json_schema_extra = {
             "example": {
                 "status": "error",
-                "error": {
-                    "code": "INVALID_INPUT",
-                    "message": "關鍵字長度必須在 1-50 字元之間",
-                    "details": {
-                        "field": "keyword",
-                        "provided_value": "這是一個超過五十個字元限制的超長關鍵字",
-                        "expected_format": "1-50 字元"
-                    },
-                    "timestamp": "2025-01-22T10:30:00Z"
-                }
+                "success": False,
+                "error_message": "關鍵字長度必須在 1-50 字元之間",
+                "error_code": "INVALID_INPUT"
             }
         }
 

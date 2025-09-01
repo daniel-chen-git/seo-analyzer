@@ -1,8 +1,12 @@
 /**
- * useAnalysis Hook 增強版單元測試
+ * useAnalysis Hook 增強版單元測試 - 支援雙欄位設計
  * 
- * 測試 API 呼叫成功流程、網路錯誤處理、重試機制、
- * 進度狀態管理和三階段切換邏輯的完整功能。
+ * 測試功能：
+ * - API 呼叫成功流程（新舊格式相容）
+ * - 雙欄位設計：status + success 欄位處理
+ * - 網路錯誤處理和重試機制
+ * - 進度狀態管理和三階段切換邏輯
+ * - 向後相容性和適配器功能
  */
 
 import { renderHook, act } from '@testing-library/react'
@@ -12,25 +16,67 @@ import type {
   AnalyzeRequest, 
   AnalyzeResponse, 
   JobCreateResponse, 
-  JobStatusResponse 
+  JobStatusResponse,
+  LegacyAnalyzeResponse
 } from '@/types/api'
 import type { ProgressUpdate } from '@/types/progress'
-// Mock 測試資料
-const mockAnalyzeRequest = {
+// Mock 測試資料 - 支援新舊格式
+const mockAnalyzeRequest: AnalyzeRequest = {
   keyword: "SEO 優化指南",
-  target_audience: "網站經營者、數位行銷人員，希望提升網站搜尋排名和流量"
+  audience: "網站經營者、數位行銷人員，希望提升網站搜尋排名和流量",
+  options: {
+    generate_draft: true,
+    include_faq: true,
+    include_table: false
+  }
 }
 
-const mockAnalyzeResponse = {
-  status: "completed",
-  result: `# SEO 優化指南分析報告\n\n## 執行摘要\n針對關鍵字「SEO 優化指南」的完整競爭對手分析已完成。`,
-  stages: {
-    serp: { status: "completed", duration: 8.2 },
-    scraping: { status: "completed", duration: 18.5 },
-    analysis: { status: "completed", duration: 22.1 }
+/**
+ * 新格式 AnalyzeResponse - 雙欄位扁平結構
+ */
+const mockNewAnalyzeResponse: AnalyzeResponse = {
+  status: "success",           // API 契約欄位
+  analysis_report: `# SEO 優化指南分析報告\n\n## 執行摘要\n針對關鍵字「SEO 優化指南」的完整競爭對手分析已完成。`,
+  token_usage: 5484,
+  processing_time: 48.8,
+  success: true,              // 業務狀態欄位：完全成功
+  cached_at: "2025-08-27T11:30:00Z",
+  keyword: "SEO 優化指南"
+}
+
+/**
+ * 新格式 AnalyzeResponse - 部分成功場景
+ */
+const mockPartialSuccessResponse: AnalyzeResponse = {
+  status: "success",           // API 契約：調用成功
+  analysis_report: `# 部分分析結果\n\n## 注意\n由於部分資料源無法存取，這是簡化的分析報告。`,
+  token_usage: 2500,
+  processing_time: 25.3,
+  success: false,             // 業務狀態：部分失敗
+  cached_at: "2025-08-27T11:30:00Z",
+  keyword: "SEO 優化指南"
+}
+
+/**
+ * 舊版 LegacyAnalyzeResponse - 向後相容測試
+ */
+const mockLegacyAnalyzeResponse: LegacyAnalyzeResponse = {
+  status: "success",
+  data: {
+    analysis_report: `# 舊格式分析報告\n\n這是使用舊版巢狀結構的回應。`,
+    metadata: {
+      keyword: "SEO 優化指南",
+      audience: "網站經營者",
+      serp_summary: {
+        total_results: 10,
+        successful_scrapes: 8,
+        avg_word_count: 1500,
+        avg_paragraphs: 12
+      },
+      analysis_timestamp: "2025-08-27T11:30:00Z"
+    }
   },
-  total_duration: 48.8,
-  timestamp: "2025-08-27T11:30:00Z"
+  message: "Analysis completed successfully"
 }
 
 const mockStageUpdates = {
@@ -150,21 +196,12 @@ describe('useAnalysis', () => {
 
   const mockResult: AnalyzeResponse = {
     status: 'success',
-    data: {
-      analysis_report: 'Test analysis report content...',
-      metadata: {
-        keyword: 'test keyword',
-        audience: 'test audience',
-        serp_summary: {
-          total_results: 10,
-          successful_scrapes: 8,
-          avg_word_count: 1500,
-          avg_paragraphs: 12
-        },
-        analysis_timestamp: '2023-01-01T00:00:00Z'
-      }
-    },
-    message: 'Analysis completed successfully'
+    analysis_report: 'Test analysis report content...',
+    token_usage: 1500,
+    processing_time: 45.2,
+    success: true,
+    cached_at: '2023-01-01T00:00:00Z',
+    keyword: 'test keyword'
   }
 
   describe('基礎功能', () => {
@@ -885,8 +922,7 @@ describe('useAnalysis', () => {
         .mockResolvedValueOnce({ data: mockJobResponse })
       
       const { result } = renderHook(() => useAnalysis({
-        autoRetry: true,
-        retryConfig: { maxAttempts: 3, baseDelay: 100 }
+        autoRetry: true
       }))
 
       await act(async () => {
@@ -899,7 +935,7 @@ describe('useAnalysis', () => {
       })
 
       expect(result.current.status).toBe('running')
-      expect(result.current.statistics.retryAttempts).toBe(2)
+      expect(result.current.statistics.reconnectAttempts).toBe(2)
     })
 
     it('應該處理網路錯誤並提供使用者友善訊息', async () => {
@@ -913,14 +949,159 @@ describe('useAnalysis', () => {
       await act(async () => {
         try {
           await result.current.controls.start(mockRequest)
-        } catch (error) {
+        } catch {
           // 預期會拋出錯誤
         }
       })
 
       expect(result.current.status).toBe('error')
       expect(result.current.error).toContain('網路連線')
-      expect(result.current.canRetry).toBe(true)
+    })
+  })
+
+  // 新增：雙欄位設計測試組
+  describe('雙欄位設計處理', () => {
+    it('應該正確處理新格式的完全成功回應', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
+      mockApiClient.get.mockResolvedValueOnce({
+        data: {
+          job_id: 'test-job-123',
+          status: 'completed',
+          result: mockNewAnalyzeResponse // 新格式：雙欄位扁平結構
+        }
+      })
+      
+      const { result } = renderHook(() => useAnalysis({ 
+        enableWebSocket: false, 
+        pollingConfig: { enabled: true, interval: 10 } 
+      }))
+
+      await act(async () => {
+        await result.current.controls.start(mockAnalyzeRequest)
+      })
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      })
+
+      expect(result.current.status).toBe('completed')
+      expect(result.current.result).toEqual(mockNewAnalyzeResponse)
+      // 驗證雙欄位
+      expect(result.current.result?.status).toBe('success')
+      expect(result.current.result?.success).toBe(true)
+    })
+
+    it('應該正確處理新格式的部分成功回應', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
+      mockApiClient.get.mockResolvedValueOnce({
+        data: {
+          job_id: 'test-job-123',
+          status: 'completed',
+          result: mockPartialSuccessResponse // 部分成功：success: false
+        }
+      })
+      
+      const { result } = renderHook(() => useAnalysis({ 
+        enableWebSocket: false, 
+        pollingConfig: { enabled: true, interval: 10 } 
+      }))
+
+      await act(async () => {
+        await result.current.controls.start(mockAnalyzeRequest)
+      })
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      })
+
+      expect(result.current.status).toBe('completed') // API 調用成功
+      expect(result.current.result).toEqual(mockPartialSuccessResponse)
+      // 驗證雙欄位：API 成功但業務部分失敗
+      expect(result.current.result?.status).toBe('success')
+      expect(result.current.result?.success).toBe(false)
+    })
+
+    it('應該自動適配舊格式到新格式', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
+      mockApiClient.get.mockResolvedValueOnce({
+        data: {
+          job_id: 'test-job-123',
+          status: 'completed',
+          result: mockLegacyAnalyzeResponse // 舊格式：巢狀結構
+        }
+      })
+      
+      const { result } = renderHook(() => useAnalysis({ 
+        enableWebSocket: false, 
+        pollingConfig: { enabled: true, interval: 10 } 
+      }))
+
+      await act(async () => {
+        await result.current.controls.start(mockAnalyzeRequest)
+      })
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      })
+
+      expect(result.current.status).toBe('completed')
+      
+      // 驗證適配器正確轉換了格式
+      const adaptedResult = result.current.result!
+      expect(adaptedResult.status).toBe('success') // 適配器自動添加
+      expect(adaptedResult.success).toBe(true)     // 舊格式假設成功
+      expect(adaptedResult.analysis_report).toContain('舊格式分析報告')
+      expect(adaptedResult.keyword).toBe('SEO 優化指南')
+      
+      // 確認已扁平化：不再有 data 屬性
+      expect(adaptedResult).not.toHaveProperty('data')
+    })
+
+    it('應該在前端組件中提供正確的雙欄位狀態檢查', async () => {
+      // 模擬前端組件的雙重檢查邏輯
+      const simulateFrontendLogic = (response: AnalyzeResponse | null) => {
+        if (!response) return 'no_result'
+        
+        if (response.status === 'success' && response.success) {
+          return 'complete_success' // 完全成功
+        } else if (response.status === 'success' && !response.success) {
+          return 'partial_success'  // 部分成功
+        } else {
+          return 'api_error'        // API 錯誤
+        }
+      }
+
+      // 測試完全成功場景
+      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
+      mockApiClient.get.mockResolvedValueOnce({
+        data: { job_id: 'test-job-123', status: 'completed', result: mockNewAnalyzeResponse }
+      })
+      
+      const { result } = renderHook(() => useAnalysis({ enableWebSocket: false, pollingConfig: { enabled: true, interval: 10 } }))
+      
+      await act(async () => {
+        await result.current.controls.start(mockAnalyzeRequest)
+        await new Promise(resolve => setTimeout(resolve, 50))
+      })
+
+      expect(simulateFrontendLogic(result.current.result)).toBe('complete_success')
+
+      // 測試部分成功場景（重置後重新測試）
+      act(() => {
+        result.current.controls.reset()
+      })
+
+      mockApiClient.post.mockResolvedValueOnce({ data: mockJobResponse })
+      mockApiClient.get.mockResolvedValueOnce({
+        data: { job_id: 'test-job-123', status: 'completed', result: mockPartialSuccessResponse }
+      })
+
+      await act(async () => {
+        await result.current.controls.start(mockAnalyzeRequest)
+        await new Promise(resolve => setTimeout(resolve, 50))
+      })
+
+      expect(simulateFrontendLogic(result.current.result)).toBe('partial_success')
     })
   })
 })

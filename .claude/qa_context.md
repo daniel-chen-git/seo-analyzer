@@ -64,7 +64,7 @@ qa/
 ├── components/progress/
 │   └── ProgressIndicator.test.tsx - 進度指示器測試
 └── src/tests/
-    └── phase3-frontend-integration.test.tsx - Phase 3 整合測試
+    └── frontend-integration.test.tsx - 前端整合測試
         ├── 扁平結構解析測試 (MainContent 組件)
         ├── Markdown 渲染測試 (ReactMarkdown)
         ├── 下載功能測試 (使用完整數據)

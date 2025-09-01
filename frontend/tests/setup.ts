@@ -5,7 +5,7 @@
  * 全域 Mock 配置和測試工具初始化。
  */
 
-import { expect, afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
@@ -15,7 +15,7 @@ afterEach(() => {
 })
 
 // 全域 Mock - fetch API
-global.fetch = vi.fn()
+;(global as unknown as { fetch: typeof fetch }).fetch = vi.fn() as unknown as typeof fetch
 
 // 全域 Mock - window.matchMedia (響應式設計測試用)
 Object.defineProperty(window, 'matchMedia', {
@@ -33,11 +33,13 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 // 全域 Mock - IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+;(global as unknown as { IntersectionObserver: typeof IntersectionObserver }).IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}))
+})) as unknown as typeof IntersectionObserver
 
 // 測試環境變數
-process.env.VITE_API_BASE_URL = 'http://localhost:8000'
+if (typeof process !== 'undefined' && process.env) {
+  process.env.VITE_API_BASE_URL = 'http://localhost:8000'
+}

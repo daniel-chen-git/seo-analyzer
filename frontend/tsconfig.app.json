@@ -4,7 +4,7 @@
     "target": "ES2022",
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
     "module": "ESNext",
     "skipLibCheck": true,
 
@@ -35,5 +35,5 @@
       "@/styles/*": ["styles/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }

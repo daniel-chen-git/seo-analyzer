@@ -1,0 +1,10 @@
+{
+  "context_files": [
+    ".claude/instructions.md",
+    ".claude/frontend_context.md",
+    ".claude/backend_context.md",
+    ".claude/qa_context.md"
+  ],
+  "auto_load": true,
+  "working_directory": "qa"
+}

@@ -1,0 +1,76 @@
+# Git
+.git/
+.gitignore
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test files and results
+test_results.json
+*_test_results.json
+*_results.json
+performance_test_results.json
+api_error_integration_results.json
+phase_timing_verification_results.json
+service_error_results.json
+threshold_warning_test_results.json
+simple_error_test_results.json
+
+# Documentation
+TEST_REPORT.md
+docs/
+README.md
+
+# Cache and temp files
+*.tmp
+*.temp
+.cache/
+.temp/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Environment files (will be created on VM)
+.env
+.env.local
+.env.development
+.env.production
+
+# Lock files (will be regenerated)
+uv.lock
+package-lock.json
+
+# Claude Code
+.claude/
+
+# QA
+qa/

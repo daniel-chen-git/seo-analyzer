@@ -43,7 +43,7 @@ uv sync
 echo "確保關鍵依賴已安裝..."
 uv add aiohttp jinja2 --no-sync 2>/dev/null || true
 
-uv run python -m app.main &
+uv run python -m app.main > ../backend.log 2>&1 &
 BACKEND_PID=$!
 
 # 等待後端啟動
@@ -58,7 +58,7 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
-npm run dev -- --host 0.0.0.0 &
+npm run dev -- --host 0.0.0.0 > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 
 echo ""
@@ -66,6 +66,15 @@ echo "✅ 服務器啟動完成!"
 echo "📍 後端服務: http://0.0.0.0:8000"
 echo "📍 API 文檔: http://0.0.0.0:8000/docs"
 echo "📍 前端服務: http://localhost:3000/"
+echo ""
+echo "📋 日誌檔案位置:"
+echo "  後端日誌: $(pwd)/backend.log"
+echo "  前端日誌: $(pwd)/frontend.log"
+echo ""
+echo "💡 查看日誌命令:"
+echo "  tail -f backend.log    # 監控後端日誌"
+echo "  tail -f frontend.log   # 監控前端日誌"
+echo "  ./show-logs.sh --all   # 查看所有日誌"
 echo ""
 echo "按 Ctrl+C 關閉所有服務器"
 

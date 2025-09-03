@@ -87,8 +87,8 @@ create_update_package() {
             echo "📦 建立配置更新包..."
             tar -czf "$UPDATE_ARCHIVE" \
                 --exclude-from=.deployignore \
-                nginx.conf setup-*.sh start-*.sh *.env.* 2>/dev/null || \
-            tar -czf "$UPDATE_ARCHIVE" nginx.conf setup-*.sh start-*.sh 2>/dev/null || exit 1
+                web.conf setup-*.sh start-*.sh *.env.* 2>/dev/null || \
+            tar -czf "$UPDATE_ARCHIVE" web.conf setup-*.sh start-*.sh 2>/dev/null || exit 1
             ;;
         "hot"|"")
             echo "📦 建立完整更新包..."

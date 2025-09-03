@@ -118,7 +118,7 @@ nohup ./start-servers.sh > app.log 2>&1 &
 ├── check-deploy.sh      # 部署狀態檢查腳本
 ├── setup-vm.sh          # VM 環境設定腳本
 ├── setup-nginx.sh       # Nginx 設定腳本
-├── nginx.conf           # Nginx 配置檔案
+├── web.conf             # Nginx 配置檔案
 ├── start-servers.sh     # 啟動服務腳本
 └── DEPLOYMENT.md        # 本文檔
 ```

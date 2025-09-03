@@ -70,14 +70,22 @@ fi
 echo "🔧 設定環境變數..."
 if [ ! -f "frontend/.env.production" ]; then
     echo "📝 建立前端生產環境變數檔案..."
-    cp frontend/.env.development frontend/.env.production
-    
-    # 更新 API URL 為本機
-    sed -i 's/VITE_API_BASE_URL=http:\/\/localhost:8000/VITE_API_BASE_URL=http:\/\/localhost:8000/' frontend/.env.production
-    sed -i 's/VITE_APP_ENVIRONMENT=development/VITE_APP_ENVIRONMENT=production/' frontend/.env.production
-    sed -i 's/VITE_ENABLE_DEBUG=true/VITE_ENABLE_DEBUG=false/' frontend/.env.production
-    
-    echo "✅ 前端環境變數檔案已建立"
+    if [ -f "frontend/.env.local.example" ]; then
+        cp frontend/.env.local.example frontend/.env.production
+        echo "✅ 使用 .env.local.example 作為模板建立環境變數檔案"
+        
+        # 更新環境變數為生產環境設定
+        sed -i 's/VITE_APP_ENVIRONMENT=local/VITE_APP_ENVIRONMENT=production/' frontend/.env.production 2>/dev/null || true
+        sed -i 's/VITE_ENABLE_DEBUG=true/VITE_ENABLE_DEBUG=false/' frontend/.env.production 2>/dev/null || true
+        sed -i 's|VITE_API_BASE_URL=http://localhost:8000|VITE_API_BASE_URL=|' frontend/.env.production 2>/dev/null || true
+        
+        # 創建 .env.local 給開發模式使用
+        cp frontend/.env.production frontend/.env.local
+        echo "✅ 前端環境變數檔案已建立 (.env.production 和 .env.local)"
+    else
+        echo "❌ 找不到環境變數模板檔案 (.env.local.example)"
+        exit 1
+    fi
 fi
 
 # 安裝後端依賴

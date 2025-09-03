@@ -2,7 +2,7 @@ import axios from 'axios'
 import type { AxiosResponse, AxiosError } from 'axios'
 import type { ErrorResponse, ApiError } from '@/types/api'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL === undefined ? 'http://localhost:8000' : import.meta.env.VITE_API_BASE_URL
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

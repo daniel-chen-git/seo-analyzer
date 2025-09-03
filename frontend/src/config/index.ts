@@ -80,7 +80,7 @@ const getEnvVar = (key: string, defaultValue?: string): string => {
     console.warn(`Environment variable ${key} is not defined`)
     return ''
   }
-  return value || defaultValue || ''
+  return value !== undefined ? value : (defaultValue || '')
 }
 
 const getBooleanEnv = (key: string, defaultValue: boolean = false): boolean => {

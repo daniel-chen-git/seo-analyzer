@@ -104,8 +104,13 @@ check_deploy_status() {
     return 2
 }
 
-# 在 VM 上啟動背景部署
-ssh -o ConnectTimeout=10 "$VM_USER@$VM_IP" "nohup ./vm-deploy.sh $ARCHIVE_NAME > /dev/null 2>&1 &" 2>/dev/null
+# 在 VM 上啟動背景部署  
+ssh -o ConnectTimeout=10 "$VM_USER@$VM_IP" "
+    # 先解壓縮取得腳本檔案但不散佈到專案目錄
+    tar -xzf $ARCHIVE_NAME vm-deploy.sh
+    # 執行部署腳本
+    nohup ./vm-deploy.sh $ARCHIVE_NAME > /dev/null 2>&1 &
+" 2>/dev/null
 
 if [ $? -ne 0 ]; then
     echo "❌ 無法啟動 VM 端部署"

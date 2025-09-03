@@ -20,14 +20,15 @@ interface AppState {
   error: string | null
 }
 
-interface HealthStatus {
-  status: string;
-  timestamp: string;
-  services: Record<string, string>;
-}
+// 移除未使用的介面
+// interface HealthStatus {
+//   status: string;
+//   timestamp: string;
+//   services: Record<string, string>;
+// }
 
-// 型別輔助函數，避免 any
-const getResultData = (result: any) => result as {
+// 型別輔助函數
+const getResultData = (result: unknown) => result as {
   processing_time?: number;
   data?: {
     serp_summary?: {
@@ -56,8 +57,9 @@ function App() {
     error: null
   })
   const [devPanelOpen, setDevPanelOpen] = useState(false)
-  const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
-  const [healthLoading, setHealthLoading] = useState(true);
+  // 移除未使用的健康檢查狀態變數
+  // const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
+  // const [healthLoading, setHealthLoading] = useState(true);
   const [showForm, setShowForm] = useState(true);
   
   // 雙欄佈局狀態
@@ -129,17 +131,19 @@ function App() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
+        console.log('API Base URL:', config.api.baseUrl);
+        console.log('Environment VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
         const response = await fetch(`${config.api.baseUrl}/api/health`);
         const data = await response.json();
-        setHealthStatus(data);
+        // setHealthStatus(data); // 已註解掉未使用的狀態
         if (isDebugMode()) {
           console.log('🔗 Backend health check successful:', data);
         }
       } catch (error) {
         console.error('Health check failed:', error);
-        setHealthStatus({ status: 'error', timestamp: new Date().toISOString(), services: {} });
+        // setHealthStatus({ status: 'error', timestamp: new Date().toISOString(), services: {} }); // 已註解掉未使用的狀態
       } finally {
-        setHealthLoading(false);
+        // setHealthLoading(false); // 已註解掉未使用的狀態
       }
     };
 

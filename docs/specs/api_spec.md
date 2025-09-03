@@ -242,7 +242,7 @@ curl -X POST http://localhost:8000/api/analyze \\
 {
   "api_version": "1.0.0",
   "build_date": "2025-01-20",
-  "python_version": "3.13.5",
+  "python_version": "3.12.3+",
   "dependencies": {
     "fastapi": "0.115.0",
     "openai": "1.54.0"

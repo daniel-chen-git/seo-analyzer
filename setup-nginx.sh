@@ -19,8 +19,8 @@ else
 fi
 
 # 檢查配置檔案是否存在
-if [ ! -f "nginx.conf" ]; then
-    echo "❌ 找不到 nginx.conf 檔案"
+if [ ! -f "web.conf" ]; then
+    echo "❌ 找不到 web.conf 檔案"
     exit 1
 fi
 
@@ -32,7 +32,7 @@ fi
 
 # 複製配置檔案
 echo "📝 複製 Nginx 配置檔案..."
-sudo cp nginx.conf /etc/nginx/sites-available/seo-analyzer
+sudo cp web.conf /etc/nginx/sites-available/seo-analyzer
 
 # 建立符號連結啟用站點
 echo "🔗 啟用 SEO Analyzer 站點..."

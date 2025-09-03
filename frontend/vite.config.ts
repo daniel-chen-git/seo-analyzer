@@ -15,6 +15,7 @@ export default defineConfig({
     allowedHosts: [
       'localhost',
       '127.0.0.1',
+      'daniel.enadv.online',  // 允許生產域名
       '.ngrok-free.app',  // 允許所有 ngrok-free.app 子域名
       '.ngrok.io',        // 支援舊版 ngrok 域名
     ],

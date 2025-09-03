@@ -90,7 +90,7 @@ const DEFAULT_TIMEOUT_CONFIG: TimeoutConfig = {
 
 // 預設 API 客戶端配置
 const DEFAULT_CONFIG: ApiClientConfig = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_BASE_URL === undefined ? 'http://localhost:8000' : import.meta.env.VITE_API_BASE_URL,
   timeout: 30000,
   timeoutConfig: DEFAULT_TIMEOUT_CONFIG,
   retryConfig: DEFAULT_RETRY_CONFIG,

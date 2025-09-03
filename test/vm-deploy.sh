@@ -134,40 +134,7 @@ log "🗑️ 清理壓縮檔..."
 rm -f "$HOME/$ARCHIVE_NAME"
 
 log "✅ VM 端部署完成"
-update_status "SETTING_UP_ENVIRONMENT"
-
-# 自動執行環境設定
-log "🔧 開始執行環境設定..."
-cd "$DEPLOY_DIR"
-
-if [ -f "./setup-vm.sh" ]; then
-    log "📋 執行 setup-vm.sh..."
-    if ./setup-vm.sh >> "$LOG_FILE" 2>&1; then
-        log "✅ 環境設定完成"
-        
-        # 自動執行 Nginx 設定
-        if [ -f "./setup-nginx.sh" ]; then
-            log "🌐 開始執行 Nginx 設定..."
-            update_status "SETTING_UP_NGINX"
-            if ./setup-nginx.sh >> "$LOG_FILE" 2>&1; then
-                log "✅ Nginx 設定完成"
-                update_status "COMPLETED"
-            else
-                log "❌ Nginx 設定失敗"
-                handle_error "SETUP_NGINX_FAILED"
-            fi
-        else
-            log "⚠️ 找不到 setup-nginx.sh 腳本，跳過 Nginx 設定"
-            update_status "COMPLETED"
-        fi
-    else
-        log "❌ 環境設定失敗"
-        handle_error "SETUP_VM_FAILED"
-    fi
-else
-    log "❌ 找不到 setup-vm.sh 腳本"
-    handle_error "SETUP_SCRIPT_NOT_FOUND"
-fi
+update_status "COMPLETED"
 
 log "📝 部署摘要:"
 log "  - 部署路徑: $DEPLOY_DIR"
@@ -175,10 +142,10 @@ log "  - 備份路徑: $BACKUP_DIR"
 log "  - 日誌檔案: $LOG_FILE"
 
 log ""
-log "🎉 完整部署流程結束！"
+log "🔧 下一步操作:"
+log "1. 執行環境設定: cd $DEPLOY_DIR && ./setup-vm.sh"
+log "2. 啟動服務: ./start-servers.sh"
+log "3. 檢查服務狀態: sudo systemctl status seo-analyzer"
 log ""
-log "🚀 啟動服務："
-log "1. 手動啟動: cd $DEPLOY_DIR && ./start-servers.sh"
-log "2. 系統服務啟動: sudo systemctl start seo-analyzer"
-log "3. 開機自動啟動: sudo systemctl enable seo-analyzer"
-log ""
+
+log "🎉 部署流程結束"

@@ -686,6 +686,6 @@ def create_error_response(error_code: str, message: str, details: Optional[dict]
     )
 
     return ErrorResponse(
-        status="error",
-        error=error_info.model_dump()
+        error_message=message,
+        error_code=error_code
     )

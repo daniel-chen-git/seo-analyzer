@@ -47,8 +47,8 @@ class IntegrationService:
             "total_duration": 55.0      # 總時間警告閾值
         }
         
-        # 快取設定
-        self.cache_dir = "/Users/danielchen/test/seo-analyzer/backend/app/services"
+        # 快取設定 - 使用當前檔案的相對路徑
+        self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache")
     
     def _get_cache_file_path(self, keyword: str) -> str:
         """生成基於關鍵字 hash 的快取檔案路徑。

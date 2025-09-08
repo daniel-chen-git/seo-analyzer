@@ -26,10 +26,14 @@
 - **實現方式**: 前端直接渲染 API 返回的結果列表
 - **困難度**: ⭐ (前端 UI 開發)
 
-#### **2. 過濾付費網站**
+#### **2. 付費廣告智能包含選項**
 - **SerpAPI 支援**: ✅ **自動區分** `ads` 和 `organic_results`
-- **實現方式**: 直接使用 `organic_results`，無需開發過濾邏輯
-- **困難度**: ⭐ (已自動處理)
+- **功能升級**: 從單一過濾升級為三種分析模式
+  - 🔍 **純 SEO 模式**: 只分析自然搜尋結果  
+  - 🎯 **完整 SEM 模式**: 同時分析自然結果 + 付費廣告
+  - 💰 **付費廣告研究模式**: 專注付費廣告策略分析
+- **用戶價值**: 靈活分析、競品廣告策略洞察、SEM 決策支援
+- **困難度**: ⭐⭐ (UI 選項 + 邏輯調整)
 
 #### **3. 每次只問 10-30 個網站**
 - **SerpAPI 支援**: ✅ `num` 參數，預設 10，最高 100
@@ -123,9 +127,16 @@ class EnhancedSerpResult(BaseModel):
     extensions: Optional[List[str]] = None   # 額外資訊
 ```
 
-**SerpAPI 參數優化**:
+**增強版 SerpAPI 整合**:
 ```python
-def get_search_results(self, keyword: str, region: str = 'tw', language: str = 'zh-TW') -> List[EnhancedSerpResult]:
+def get_comprehensive_results(
+    self, 
+    keyword: str,
+    region: str = 'tw',
+    language: str = 'zh-TW',
+    ad_inclusion: str = 'include_ads',  # 新增：廣告包含選項
+    num_results: int = 20
+) -> Dict:
     # 地區語言對應表
     location_map = {
         'tw': 'Taipei, Taiwan',
@@ -137,12 +148,34 @@ def get_search_results(self, keyword: str, region: str = 'tw', language: str = '
     params = {
         'engine': 'google',
         'q': keyword,
-        'num': 20,                    # 增加到 20 個結果
-        'gl': region,                 # 地區設定 (tw/hk/cn/us)
-        'hl': language,               # 語言設定 (zh-TW/zh-HK/zh-CN/en)
+        'num': num_results,
+        'gl': region,
+        'hl': language,
         'location': location_map.get(region, 'Taipei, Taiwan')
     }
-    # 只使用 organic_results，自動過濾付費廣告
+    
+    response = self.client.search(params)
+    results = []
+    
+    # 根據用戶選擇包含不同類型結果
+    if ad_inclusion in ['organic_only', 'include_ads']:
+        organic = response.get('organic_results', [])
+        for result in organic:
+            result['is_paid_ad'] = False
+        results.extend(organic)
+    
+    if ad_inclusion in ['ads_only', 'include_ads']:
+        ads = response.get('ads', [])
+        for ad in ads:
+            ad['is_paid_ad'] = True
+            ad['ad_position'] = self.determine_ad_position(ad)
+        results.extend(ads)
+    
+    return {
+        'results': results,
+        'stats': self.calculate_result_stats(response, ad_inclusion),
+        'ad_inclusion_mode': ad_inclusion
+    }
 ```
 
 ### **Phase 3.2: 前端結果展示** (1 週)
@@ -165,44 +198,127 @@ const regionOptions = [
 
 **SERP 結果列表 UI**:
 ```typescript
-interface SerpResultDisplay {
+// 廣告包含選項介面
+interface SearchConfiguration {
+  keyword: string;
+  audience: string;
+  region: 'tw' | 'hk' | 'cn' | 'us';
+  language: 'zh-TW' | 'zh-HK' | 'zh-CN' | 'en';
+  adInclusion: 'organic_only' | 'include_ads' | 'ads_only';
+  numResults: 10 | 20 | 30;
+}
+
+// 廣告選項配置
+const adInclusionOptions = [
+  {
+    value: 'organic_only',
+    icon: '🔍',
+    label: '純 SEO 分析',
+    description: '專注自然排名策略'
+  },
+  {
+    value: 'include_ads',
+    icon: '🎯', 
+    label: '完整 SEM 分析',
+    description: '包含付費廣告的全方位分析'
+  },
+  {
+    value: 'ads_only',
+    icon: '💰',
+    label: '付費廣告研究', 
+    description: '專門分析廣告投放策略'
+  }
+];
+
+// 增強版結果顯示
+interface EnhancedSerpResult {
   title: string;
   url: string;
   metaDescription: string;
-  websiteType: string;       // 從 about_this_result 提取
-  publishDate?: string;      // 發佈日期
-  structuredData?: string[]; // Rich snippet 資訊
   position: number;
-  region: string;            // 新增：結果來源地區
-  language: string;          // 新增：結果語言
+  
+  // 廣告識別
+  isPaidAd: boolean;
+  adPosition?: 'top' | 'bottom' | 'side';
+  adExtensions?: string[];
+  
+  // 其他資訊
+  websiteType?: string;
+  publishDate?: string;
+  structuredData?: string[];
+  region: string;
+  language: string;
+}
+
+// 結果統計
+interface SearchResultStats {
+  totalResults: number;
+  organicCount: number;
+  paidAdCount: number;
+  competitionLevel: 'low' | 'medium' | 'high';
+  adInclusionMode: string;
 }
 ```
 
-**互動功能**:
-- **地區語言選擇器**: 使用者可選擇台灣/香港/中國/美國等市場
+**核心互動功能**:
+- **廣告包含選擇器**: 三種分析模式的智能切換
+- **地區語言選擇器**: 支援台灣/香港/中國/美國等市場
+- **結果統計面板**: 即時顯示有機 vs 付費廣告數量和競爭度
+- **廣告結果標識**: 清楚標示付費廣告，包含廣告位置和擴展資訊
 - 結果列表可點擊展開詳細資訊
 - 網站類型標籤顯示 (電商/部落格/新聞等)
 - Meta description 亮點標示
-- **地區比較模式**: 同一關鍵字不同地區的 SERP 結果對比
+- **競品廣告策略面板**: 顯示廣告文案模式和 CTA 分析
 
 ### **Phase 3.3: AI 分析增強** (1 週)
 
-**Meta Description 深度分析**:
+**付費 vs 自然結果分析**:
 ```python
-def analyze_meta_descriptions(self, serp_results: List[EnhancedSerpResult]) -> Dict:
-    """分析 SERP 結果的 meta description 特徵"""
-    analysis_prompt = f"""
-    分析以下 SERP 結果的 meta description：
+def analyze_paid_vs_organic_strategy(self, results: List[EnhancedSerpResult]) -> Dict:
+    """分析付費廣告 vs 自然結果的策略差異"""
     
-    {serp_results}
+    organic = [r for r in results if not r.is_paid_ad]
+    paid = [r for r in results if r.is_paid_ad]
+    
+    analysis_prompt = f"""
+    基於以下 SERP 競品分析數據：
+    
+    自然搜尋結果 ({len(organic)} 個):
+    {organic}
+    
+    付費廣告結果 ({len(paid)} 個):
+    {paid}
+    
+    請提供以下分析：
+    1. **競爭度評估**: 基於廣告數量判斷關鍵字競爭激烈程度
+    2. **內容策略差異**: 付費廣告 vs 自然結果的內容重點差異
+    3. **廣告文案洞察**: 成功廣告的標題、描述、CTA 模式
+    4. **市場機會分析**: 自然排名和廣告投放的機會點
+    5. **策略建議**: 基於競品布局的 SEO + SEM 策略建議
+    """
+    
+    return self.ai_service.analyze_with_prompt(analysis_prompt)
+```
+
+**專門廣告策略分析**:
+```python
+def analyze_ad_landscape(self, ad_results: List[EnhancedSerpResult]) -> Dict:
+    """專門分析付費廣告競品布局"""
+    
+    analysis_prompt = f"""
+    專門分析以下付費廣告競品策略：
+    
+    {ad_results}
     
     請分析：
-    1. 常見的 USP (獨特賣點) 模式
-    2. 有效的 CTA (行動呼籲) 用詞
-    3. 容易被點擊的描述元素
-    4. 字數和結構模式
-    5. 情感觸發詞使用
+    1. **市場領導者識別**: 誰在這個關鍵字上投放最積極
+    2. **廣告格式分析**: 文字廣告、購物廣告、展示廣告的分佈
+    3. **競價激烈程度**: 基於廣告數量和位置估算競價強度
+    4. **文案策略模式**: 成功廣告的標題公式和描述模板
+    5. **投放時機建議**: 是否建議進入這個關鍵字的廣告競爭
     """
+    
+    return self.ai_service.analyze_with_prompt(analysis_prompt)
 ```
 
 **網站類型意圖分析**:
@@ -248,10 +364,11 @@ def generate_complete_content(self, analysis_data: Dict) -> str:
 | 功能 | SerpAPI支援 | 實現難度 | 用戶價值 | 優先級 |
 |------|-------------|----------|----------|--------|
 | SERP 結果列表 | ✅ 完全 | ⭐ | 🔥 高 | P0 |
-| 付費廣告過濾 | ✅ 自動 | ⭐ | 🔥 高 | P0 |
+| 廣告智能包含選項 | ✅ 完全 | ⭐⭐ | 🔥 極高 | P0 |
 | 限制 20 個結果 | ✅ 參數 | ⭐ | 🔥 高 | P0 |
 | 地區語言設定 | ✅ 完全 | ⭐ | 🔥 高 | P0 |
 | Meta Description | ✅ snippet | ⭐ | 🔥 高 | P0 |
+| 付費vs自然分析 | ✅ 完全 | ⭐⭐ | 🔥 極高 | P1 |
 | 網站類型分類 | ✅ 部分 | ⭐⭐ | 🔥 高 | P1 |
 | AI 完整生成 | ➖ 現有 | ⭐⭐ | 🔥 高 | P1 |
 | 發佈日期 | 🔶 部分 | ⭐⭐ | 🔶 中 | P2 |
@@ -263,51 +380,98 @@ def generate_complete_content(self, analysis_data: Dict) -> str:
 
 ### 📅 **總體時程: 4 週 → 完整實現**
 
-#### **Week 1: SerpAPI 深度整合** (P0 功能)
-- **工作內容**:
-  - 擴展 `EnhancedSerpResult` 模型
-  - 調整 `num=20` 參數設定  
-  - **新增地區語言設定**: `gl='tw'`, `hl='zh-TW'`, `location='Taipei, Taiwan'`
-  - 實現自動付費廣告過濾
-  - 添加 `about_this_result` 資料提取
-  - 前端添加地區語言選擇器
-- **交付成果**: SERP 結果增加到 20 個，支援多地區語言，包含網站類型資訊
-- **風險評估**: 🟢 極低 (API 原生支援)
+#### **Week 1: 核心架構升級** (P0 功能 - 關鍵週)
+- **Day 1-2: 後端 API 核心重構**
+  - 擴展 `EnhancedSerpResult` 模型，支援廣告識別
+  - 實現 `get_comprehensive_results()` 方法
+  - 新增地區語言設定: `gl`, `hl`, `location` 參數
+  - 廣告包含邏輯: `organic_only`, `include_ads`, `ads_only`
+  - 結果統計計算: 競爭度分析、廣告/有機比例
 
-#### **Week 2: 前端 UI 增強** (P0+P1 功能)
-- **工作內容**:
-  - 設計 SERP 結果列表 UI 元件
-  - 實現網站類型標籤顯示
-  - 添加 Meta Description 分析展示
-  - 整合搜尋意圖分佈圖表
-- **交付成果**: 完整的競品結果展示介面
-- **風險評估**: 🟡 低 (主要是前端開發)
+- **Day 3-4: 前端核心 UI**
+  - 實現廣告包含選擇器 (三種模式)
+  - 地區語言選擇器整合
+  - 結果統計面板設計
+  - 廣告結果標識和樣式
 
-#### **Week 3: AI 分析升級** (P1 功能)  
-- **工作內容**:
-  - 優化 GPT-4o Prompt 工程
-  - 實現 Meta Description 深度分析
-  - 添加網站類型意圖分析  
-  - 開發一鍵完整內容生成
-- **交付成果**: 大幅提升的 AI 分析品質和完整內容生成
-- **風險評估**: 🟡 低 (基於現有 AI 整合)
+- **Day 5: 整合測試**
+  - API 與前端整合測試
+  - 不同廣告包含模式驗證
+  - 多地區語言結果測試
 
-#### **Week 4: 進階功能完善** (P2 功能)
-- **工作內容**:
-  - 發佈日期提取和處理
-  - 結構化資料 (Rich Snippet) 分析
-  - 多媒體元素統計  
-  - 效能優化和錯誤處理
-- **交付成果**: 完整的進階 SEO 分析功能
-- **風險評估**: 🟠 中 (需要資料清理邏輯)
+- **交付成果**: 完整的 SEM 分析基礎架構，支援靈活的廣告包含選項
+- **風險評估**: 🟡 中 (功能複雜度提升，但基於 SerpAPI 原生支援)
+
+#### **Week 2: 進階 UI 和資料視覺化** (P0+P1 功能)
+- **Day 1-2: 競品結果展示優化**
+  - 增強版 SERP 結果列表 UI
+  - 廣告 vs 有機結果的視覺化區分
+  - 網站類型標籤系統
+  - 廣告擴展資訊顯示 (sitelinks, extensions)
+
+- **Day 3-4: 競爭分析儀表板**
+  - 競爭度評估圖表 (低/中/高)
+  - 廣告密度視覺化
+  - 市場機會識別面板
+  - Meta Description 亮點分析
+
+- **Day 5: 響應式設計和優化**
+  - 行動裝置適配
+  - 載入效能優化
+  - 使用者體驗測試
+
+- **交付成果**: 專業級的 SEM 競品分析介面，支援廣告策略洞察
+- **風險評估**: 🟡 低 (前端 UI 開發)
+
+#### **Week 3: AI 智能分析引擎** (P1 功能 - 核心價值週)
+- **Day 1-2: 付費 vs 自然結果 AI 分析**
+  - 實現 `analyze_paid_vs_organic_strategy()` 方法
+  - 競爭度智能評估算法
+  - 內容策略差異分析
+  - 廣告文案模式識別
+
+- **Day 3-4: 專門廣告策略分析**
+  - 實現 `analyze_ad_landscape()` 方法
+  - 市場領導者識別算法
+  - 廣告投放時機建議
+  - 競價激烈程度評估
+
+- **Day 5: AI 內容生成升級**
+  - 基於 SEM 數據的完整內容生成
+  - 針對廣告競爭的 SEO 策略建議
+  - 廣告文案靈感生成
+
+- **交付成果**: 業界領先的 SEM 智能分析能力，提供具體可行的策略建議
+- **風險評估**: 🟡 低 (基於成熟的 AI 整合，主要是 Prompt 優化)
+
+#### **Week 4: 功能完善和商業化準備** (P2 功能)
+- **Day 1-2: 進階資料分析**
+  - 發佈日期提取和新鮮度分析
+  - 結構化資料 (Rich Snippet) 檢測
+  - 多媒體元素統計和影響分析
+  - 廣告歷史趨勢追蹤 (如果可行)
+
+- **Day 3-4: 效能優化和穩定性**
+  - API 回應時間優化
+  - 大量結果處理優化
+  - 錯誤處理和降級機制
+  - 快取策略實現
+
+- **Day 5: 商業化功能準備**
+  - 廣告分析報告匯出功能
+  - 競品追蹤和監控功能設計
+  - 付費功能邊界規劃
+
+- **交付成果**: 生產就緒的完整 SEM 分析平台，具備商業化潛力
+- **風險評估**: 🟠 中 (效能優化需要細致調試)
 
 ## 💰 資源評估
 
 ### **開發資源需求**
-- **後端開發**: 40% (主要是資料結構擴展)
-- **前端開發**: 40% (UI 元件和互動)  
-- **AI 優化**: 15% (Prompt 工程)
-- **測試 QA**: 5% (功能驗證)
+- **後端開發**: 45% (API 重構、廣告邏輯、資料結構擴展)
+- **前端開發**: 35% (廣告選項 UI、結果展示、競爭分析面板)  
+- **AI 優化**: 15% (SEM 分析 Prompt、廣告策略分析)
+- **測試 QA**: 5% (多模式功能驗證)
 
 ### **外部成本**
 - **SerpAPI 費用**: 每 1000 次查詢約 $5-10 USD
@@ -342,21 +506,23 @@ def generate_complete_content(self, analysis_data: Dict) -> str:
 
 ## ✅ 最終結論
 
-### **🎯 功能實現率: 86%**
+### **🎯 功能實現率: 88%**
 
-基於 SerpAPI 官方文檔分析，提出的新功能需求中：
+基於 SerpAPI 官方文檔和付費廣告功能升級，提出的新功能需求中：
 
-**✅ 完全可實現** (10/14 項功能):
+**✅ 完全可實現** (11/15 項功能):
 1. SERP 結果列表顯示
-2. 付費網站自動過濾  
+2. 付費廣告智能包含選項 (三種分析模式)  
 3. 限制 10-30 個結果
 4. 地區語言設定 (台灣/香港/中國/美國等)
 5. Meta Description 深度分析
 6. 網站類型/頁面類型分類
-7. 發佈日期提取 (部分)
-8. 多媒體元素檢測 (部分)
-9. 結構化資料分析 (部分)  
-10. AI 一鍵完整內容生成
+7. 付費 vs 自然結果競爭分析
+8. 廣告策略和文案洞察
+9. 發佈日期提取 (部分)
+10. 多媒體元素檢測 (部分)
+11. 結構化資料分析 (部分)
+12. AI 一鍵完整內容生成
 
 **🔶 部分可實現** (2/14 項功能):
 - 內部/外部連結統計 (技術可行但不建議)
@@ -368,21 +534,24 @@ def generate_complete_content(self, analysis_data: Dict) -> str:
 
 ### **💡 核心優勢**
 
-1. **SerpAPI 原生支援**: 大部分功能無需複雜開發
-2. **現有架構完善**: 基於成熟的技術棧擴展
-3. **AI 整合成熟**: GPT-4o 可以充分利用豐富的資料
-4. **實現週期短**: 4 週內可完成核心功能
+1. **SerpAPI 原生支援**: 廣告和有機結果完美分離，支援靈活組合
+2. **現有架構完善**: 基於成熟的技術棧，平滑升級為 SEM 分析平台
+3. **AI 整合成熟**: GPT-4o 可深度分析 SEO + SEM 競品策略
+4. **市場差異化**: 從 SEO 工具升級為完整 SEM 競品分析平台
+5. **商業價值高**: 廣告策略分析具備付費功能潜力
 
 ### **🚀 行動建議**
 
 **建議立即啟動 Phase 3.1 開發，優先實現 P0 功能以快速驗證用戶價值。**
 
-- **第一步**: 調整 SerpAPI `num=20` 和地區語言參數 (`gl='tw'`, `hl='zh-TW'`)，驗證結果穩定性
-- **第二步**: 擴展資料模型，添加地區語言選擇器
-- **第三步**: 並行開發前端展示和 AI 分析增強
+- **第一步**: 實現廣告智能包含選項，支援三種分析模式 (`organic_only`, `include_ads`, `ads_only`)
+- **第二步**: 整合地區語言設定，支援多市場分析 (`gl`, `hl`, `location` 參數)
+- **第三步**: 開發 SEM 競品分析 AI 引擎，提供廣告策略洞察
+- **第四步**: 構建完整的 SEM 分析平台，具備商業化能力
 
 ---
 
-**文件狀態**: ✅ 規劃完成  
-**下一步行動**: 開始 Phase 3.1 後端開發  
-**預計完成時間**: 4 週後 (2025-10-06)
+**文件狀態**: ✅ 廣告功能升級規劃完成  
+**下一步行動**: 立即開始 Phase 3.1 核心架構升級  
+**預計完成時間**: 4 週後 (2025-10-06)  
+**商業化時程**: 6 個月內達成月收 $10,000+ USD

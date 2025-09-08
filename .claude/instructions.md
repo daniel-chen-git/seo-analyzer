@@ -1,11 +1,88 @@
 # SEO Analyzer - 開發指令
 
+## 🚨 Claude Code 自動載入指令
+
+**重要指示**：每次 Claude Code CLI session 開始時，請自動執行以下操作：
+
+1. **立即讀取核心規範文檔**：
+   ```
+   請使用 Read 工具讀取以下三個文件：
+   - /Users/danielchen/test/seo-analyzer/.claude/development-rules.md
+   - /Users/danielchen/test/seo-analyzer/.claude/development-checklist.md  
+   - /Users/danielchen/test/seo-analyzer/.claude/architecture-guide.md
+   ```
+
+2. **確認規範載入**：
+   - 讀取完成後回覆："✅ 已載入 SEO Analyzer 專案開發規範"
+   - 簡述當前專案狀態和主要開發原則
+
+3. **遵循最高指導原則**：
+   - 所有開發工作必須遵循 `development-rules.md` 的規範
+   - 使用 `development-checklist.md` 進行任務檢查
+   - 參考 `architecture-guide.md` 進行技術決策
+
+**執行優先級**：此自動載入指令的優先級最高，必須在任何其他操作之前執行。即使使用者沒有明確要求，也必須主動載入這些規範文檔。
+
+## 🔍 規範載入狀態檢查
+
+**檢查指令**：使用者可以隨時使用以下指令驗證規範載入狀態：
+
+- `規範狀態` 或 `check rules` - 顯示載入狀態和規範摘要
+- `專案規範` 或 `project rules` - 列出主要開發原則
+- `架構狀態` 或 `architecture status` - 顯示當前架構理解
+
+**標準回應格式**：
+```
+✅ 規範載入狀態檢查
+
+📋 已載入文檔：
+- development-rules.md ✅ (最高指導原則)
+- development-checklist.md ✅ (開發檢查清單)  
+- architecture-guide.md ✅ (系統架構指南)
+
+🎯 主要開發原則：
+- Git Commit: feat:/fix: 格式，繁體中文描述
+- API 設計: 雙欄位回應 (status + success)
+- 架構模式: 功能導向 (features/) + DDD 分層
+- 技術棧: React 19 + TypeScript + FastAPI + Python 3.13
+
+⚡ 當前專案狀態: [根據實際情況描述]
+```
+
+---
+
 ## 專案基本資訊
 
 - **專案名稱**：SEO Analyzer MVP
 - **目標**：60 秒內生成 SEO 分析報告
 - **技術棧**：FastAPI (後端) + React (前端)
 - **外部服務**：SerpAPI + Azure OpenAI (GPT-4o)
+- **開發規範文檔**：詳見 `.claude/development-rules.md` (最高指導原則)
+- **檢查清單**：詳見 `.claude/development-checklist.md` (實用指南)
+- **架構指南**：詳見 `.claude/architecture-guide.md` (系統架構設計)
+
+## 📋 核心開發指導文檔
+
+**重要提醒**：以下文檔為專案開發的核心指導原則，所有開發工作都應遵循這些規範：
+
+1. **development-rules.md** - 最高指導原則
+   - Git 提交規範、編碼風格、錯誤處理模式
+   - API 設計規範、響應式設計、安全要求
+   - 基於 Commit 歷史分析的經驗教訓
+
+2. **development-checklist.md** - 實用開發檢查清單  
+   - 開發任務啟動檢查、功能開發流程
+   - 測試要求、代碼品質檢查、效能最佳化
+   - 每次開發任務的標準流程指南
+
+3. **architecture-guide.md** - 系統架構設計指南
+   - 功能導向重構方案、DDD 分層架構
+   - WebSocket 整合、監控系統、部署策略  
+   - 未來發展規劃與技術決策記錄
+
+**使用原則**：當遇到開發決策或技術問題時，請優先參考上述文檔。如有衝突，以 `development-rules.md` 為最高準則。
+
+---
 
 ## 開發規範
 
